@@ -41,8 +41,3 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# pipeline intermediates (large/regeneratable)
-data/embeddings.npy
-data/raw_videos.jsonl
-data/clusters.json
-data/metadata.json
