@@ -1,0 +1,2245 @@
+{
+  "version": "1.0",
+  "generated_at": "2026-05-22",
+  "total_niches": 109,
+  "tree": [
+    {
+      "id": "cat_0",
+      "name": "Mindful Living",
+      "description": "A category focused on creating a serene and organized environment through minimalism and sensory experiences.",
+      "children": [
+        {
+          "id": "c0_m0",
+          "name": "ASMR Cleaning Aesthetics",
+          "description": "Content creators focus on satisfying and aesthetically pleasing cleaning routines, often incorporating ASMR elements to enhance relaxation and motivation.",
+          "keywords": [
+            "ASMR",
+            "cleaning",
+            "satisfying",
+            "organization",
+            "reset"
+          ],
+          "video_count": 43,
+          "sample_titles": [
+            "ASMR Satisfying Clean With Me \ud83e\udee7 #clean #cleaningmotivation #asmr #closetorganization #declutter",
+            "ASMR \u2728 satisfying restock and clean with me #asmr #momlife #cleaning #organization #fridgerestock",
+            "Clean with me while I MOVE!!!!\ud83e\udd22 #move #apartment #cleaning #satisfying",
+            "ASMR Home Reset Clean \ud83e\ude75 #cleaning #asmr #home #satisfying #viralvideo #fyp #shorts #momlife",
+            "clean with me #cleaning #cleanwithme #clean #satisfying #minivlog #motivation #shorts #shortsvideo"
+          ]
+        },
+        {
+          "id": "c0_m1",
+          "name": "Minimalist Decluttering Journey",
+          "description": "Content creators share their personal experiences and tips on embracing minimalism through decluttering and simplifying their lives.",
+          "keywords": [
+            "minimalism",
+            "decluttering",
+            "organization",
+            "mindful living",
+            "clean home"
+          ],
+          "video_count": 43,
+          "sample_titles": [
+            "30 DAY MINIMALISM CHALLENGE in ONE DAY #decluttering #momlife",
+            "Here\u2019s to decluttering #declutter #minimalism",
+            "The 1% rule #declutter #minimalism",
+            "Minimal & clutter-free home \ud83e\ude77 #cleaningenthusiast #cleaningtips #minimalism #declutter",
+            "Operation minimalism underway #becomingaminimalist #decluttering #speedclean #cleanwithme #organize"
+          ]
+        },
+        {
+          "id": "c0_noise",
+          "name": "Minimalist Lifestyle Hacks",
+          "description": "Content creators focused on decluttering, minimalism, and home organization tips to simplify life and enhance living spaces.",
+          "keywords": [
+            "minimalism",
+            "decluttering",
+            "home hacks",
+            "cleaning motivation",
+            "organization"
+          ],
+          "video_count": 15,
+          "sample_titles": [
+            "Day in my life \u2022 #dayinmylife #cleangirl #aesthetic #itgirl #cute #roomdecor #fyp #viral #christmas",
+            "I never WANT to declutter again\u2026 #minimalism #shorts",
+            "Why I Don't Buy Organisers #minimalism #nobuy #declutter",
+            "Tips: How to Declutter Like A Pro // Fumio Sasaki // #decluttering #minimalism Declutter your life",
+            "12 HOME HACKS HIDE VISUAL CLUTTER #declutter #tidyhome #homehacks"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cat_1",
+      "name": "Morning Routines",
+      "description": "A collection of various routines and practices designed to enhance productivity, wellness, and aesthetics during the morning hours.",
+      "children": [
+        {
+          "id": "c1_noise",
+          "name": "Morning Yoga & Mobility Routines",
+          "description": "Content creators share short-form videos focused on morning yoga practices and mobility exercises to enhance wellness and productivity.",
+          "keywords": [
+            "morning routine",
+            "yoga",
+            "mobility",
+            "wellness",
+            "stretching"
+          ],
+          "video_count": 121,
+          "sample_titles": [
+            "4 am routine \ud83e\udd38\ud83c\udffc\u200d\u2640\ufe0f #fitness #productivity #morningroutine #dayinmylife #morning motivation #gym",
+            "Healthy Daily Morning Stretch!  Dr. Mandell",
+            "yoga grwm \ud83e\uddd8\u200d\u2640\ufe0f\ud83e\ude77 #aesthetic",
+            "5 mobility exercises (morning routine) \u2705 #mobility",
+            "Morning Yoga! Stretch, breathe, sing along and greet the day with @yogapalooza!"
+          ]
+        },
+        {
+          "id": "c1_m13",
+          "name": "Aesthetic Morning Skincare",
+          "description": "Content creators share visually pleasing and satisfying morning skincare routines, often incorporating ASMR elements and aesthetic themes.",
+          "keywords": [
+            "morning routine",
+            "skincare",
+            "self-care",
+            "ASMR",
+            "aesthetic"
+          ],
+          "video_count": 15,
+          "sample_titles": [
+            "MORNING SKINCARE ROUTINE | aesthetic asmr",
+            "My morning skin care routine \ud83e\udee7\ud83e\uddfc\ud83c\udf38\ud83d\udc95 #morningroutine #selfcare",
+            "morning skincare routine\u2615\ufe0f\ud83e\udee7 #selfcareroutine #aesthetic #asmr #morningroutine #skincareroutine",
+            "morning skincare routine\ud83d\udc97 #aesthetic #asmr #skincare #selfcare #skincareroutine #pink #fyp #shorts",
+            "Morning routine #skincare #mymorningroutine #grwm #asmr #preppy #pink #cleangirl #thatgirl"
+          ]
+        },
+        {
+          "id": "c1_m0",
+          "name": "Morning Mobility Routines",
+          "description": "Content creators focus on short, effective routines that enhance flexibility, energy, and mindfulness through morning stretches and yoga practices.",
+          "keywords": [
+            "morning stretches",
+            "yoga",
+            "pranayama",
+            "Qigong",
+            "flexibility",
+            "energy",
+            "mindfulness",
+            "wellness"
+          ],
+          "video_count": 8,
+          "sample_titles": [
+            "Do These 5 Stretches Every Morning to Feel 10 Years Younger",
+            "5 easy morning stretches",
+            "7-step morning routine will stretch and strengthen your body. #MorningRoutine #FlexibilityGoals",
+            "5 Morning Stretches to Feel Active",
+            "Daily Pranayama Routine for Health Benefits | Boost Your Energy & Calm Your Mind #shilpashetty"
+          ]
+        },
+        {
+          "id": "c1_m3",
+          "name": "Early Morning Productivity Routines",
+          "description": "Content creators share effective morning routines designed to boost productivity and motivation before the workday begins.",
+          "keywords": [
+            "morning routine",
+            "productivity",
+            "motivation",
+            "self-improvement",
+            "time management"
+          ],
+          "video_count": 5,
+          "sample_titles": [
+            "4 AM PRODUCTIVE morning routine before the work day #morningroutine #productive  #motivation",
+            "Effective Morning Routine to Follow",
+            "Productive morning routine\u26a1\ufe0f #morningroutine",
+            "Productive Morning Routine",
+            "Productive Morning Routine"
+          ]
+        },
+        {
+          "id": "c1_m8",
+          "name": "Aesthetic Morning Study Routines",
+          "description": "Content creators share visually pleasing and motivational morning study routines aimed at students seeking productivity and tranquility.",
+          "keywords": [
+            "5 AM",
+            "study with me",
+            "morning routine",
+            "aesthetic",
+            "study motivation"
+          ],
+          "video_count": 5,
+          "sample_titles": [
+            "romanticizing my 5:30 AM student morning routine \ud83c\udf42 | cozy fall study vlog",
+            "The Ultimate 5 AM Productive Study Routine | Aesthetic 'Study With Me' Vlog",
+            "Aesthetic Study With Me \u2728 | A Productive Morning Routine for Motivation \ud83d\udcda",
+            "4:30AM Productive Study Vlog \ud83c\udf05\u2615 | Aesthetic Morning Routine + Study With Me (Student Motivation)",
+            "Aesthetic Quiet Morning Study Vlog \ud83c\udf3f | Productive & Peaceful \u2018Study With Me"
+          ]
+        },
+        {
+          "id": "c1_m11",
+          "name": "ASMR School Morning Routines",
+          "description": "Content creators share aesthetic and realistic morning routines for students, often incorporating ASMR elements.",
+          "keywords": [
+            "asmr",
+            "morning routine",
+            "vlog",
+            "grwm",
+            "aesthetic"
+          ],
+          "video_count": 5,
+          "sample_titles": [
+            "asmr highschool morning routine vlog #grwm #aesthetic",
+            "come spend a realistic 7am morning routine before school with me #grwm #vlog",
+            "asmr grwm routine #aesthetic #trending",
+            "realistic school morning routine vlog #grwm #aesthetic",
+            "asmr productive weekend morning routine vlog #aesthetic #grwm"
+          ]
+        },
+        {
+          "id": "c1_m4",
+          "name": "Makeup Routine Storytime",
+          "description": "Content creators share their get-ready-with-me makeup routines while incorporating personal stories and experiences.",
+          "keywords": [
+            "grwm",
+            "makeup",
+            "skincare",
+            "morning routine",
+            "storytime"
+          ],
+          "video_count": 4,
+          "sample_titles": [
+            "#grwm with my favourite makeup routine\u2764\ufe0f Full version\ud83d\udc46\ud83c\udffc\ud83d\udc46\ud83c\udffc\ud83d\udc46\ud83c\udffc",
+            "grwm\u2744\ufe0f #winter #grwm #makeup #makeuptutorial #skincare #getreadywithme #wintermakeup",
+            "\u2728GRWM\u2728  #grwm #morningroutine #makeup",
+            "grwm + storytime #grwm #beautygrwm #grwmcosmetics #grwmskincare #makeuptutorial #makeup #makeupvideo"
+          ]
+        },
+        {
+          "id": "c1_m6",
+          "name": "Skincare Routine Tutorials",
+          "description": "Content creators share detailed skincare routines for different times of the day, focusing on achieving clear and glowing skin.",
+          "keywords": [
+            "skincare",
+            "routine",
+            "nighttime",
+            "morning",
+            "glow"
+          ],
+          "video_count": 4,
+          "sample_titles": [
+            "my 8-step nighttime skincare routine \ud83c\udf1b\u2728",
+            "Morning skincare routine for clear glowy skin! #skincare",
+            "IMPRESSIVE Nighttime Skincare Routine. #skincare #dermreacts",
+            "evening skincare routine\ud83e\udee7 #skincareroutine #nighttime #nightroutine #eveningroutine #aesthetic"
+          ]
+        },
+        {
+          "id": "c1_m7",
+          "name": "Elite Student Morning Routines",
+          "description": "This content is created by college students showcasing their structured morning routines aimed at maximizing productivity and academic success.",
+          "keywords": [
+            "morning routine",
+            "college",
+            "productivity",
+            "study tips"
+          ],
+          "video_count": 4,
+          "sample_titles": [
+            "5:30AM Stanford Student Morning Routine \u2728 #vlog #productivity #studywithme #studytips #college",
+            "6:00AM Stanford University Morning Routine \ud83d\udcab #college #vlog #studywithme #productivity #studytips",
+            "5:30am morning routine at stanford university \ud83d\udcab #vlog #collegelife #studytips #productivity",
+            "6am harvard productive morning routine #vlog #dayinmylife #morningroutine"
+          ]
+        },
+        {
+          "id": "c1_m9",
+          "name": "Aesthetic Study Vlogs",
+          "description": "Content creators share their cozy and productive study routines through visually pleasing vlogs.",
+          "keywords": [
+            "study day",
+            "aesthetic",
+            "productivity",
+            "cozy routine",
+            "student life"
+          ],
+          "video_count": 4,
+          "sample_titles": [
+            "Study Day at Home \ud83d\udc98| Calm Productivity + Cozy Routine | Aesthetic Study Vlog",
+            "Aesthetic Study Vlog \ud83d\udcda\u2728 | Productive Yet Cozy Day in My Life",
+            "Study Day at Home \ud83d\udc98| Calm Productivity + Cozy Routine | Aesthetic Study Vlog",
+            "Study Day at Home \ud83d\udc98| Calm Productivity + Cozy Routine | Aesthetic Study Vlog"
+          ]
+        },
+        {
+          "id": "c1_m10",
+          "name": "Aesthetic Student Routines",
+          "description": "This content is created by students showcasing their cozy and productive after-school routines, focusing on study motivation and aesthetic vibes.",
+          "keywords": [
+            "aesthetic routine",
+            "productive vlog",
+            "cozy fall routine",
+            "study motivation",
+            "student vlog"
+          ],
+          "video_count": 4,
+          "sample_titles": [
+            "\u2728 Cozy & Productive After School Routine | Aesthetic Student VLOG \ud83d\udcda",
+            "Becoming THAT Girl: My Aesthetic After-School Routine \ud83c\udf42 | Cozy Fall Study Vlog",
+            "Cozy After-School Study Vlog \u2615\ufe0f A Rainy Day with Me | Study Motivation",
+            "Aesthetic after school routine \ud83d\udd6f\ufe0f | cozy fall vibes, studying & unwinding (study with me)"
+          ]
+        },
+        {
+          "id": "c1_m12",
+          "name": "ASMR Morning Routines",
+          "description": "Content creators share their calming and productive morning routines through ASMR techniques, often featuring aesthetic visuals and sounds.",
+          "keywords": [
+            "ASMR",
+            "morning routine",
+            "vlog",
+            "productivity",
+            "self-care"
+          ],
+          "video_count": 4,
+          "sample_titles": [
+            "my 8am morning routine \ud83d\udc96 #morningroutine #asmrroutine #aestheticvlog #vlog",
+            "4 AM ASMR morning routine  #asmr #morningroutine #dayinmylife #morninginmylife #morningvlog #vlog",
+            "asmr morning routine \ud83c\udf1e *productive*",
+            "ASMR 6am productive morning routine vlog \ud83e\udd0d #asmr #morningroutine #vlog"
+          ]
+        },
+        {
+          "id": "c1_m1",
+          "name": "Teen Morning Routines",
+          "description": "Content created by teenagers showcasing their morning routines focused on productivity and study habits.",
+          "keywords": [
+            "morning routine",
+            "productivity",
+            "teenager",
+            "student life",
+            "self-improvement"
+          ],
+          "video_count": 3,
+          "sample_titles": [
+            "My productive morning routine as a 16 year old student",
+            "My productive morning routine as a 16 year old student",
+            "My productive morning routine as a 15 year old student"
+          ]
+        },
+        {
+          "id": "c1_m2",
+          "name": "Aesthetic Pilates Routines",
+          "description": "Content creators share visually pleasing morning Pilates routines that emphasize self-care and aesthetic appeal.",
+          "keywords": [
+            "Pilates",
+            "morning routine",
+            "self-care",
+            "aesthetic",
+            "vlog"
+          ],
+          "video_count": 3,
+          "sample_titles": [
+            "Pilates morning!\ud83e\ude70\ud83c\udf80 #morningroutine #pilates #selfcareaesthetic #aesthetic #selfcareroutine",
+            "MORNING PILATES ROUTINE \ud83c\udf38 #morningroutine #aesthetic",
+            "PILATES PRINCESS ROUTINE \ud83c\udf80\ud83e\ude70#girlygirl #pilates #morningvlog #morningroutine"
+          ]
+        },
+        {
+          "id": "c1_m5",
+          "name": "College Morning Vlogs",
+          "description": "Content creators share their morning routines and experiences as college students, often featuring get-ready-with-me segments and lifestyle aesthetics.",
+          "keywords": [
+            "college",
+            "morning routine",
+            "vlog",
+            "GRWM",
+            "lifestyle"
+          ],
+          "video_count": 3,
+          "sample_titles": [
+            "COLLEGE MORNING IN MY LIFE | grwm for class vlog #universityofalabama #grwm #college",
+            "COLLEGE MORNING IN MY LIFE | wednesday morning vlog #grwm #vlog #aesthetic #asmr",
+            "school morning vlog! #explore #grwm #vlog #aesthetic"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cat_2",
+      "name": "Fitness Transformation",
+      "description": "A collection of workout routines and motivational content focused on various fitness disciplines and personal transformations.",
+      "children": [
+        {
+          "id": "c2_noise",
+          "name": "Anime-Inspired Gym Motivation",
+          "description": "This content is created by fitness enthusiasts who draw inspiration from anime to motivate and guide their gym journeys, focusing on workouts, transformations, and motivational music.",
+          "keywords": [
+            "gym",
+            "motivation",
+            "anime",
+            "fitness",
+            "transformation"
+          ],
+          "video_count": 126,
+          "sample_titles": [
+            "how my journey started with inspiration from anime #gymgirl #gym #gymmotivation",
+            "Big cleans comin #gym #motivation #gymexercises",
+            "Workout Music 2026 \ud83d\udd25  Best Fitness & Gym Motivation Mix by Max Oazo \u2022 Live Music Radio 24/7",
+            "High Effective Chest Workout for beginners! #music #gym #homeworkout #chest #fitness #chestworkout",
+            "Always make sure you are okay \ud83e\udef6\ud83c\udffb #gym #motivation #weightloss #weightlossjourney #caloriedeficit"
+          ]
+        },
+        {
+          "id": "c2_m4",
+          "name": "HYROX Training & Preparation",
+          "description": "Content creators focus on workouts, training plans, and tips specifically designed for preparing for HYROX races and improving hybrid fitness.",
+          "keywords": [
+            "HYROX",
+            "training",
+            "workout",
+            "hybrid athlete",
+            "fitness challenge"
+          ],
+          "video_count": 44,
+          "sample_titles": [
+            "What is HYROX? | The Race Format",
+            "HYROX Exercise Demo",
+            "The Ultimate HYROX Training Plan for Beginners | My 4-Day Split",
+            "Hyrox ski erg tips! Full video just dropped on my channel #hyrox #hyroxtraining",
+            "What is Hyrox? #hyrox"
+          ]
+        },
+        {
+          "id": "c2_m2",
+          "name": "Weight Loss Transformations",
+          "description": "Content creators share their personal weight loss journeys, showcasing before-and-after transformations and motivational stories.",
+          "keywords": [
+            "weight loss",
+            "transformation",
+            "motivation",
+            "journey",
+            "before and after"
+          ],
+          "video_count": 39,
+          "sample_titles": [
+            "My 25kg Weight Loss Journey | 6 Months Transformation Motivation",
+            "Incredible Weight Loss Transformation",
+            "5 YEAR WEIGHTLOSS | my transformation",
+            "Amazing Weight Loss Transformation #transformation #weightloss",
+            "Man films impressive 90-day body transformation"
+          ]
+        },
+        {
+          "id": "c2_m10",
+          "name": "Wall Pilates Workouts",
+          "description": "Content creators focus on Pilates exercises that utilize wall support for beginners and those seeking low-impact workouts.",
+          "keywords": [
+            "Pilates",
+            "Wall Exercises",
+            "Home Workouts",
+            "Beginner-Friendly",
+            "Low Impact"
+          ],
+          "video_count": 16,
+          "sample_titles": [
+            "15 min Pilates Workout for Beginners",
+            "Wall Pilates Exercises For Toned Thighs #thighworkout #wallpilates",
+            "28PILATES board workout at home beginner friendly",
+            "Transform Your Body with Wall Pilates: A Gentle Yet Powerful Workout",
+            "Before vs After: My Pilates Body Transformation"
+          ]
+        },
+        {
+          "id": "c2_m6",
+          "name": "Gym Motivation and Aesthetics",
+          "description": "This content is created by fitness enthusiasts and athletes focusing on gym motivation, workout routines, and aesthetic physique development.",
+          "keywords": [
+            "#gymmotivation",
+            "#workout",
+            "#fitness",
+            "#bodybuilding",
+            "#powerlifting"
+          ],
+          "video_count": 11,
+          "sample_titles": [
+            "#gymmotivation #workout #fitness #athlete #bodybuilding #powerlifting #gymlife #gymgirl #gym",
+            "I'M ALONE - Gym Motivation \ud83d\ude14",
+            "EGO vs Clean #gym #workout #motivation",
+            "#gymmotivation #workout #fitness #athlete #bodybuilding #powerlifting #gymlife #gymgirl #gym",
+            "#gymmotivation #workout #fitness #athlete #bodybuilding #powerlifting #gymlife #gymgirl #gym"
+          ]
+        },
+        {
+          "id": "c2_m1",
+          "name": "Beginner Yoga Routines",
+          "description": "This content is created by yoga enthusiasts and instructors focusing on accessible daily yoga practices for beginners to enhance health and wellness.",
+          "keywords": [
+            "yoga",
+            "beginners",
+            "morning routine",
+            "daily practice",
+            "yoga poses",
+            "#yogaforbeginners",
+            "#dailyyoga"
+          ],
+          "video_count": 9,
+          "sample_titles": [
+            "Everyday Beginner Yoga for Better Health #shorts #yoga #morningroutine",
+            "5 Yoga Poses Everyone Must Practice Daily | Simple Yoga for Health & Fitness | Daily Yoga Routine",
+            "\u201cSave this reel and practice these yoga poses every morning!\u201d#yoga #yogaforbellyfat #yogaforbeginner",
+            "Morning workout | Yoga Flow #shorts #yoga #fitness",
+            "Top 6 poses For Yoga Beginners\ud83e\udd17Let\u2019s get started.#dailyyoga #yoga #fitness"
+          ]
+        },
+        {
+          "id": "c2_m5",
+          "name": "CrossFit WOD Showcase",
+          "description": "This content is created by CrossFit enthusiasts and trainers, showcasing various workout of the day (WOD) routines and challenges.",
+          "keywords": [
+            "CrossFit",
+            "WOD",
+            "workout",
+            "kettlebell",
+            "upper body"
+          ],
+          "video_count": 8,
+          "sample_titles": [
+            "CrossFit - WOD Demo with CrossFit West Santa Cruz",
+            "Daily CrossFit WODs\ud83d\udd25",
+            "CrossFit Workout: Annie Challenge",
+            "Ultimate CROSSFIT workout for UPPER BODY MUSCLE BUILDING",
+            "Try this brutal CrossFit workout \ud83c\udfcb\ufe0f\u200d\u2640\ufe0f"
+          ]
+        },
+        {
+          "id": "c2_m8",
+          "name": "Dumbbell-Only Workouts",
+          "description": "This content is created by fitness enthusiasts and trainers focusing on effective workouts using only dumbbells, suitable for various fitness levels.",
+          "keywords": [
+            "dumbbell",
+            "crossfit",
+            "workout",
+            "fitness",
+            "at home"
+          ],
+          "video_count": 7,
+          "sample_titles": [
+            "Dumbbell Workout #fitness #crossfit #wod #workout #dumbbellworkout",
+            "Dumbbell Workout #shorts #crossfit #wod #workout #fitness #dumbbell",
+            "Killer Dumbbell ONLY Workout! #shorts #fitness #workout #crossfit #athlete",
+            "At Home CrossFit\u00ae Workout | 15 Minute Dumbbell Workout",
+            "Dumbbell Only Workout #shorts #crossfit #wod #workout #fitness #dumbbell"
+          ]
+        },
+        {
+          "id": "c2_m13",
+          "name": "No-Equipment Bodyweight Workouts",
+          "description": "Content creators focusing on full body and targeted workouts that require no equipment, suitable for home or anywhere.",
+          "keywords": [
+            "bodyweight",
+            "workout",
+            "home",
+            "fitness",
+            "calisthenics"
+          ],
+          "video_count": 7,
+          "sample_titles": [
+            "My go to Full Body Workout. No equipment. Anywhere",
+            "Full Body Workout Without Equipment",
+            "Full Body Workout WITHOUT EQUIPMENT \u274c",
+            "Full Body Home Workout NO Equipment",
+            "Home Back Workout - No equipment! \ud83d\udeab\u2705 #homeworkout #workoutathome #backworkout #calisthenics"
+          ]
+        },
+        {
+          "id": "c2_m14",
+          "name": "Home Bodyweight Workouts",
+          "description": "Content creators focus on effective bodyweight exercises that can be performed at home to build strength and sculpt abs without any equipment.",
+          "keywords": [
+            "home workout",
+            "bodyweight training",
+            "abs workout",
+            "core workout",
+            "fat loss"
+          ],
+          "video_count": 7,
+          "sample_titles": [
+            "At Home Bodyweight AB WORKOUT! (No Equipment Needed)",
+            "Full Body Workout at Home   Equipment | Burn Fat & Build Muscle Fast #FullBodyWorkout #HomeWorkout",
+            "ABS on Fire! \ud83d\udd25 Intense Home Core Workout You Can Do Anywhere",
+            "Full Body Home Workout \ud83c\udfcb\u200d\u2642\ufe0f No Equipment \u274c\ufe0f Only Bodyweight \u2705\ufe0f#shorts",
+            "6 Pack Abs Workout at Home | No Equipment | Men\u2019s Fitness"
+          ]
+        },
+        {
+          "id": "c2_m12",
+          "name": "No Equipment HIIT Workouts",
+          "description": "This content is created by fitness enthusiasts and trainers focusing on high-intensity interval training routines that require no equipment for effective fat loss and strength building.",
+          "keywords": [
+            "HIIT",
+            "bodyweight",
+            "fat loss",
+            "home workout",
+            "circuit training"
+          ],
+          "video_count": 6,
+          "sample_titles": [
+            "\ud83d\udd2520 Minute Full Body Dumbbell HIIT Workout for Fat Burn & Strength!",
+            "\ud83d\udd2520-Minute Fat-Burning HIIT Workout | No Equipment, No Excuses!",
+            "\ud83d\udd2520-Minute Full Body Circuit Workout | No Equipment, No Excuses!",
+            "5 Exercises To Lose Weight Fast At Home (No Equipment, All Standing)",
+            "\ud83d\udd2520-Min Bodyweight HIIT Workout for Fat Loss / No Equipment Needed!"
+          ]
+        },
+        {
+          "id": "c2_m3",
+          "name": "CrossFit Performance Training",
+          "description": "This content is created by fitness enthusiasts and trainers focusing on CrossFit techniques, workouts, and performance optimization.",
+          "keywords": [
+            "CrossFit",
+            "HIIT",
+            "muscle building",
+            "workouts",
+            "training"
+          ],
+          "video_count": 5,
+          "sample_titles": [
+            "Should you take CREATINE for CROSSFIT? #fitness #muscle #bodybuilding #workout #crossfit",
+            "High Interval Training CrossFit Training #wallballs #burpees #workout #crossfit #hiit",
+            "CROSSFIT TRAINING",
+            "CROSSFIT TRAINING WORKOUT",
+            "What my summer training looks like #bodybuilding #crossfit #workout"
+          ]
+        },
+        {
+          "id": "c2_m7",
+          "name": "Bodybuilder Motivation Clips",
+          "description": "This content is created by bodybuilders and fitness enthusiasts, showcasing motivational clips and quotes to inspire gym-goers.",
+          "keywords": [
+            "gym",
+            "motivation",
+            "bodybuilding",
+            "fitness",
+            "inspiration"
+          ],
+          "video_count": 4,
+          "sample_titles": [
+            "Pain + Testosterone | Gym Motivation",
+            "GYM MOTIVATION - Chris Bumstead \"CBUM\" - ROYALTY \ud83d\udd25",
+            "Untitled x Scond - Ramon Dino Gym Motivation \ud83d\ude14",
+            "Larry Wheels - Gym Motivation \ud83d\ude20\ud83d\ude24"
+          ]
+        },
+        {
+          "id": "c2_m11",
+          "name": "Beginner Home Workouts",
+          "description": "Content creators focus on simple and effective workout routines designed for beginners to do at home.",
+          "keywords": [
+            "beginner workout",
+            "home fitness",
+            "quick workout",
+            "morning routine",
+            "stretch routine"
+          ],
+          "video_count": 4,
+          "sample_titles": [
+            "Morning Routine for Beginners",
+            "3-Minute Morning Stretch Routine for Beginners",
+            "The Daily 50 Workout For Beginners At Home. Simple and Effective!",
+            "5 Minutes Quick Workout for Beginners"
+          ]
+        },
+        {
+          "id": "c2_m0",
+          "name": "Daily CrossFit Transformation",
+          "description": "This content is created by fitness enthusiasts and trainers showcasing the effects and modifications of daily CrossFit workouts.",
+          "keywords": [
+            "CrossFit",
+            "workout",
+            "transformation",
+            "fitness",
+            "modifications"
+          ],
+          "video_count": 3,
+          "sample_titles": [
+            "What Happens to Your Body When You Do CrossFit Workout Every Day",
+            "CrossFit Can Be Modified for Anyone",
+            "What Happens to Your Body When You Do CrossFit Workout Every Day"
+          ]
+        },
+        {
+          "id": "c2_m9",
+          "name": "Pilates Waist Slimming",
+          "description": "This content is created by fitness enthusiasts focusing on Pilates workouts designed to slim the waist and strengthen the core.",
+          "keywords": [
+            "Pilates",
+            "waist training",
+            "abs workout",
+            "flat stomach",
+            "Lilly Sabri"
+          ],
+          "video_count": 3,
+          "sample_titles": [
+            "Slim you Back for hourglass body \u23f3 #pilates #shorts #abs #posture #workout #GymTok #fyp #smallwaist",
+            "Slim waist abs workout #pilates #workout #shorts",
+            "14 days transformation | Lilly Sabri Pilates flat stomach workout"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cat_3",
+      "name": "Lifestyle Optimization",
+      "description": "A category focused on enhancing everyday life through practical tips, innovative hacks, and tech insights.",
+      "children": [
+        {
+          "id": "c3_m1",
+          "name": "Tech Unboxing Reviews",
+          "description": "Content creators focus on unboxing and reviewing the latest tech gadgets and devices, providing first impressions and detailed insights.",
+          "keywords": [
+            "unboxing",
+            "tech reviews",
+            "smartphones",
+            "ASMR",
+            "first impressions"
+          ],
+          "video_count": 94,
+          "sample_titles": [
+            "Unboxing the T1 Trump Mobile Phone",
+            "iPhone 17 UNBOXING and Hands ON - Sage Green",
+            "Silver iPhone 17 Pro | Satisfying ASMR Unboxing",
+            "Unboxing AirPods Pro 3!",
+            "Google Fitbit Air UNBOXING - The Whoop KILLER"
+          ]
+        },
+        {
+          "id": "c3_m0",
+          "name": "Efficient Travel Packing Hacks",
+          "description": "Content creators share innovative techniques and tips for packing efficiently and maximizing luggage space for travelers.",
+          "keywords": [
+            "travel packing",
+            "suitcase organization",
+            "packing tips",
+            "travel hacks",
+            "carry-on packing"
+          ],
+          "video_count": 49,
+          "sample_titles": [
+            "Travel Packing Made Easy: My Secret Folding Hacks! \u2708\ufe0f\ud83e\uddf3",
+            "Master the art of packing | Maximize suitcase space! #Travel",
+            "Travel Tips How to Pack Carry-On Luggage #traveltips",
+            "The Flight Attendant Told Me That\u2026 Genius Travel Packing Hack You\u2019ll Thank Me For \u2708\ufe0f\ud83e\uddf3",
+            "4 PACKING TIPS to keep you super organized during travel"
+          ]
+        },
+        {
+          "id": "c3_noise",
+          "name": "Creative Life Hacks & Tips",
+          "description": "Content creators explore unconventional life hacks, productivity tools, and cinematic techniques to enhance daily living and content creation.",
+          "keywords": [
+            "life hacks",
+            "productivity",
+            "unboxing",
+            "cinematography",
+            "Notion"
+          ],
+          "video_count": 4,
+          "sample_titles": [
+            "I tested the world's weirdest life hacks",
+            "This hack makes managing Notion tasks on your phone easier. #notion #productivity #productivitytips",
+            "How to film an unboxing video: A shot list guide #unboxing #cinematic #filmmaking #cinematography",
+            "DYNAMIC ISLAND SECRET FEATURE \ud83d\udd10"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cat_4",
+      "name": "Minecraft Building",
+      "description": "A category focused on various tutorials and showcases for building in Minecraft.",
+      "children": [
+        {
+          "id": "c4_noise",
+          "name": "Minecraft Building Tutorials",
+          "description": "Content creators share quick and easy tutorials for building and designing structures in Minecraft.",
+          "keywords": [
+            "minecraft house design",
+            "minecraft builds",
+            "minecraft tutorial",
+            "minecraft bedroom ideas",
+            "easy survival house"
+          ],
+          "video_count": 27,
+          "sample_titles": [
+            "Build Like a Pro in 3 Minutes and 36 Seconds",
+            "How To Build Your All-Time Favourite House",
+            "Minecraft Secret Door Tutorial!",
+            "3 Easy Terraforming Tips for Beginners (#2) #minecrafttips",
+            "How to Build Better in Minecraft  #minecraft #cringygull"
+          ]
+        },
+        {
+          "id": "c4_m1",
+          "name": "Minecraft House Building Tutorials",
+          "description": "Content creators in this niche provide step-by-step tutorials for building various types of houses and structures in Minecraft.",
+          "keywords": [
+            "minecraft",
+            "house",
+            "tutorial",
+            "building",
+            "design"
+          ],
+          "video_count": 9,
+          "sample_titles": [
+            "Minecraft Ultimate Underground House Tutorial \ud83c\udfe0 #minecraft",
+            "easy dirt house tutorial",
+            "Minecraft Large Survival House Tutorial \ud83c\udfe1 #minecraft",
+            "Build a Beautiful Medieval Mansion in Minecraft",
+            "Minecraft | Mushroom House #minecraft #minecrafthouse #minecraftbuilding #tutorial #mushroom"
+          ]
+        },
+        {
+          "id": "c4_m0",
+          "name": "Minecraft Timelapse Builds",
+          "description": "Content creators showcase intricate Minecraft builds through detailed tutorials and captivating timelapse videos.",
+          "keywords": [
+            "minecraft",
+            "timelapse",
+            "build",
+            "tutorial",
+            "cinematics"
+          ],
+          "video_count": 6,
+          "sample_titles": [
+            "Circle Temple | Tutorial | Timelapse build #cinematics #minecraft #build  #timelapse",
+            "The Tiger | Tutorial | Timelapse build #cinematics #minecraft #build  #timelapse",
+            "New End Portal | Tutorial l Timelapse build l #minecraft",
+            "Largest Nether Portal | Tutorial l Timelapse build l #minecraft",
+            "Geometric Pyramid | Tutorial | Timelapse build"
+          ]
+        },
+        {
+          "id": "c4_m2",
+          "name": "Minecraft Building Tutorials",
+          "description": "Content creators showcase step-by-step guides and timelapse videos for constructing various structures in Minecraft.",
+          "keywords": [
+            "Minecraft",
+            "building",
+            "tutorials",
+            "timelapse",
+            "shorts"
+          ],
+          "video_count": 3,
+          "sample_titles": [
+            "Minecraft: Simple Modern Mansion! 01 | Timelapse | #minecraft #building #tutorial #shorts",
+            "Minecraft Easy House Tutorial\ud83c\udfe0 #shorts",
+            "Minecraft: Simple Tree House Tutorial | Timelapse | #builds #shorts #minecraft"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cat_5",
+      "name": "Mindfulness and Well-being",
+      "description": "A category focused on enhancing mental health and personal growth through mindful practices and journaling.",
+      "children": [
+        {
+          "id": "c5_m0",
+          "name": "Mental Health Empowerment",
+          "description": "This content is created by mental health professionals and advocates, focusing on practical tips and strategies for improving mental well-being and recognizing when to seek help.",
+          "keywords": [
+            "mental health",
+            "tips",
+            "self-care",
+            "wellness",
+            "awareness",
+            "#mentalhealth",
+            "#motivation",
+            "#shorts"
+          ],
+          "video_count": 49,
+          "sample_titles": [
+            "A great tip if you have an overwhelming to do list\u2026 #todolist #motivation #productivity",
+            "4 TIPS: When to reach out for Professional mental health help? | Kati Morton",
+            "3 Tips to Save Your Mental Health #shorts",
+            "Signs To Seek Help With Your Mental Health - Dr Julie #shorts",
+            "5 Proven Strategies to Boost Your Mental Health Today"
+          ]
+        },
+        {
+          "id": "c5_m1",
+          "name": "Mindful Journaling Practices",
+          "description": "Content creators share techniques, tips, and inspiration for developing a consistent journaling habit focused on mindfulness and self-improvement.",
+          "keywords": [
+            "journaling",
+            "bullet journal",
+            "habit tracker",
+            "mindfulness",
+            "self-improvement"
+          ],
+          "video_count": 49,
+          "sample_titles": [
+            "How to make journaling a habit! (Easy and Practical) #journal #journalideas",
+            "Casey Neistat's Stoic journaling habit",
+            "how to journal #journaling #handwriting #creative",
+            "Saturday Journaling \u270f\ufe0f #bulletjournal #bulletjournalling #journal #journalpage #journalwithme #bujo",
+            "HABIT TRACKER \u2705 new month new you"
+          ]
+        },
+        {
+          "id": "c5_noise",
+          "name": "Mindful Living Tips",
+          "description": "Content creators share practical advice and personal experiences focused on mental wellness, organization, and healthy habits.",
+          "keywords": [
+            "stress relief",
+            "mental health",
+            "organization",
+            "habits",
+            "journaling"
+          ],
+          "video_count": 6,
+          "sample_titles": [
+            "4 Yoga Poses for Stress Relief\ud83e\uddd8\u200d\u2640\ufe0f",
+            "Ditch these 4 habits and watch your grades improve",
+            "Organize These 4 Areas to Organize Your Life",
+            "How Changing My Diet Transformed My Mental Health #glucose",
+            "taking meds for my depression and anxiety for the first time"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cat_6",
+      "name": "Food Lifestyle",
+      "description": "A collection of engaging and innovative content focused on unique eating experiences and culinary creativity.",
+      "children": [
+        {
+          "id": "c6_noise",
+          "name": "Quick & Easy Global Recipes",
+          "description": "Content creators share fast, simple, and delicious recipes from various cuisines, perfect for busy individuals or those seeking minimal effort in cooking.",
+          "keywords": [
+            "quick recipes",
+            "easy meals",
+            "global cuisine",
+            "hashtag",
+            "short-form cooking"
+          ],
+          "video_count": 40,
+          "sample_titles": [
+            "15 Minute Mongolian Beef #icekarim",
+            "15 min Oyakodon (EASY Japanese chicken egg rice) #easyrecipe",
+            "I learned this in a restaurant! This is the tastiest chicken I've ever had",
+            "This is the easiest, fastest and cheapest recipe you'll love.",
+            "Easy one pan chicken and feta orzo bake"
+          ]
+        },
+        {
+          "id": "c6_m3",
+          "name": "Quick Dinner Solutions",
+          "description": "Content creators share quick and easy dinner recipes that can be prepared in 15 minutes or less, often featuring budget-friendly and one-pot meals.",
+          "keywords": [
+            "15 minute meals",
+            "easy dinner recipes",
+            "meal prep",
+            "one-pot meals",
+            "quick recipes"
+          ],
+          "video_count": 39,
+          "sample_titles": [
+            "day 8 - realistic dinner in 15 minutes (tomato & egg rice)",
+            "day 1 of easy dinner recipes",
+            "15 Minute Meal",
+            "One Pot Budget Friendly Meal Using@tonychacherescreolefoods6156  #recipe #chefaldenb",
+            "15 MINUTE DINNER | THE GOLDEN BALANCE"
+          ]
+        },
+        {
+          "id": "c6_m1",
+          "name": "ASMR Mukbang Delights",
+          "description": "Content creators showcase immersive eating experiences with a focus on ASMR sounds and visually satisfying food presentations.",
+          "keywords": [
+            "ASMR",
+            "Mukbang",
+            "Eating Show",
+            "Satisfying Food",
+            "Food Sounds"
+          ],
+          "video_count": 38,
+          "sample_titles": [
+            "ASMR Satisfying Eating Adorable Fondant Caterpillar #asmr #asmrfood #oddlysatisfying",
+            "unlimited Spicy & Crispy Fried Chicken Mukbang Eating Challenge | Massive Eating Show",
+            "Random Pink Food ASMR Mukbang #3 \ud83c\udf38\ud83e\udd91\ud83d\udc8b #shorts #mukbang #asmr #eating",
+            "ASMR MUKBANG | Spicy Chicken , black bean noodles! eating HUBA #shorts",
+            "\ud83d\udc9c PURPLE Only CANDY MUKBANG! (Immersive Purple Snacks Tasting) \ud83c\udf6c ASMR Eating Sounds"
+          ]
+        },
+        {
+          "id": "c6_m4",
+          "name": "Daily Eating Habits",
+          "description": "Content creators share their daily meal routines, focusing on various lifestyles and dietary preferences.",
+          "keywords": [
+            "what I eat in a day",
+            "meal ideas",
+            "healthy eating",
+            "diet",
+            "nutrition"
+          ],
+          "video_count": 36,
+          "sample_titles": [
+            "what i eat in a day as a fat girly\ud83c\udf63\ud83c\udf57",
+            "WHAT I EAT IN A DAY AS AN ATHLETE #balance#ballerina#ballerinadiet#diet#vegan#dancer#fuel#food#day",
+            "WHAT I EAT IN A DAY!! @KaneBailey #prymrr",
+            "realistic what I eat in a day \ud83c\udf69\ud83c\udf4c\ud83e\udd5c\ud83e\udd51\ud83c\udf73 #whatieatinaday #dessert #foodie #donut #healthy",
+            "a realistic what I eat in a day \ud83e\uded0\ud83c\udf5c\ud83c\udf55\ud83c\udf3d\ud83c\udf51 quick + healthy meal ideas #whatieatinaday #shorts"
+          ]
+        },
+        {
+          "id": "c6_m2",
+          "name": "Creative Food Hacks",
+          "description": "Content creators share innovative and fun kitchen tips and tricks to enhance everyday cooking and food experiences.",
+          "keywords": [
+            "food hacks",
+            "kitchen tips",
+            "cooking",
+            "viral",
+            "shorts"
+          ],
+          "video_count": 31,
+          "sample_titles": [
+            "Chips Food Hack \ud83d\ude0b #viral #shorts #funny #trending #food #foodhacks #fyp #fy #youtubeshorts #love",
+            "Tomato Slicing Hack",
+            "Have you ever tried this?? Nutella Food Hack",
+            "Leftover Pizza Hack",
+            "I Ate Dairy Queen Food Hacks For The Day!"
+          ]
+        },
+        {
+          "id": "c6_m0",
+          "name": "Personalized Food Challenges",
+          "description": "Content creators engage in unique food challenges based on personal themes or nostalgic experiences.",
+          "keywords": [
+            "food challenge",
+            "nostalgia",
+            "personalized",
+            "foodie",
+            "creative eating"
+          ],
+          "video_count": 3,
+          "sample_titles": [
+            "Eating my favorite childhood foods for the whole day!",
+            "Eating foods that start with the letters of me and my girlfriend\u2019s name for the day!",
+            "Eating different breakfast food hacks!"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cat_7",
+      "name": "Productivity & Frugality",
+      "description": "A collection of resources and strategies focused on enhancing productivity and optimizing living through frugal practices and side hustles.",
+      "children": [
+        {
+          "id": "c7_noise",
+          "name": "Productivity Insights & Hacks",
+          "description": "Content creators share actionable productivity tips, book summaries, and motivational strategies to enhance personal and professional efficiency.",
+          "keywords": [
+            "productivity",
+            "book summaries",
+            "life hacks",
+            "motivation",
+            "time management",
+            "80/20 rule",
+            "Atomic Habits",
+            "5 AM Club"
+          ],
+          "video_count": 38,
+          "sample_titles": [
+            "#1 Productivity Hack",
+            "how to be more productive \ud83c\udf80\ud83d\udc97 #shorts #wonyoungism #pink  #motivation #tips #productivity",
+            "The 8 + 8 + 8 Rule: The Key to Unlocking Massive Productivity",
+            "3 Hacks To Make Work Suck Less",
+            "DISCIPLINE \ud83d\udcc8MOTIVATION study with me!\u26a1\ufe0f#productive #studentlife"
+          ]
+        },
+        {
+          "id": "c7_m6",
+          "name": "Animated Book Summaries",
+          "description": "Content creators produce short, engaging animated summaries of popular personal development and business books.",
+          "keywords": [
+            "book summaries",
+            "animated",
+            "personal development",
+            "business",
+            "mindset"
+          ],
+          "video_count": 30,
+          "sample_titles": [
+            "The Powerful \u201cLet Them\u201d Theory by Mel Robbins \u2013 Animated Book Summary",
+            "The Secret by Rhonda Byrne - 1 Minute Summary #1Min1Book #BookSummary #TheSecret #RhondaByrne",
+            "START WITH WHY BY SIMON SINEK | ANIMATED BOOK SUMMARY",
+            "5 Minutes Book Summary - Finish What You Start by Peter Hollins",
+            "How to Know a Person by David Brooks | Recommended by Bill Gates | 5 Minute Book Summary"
+          ]
+        },
+        {
+          "id": "c7_m2",
+          "name": "Academic Productivity Hacks",
+          "description": "Content creators share effective study techniques, time management strategies, and productivity tips specifically for students aiming for academic success.",
+          "keywords": [
+            "study tips",
+            "time management",
+            "productivity",
+            "college",
+            "student"
+          ],
+          "video_count": 17,
+          "sample_titles": [
+            "HOW TO MAKE TIME FOR EVERYTHING (seriously): staying productive, time management, planning tips",
+            "TOP 12 Study Tips by a Harvard Student",
+            "Harvard taught me these INSANE productivity hacks \ud83e\udd78 #harvardbusinessschool  #studentathlete #study",
+            "How to Study While Tired",
+            "How to Stop Procrastinating in 3 Simple Steps \u203c\ufe0f #studytips #studywithme #college #productivity"
+          ]
+        },
+        {
+          "id": "c7_m11",
+          "name": "2024 Side Hustle Strategies",
+          "description": "Content creators in this niche share quick and effective ideas for side hustles and passive income opportunities for the year 2024.",
+          "keywords": [
+            "side hustle",
+            "passive income",
+            "2024 income ideas",
+            "make money online",
+            "work from home"
+          ],
+          "video_count": 14,
+          "sample_titles": [
+            "Quick Money: 5 Side Hustles in 4 Minutes for 2024",
+            "Flipping pallets is one of the top paying Side Hustles of 2024! \ud83d\udcb0",
+            "5 Passive Income Stream Ideas for 2024 and 2025",
+            "The Best Side Hustles You NEED To Start In 2024 #sidehustle",
+            "BEST side hustle for 2024 (EASY!)"
+          ]
+        },
+        {
+          "id": "c7_m10",
+          "name": "Online Side Hustle Strategies",
+          "description": "Content creators share innovative side hustle ideas and strategies for making money online, targeting aspiring entrepreneurs and students.",
+          "keywords": [
+            "side hustles",
+            "online income",
+            "passive income",
+            "digital products",
+            "entrepreneurship"
+          ],
+          "video_count": 12,
+          "sample_titles": [
+            "5 Side Hustles You Can Start in 2025",
+            "I tried 5 NEW side hustles in 1 year",
+            "6 Online Side Hustles That Pay $1,000 Per Week: APPLY NOW!",
+            "The Side Hustle That Prints Money in 2026",
+            "3 Side Hustles Students Can Start In 2025"
+          ]
+        },
+        {
+          "id": "c7_m4",
+          "name": "Quick Book Summaries",
+          "description": "Content creators summarize classic and popular literature in short, engaging videos, making literature accessible in just a few minutes.",
+          "keywords": [
+            "book summaries",
+            "literature",
+            "short videos",
+            "classic novels",
+            "quick reviews"
+          ],
+          "video_count": 7,
+          "sample_titles": [
+            "The BFG by Roald Dahl (Book Summary) - Minute Book Report",
+            "1984 George Orwell Full Book Summary (Full Book in JUST 3 Minutes)",
+            "Fahrenheit 451 Summary by Ray Bradbury (Full Book in JUST 3 Minutes)",
+            "To Kill A Mockingbird Summary (Full Book in JUST 3 MINUTES!)",
+            "Animal Farm Summary (Full Book in JUST 3 Minutes)"
+          ]
+        },
+        {
+          "id": "c7_m3",
+          "name": "Life Optimization Hacks",
+          "description": "Content creators in this niche provide tips and strategies for enhancing productivity, effective study techniques, and financial advice for young audiences.",
+          "keywords": [
+            "productivity",
+            "travel hacks",
+            "study techniques",
+            "money tips",
+            "life skills"
+          ],
+          "video_count": 6,
+          "sample_titles": [
+            "Airport Travel Hacks",
+            "Productivity Hack",
+            "How to Be More Productive",
+            "How to Stop Procrastinating",
+            "Use This Study Technique"
+          ]
+        },
+        {
+          "id": "c7_m9",
+          "name": "Amazon Reselling Side Hustles",
+          "description": "Content creators in this niche share strategies, tips, and insights on starting and succeeding in Amazon reselling as a side hustle.",
+          "keywords": [
+            "amazon fba",
+            "side hustle",
+            "reseller",
+            "work from home",
+            "2024"
+          ],
+          "video_count": 6,
+          "sample_titles": [
+            "Looking for a new side hustle to start in 2025\ud83e\udd14 #amazonfba #amazon #reseller #fba #sidehustle",
+            "you need to sell these right now \ud83d\udcb8 #sidehustle #reseller #amazon #amazonfba",
+            "Amazon Returns Reselling Side Hustle!\ud83d\udcb0\ud83d\udce6 #sidehustle #amazon #amazonfinds",
+            "The Best Side Hustle For 2024!",
+            "BEST Work From Home Side Hustle (2024) #Amazonfba"
+          ]
+        },
+        {
+          "id": "c7_m5",
+          "name": "Productivity Motivation",
+          "description": "Content creators in this niche focus on delivering motivational speeches and practical productivity tips to help individuals overcome procrastination and enhance their focus.",
+          "keywords": [
+            "motivation",
+            "productivity",
+            "focus",
+            "self-improvement",
+            "time management"
+          ],
+          "video_count": 4,
+          "sample_titles": [
+            "KILL YOUR EXCUSES - Motivational Speech",
+            "4 Productivity Secrets I Wish I Knew at 20",
+            "Overwhelmed by Your To-Do List? Here's Your Solution! \u270d\ufe0f",
+            "How to Improve Your Focus \ud83e\uddd8"
+          ]
+        },
+        {
+          "id": "c7_m0",
+          "name": "Frugal Living Tips",
+          "description": "Content creators in this niche focus on practical strategies and habits for saving money and budgeting effectively.",
+          "keywords": [
+            "budgeting",
+            "frugal habits",
+            "money-saving tips"
+          ],
+          "video_count": 3,
+          "sample_titles": [
+            "How to create a monthly budget quickly",
+            "5 Frugal Habits To Cut Expenses In Half",
+            "Save money using no spend months, follow for more"
+          ]
+        },
+        {
+          "id": "c7_m1",
+          "name": "Workplace Productivity Hacks",
+          "description": "Content creators share effective strategies and tips to enhance productivity and time management in professional settings.",
+          "keywords": [
+            "productivity",
+            "time management",
+            "work hacks",
+            "efficiency",
+            "workplace tips"
+          ],
+          "video_count": 3,
+          "sample_titles": [
+            "The best way to increase productivity at work",
+            "Random Productivity Hacks That ACTUALLY Work? \ud83e\udd28\ud83e\udd13",
+            "Best Time Management Hack"
+          ]
+        },
+        {
+          "id": "c7_m7",
+          "name": "Quick Book Summaries",
+          "description": "Content creators provide concise, engaging summaries of popular and classic literature in short video formats.",
+          "keywords": [
+            "5 Minute",
+            "Book Summary",
+            "#BookSummary"
+          ],
+          "video_count": 3,
+          "sample_titles": [
+            "It Starts with Us by Colleen Hoover | 5 Minute Book Summary",
+            "Anne of Green Gables by L.M. Montgomery | 5 minutes Book Summary",
+            "Hexed by Emily McIntire  | 5 Minute Book Summary"
+          ]
+        },
+        {
+          "id": "c7_m8",
+          "name": "Side Hustle Evaluation",
+          "description": "Content creators analyze and rank various side hustles to guide viewers in their entrepreneurial pursuits.",
+          "keywords": [
+            "side hustle",
+            "tier list",
+            "entrepreneurship",
+            "money-making",
+            "2024 trends"
+          ],
+          "video_count": 3,
+          "sample_titles": [
+            "Testing Side Hustles So You Don't Have To",
+            "My Side Hustle Tier List",
+            "Best Side Hustle Tier List For 2024"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cat_8",
+      "name": "Fashion Try-Ons",
+      "description": "A collection of content focused on showcasing fashion items through try-on reviews and personal styling experiences.",
+      "children": [
+        {
+          "id": "c8_m2",
+          "name": "Haircut Transformation Showcase",
+          "description": "This content is created by hairstylists and beauty enthusiasts showcasing dramatic haircut transformations and styling tips.",
+          "keywords": [
+            "hair makeover",
+            "haircut transformation",
+            "before and after",
+            "short hair",
+            "hairstyle"
+          ],
+          "video_count": 47,
+          "sample_titles": [
+            "What an awesome haircut transformation! #bobhaircut #haireducation #haircut #hairstyle #hairsalon",
+            "Wait for it\u2026 #hair #haircut #relatable #shorts #short #glowup #transformation",
+            "\u26a0\ufe0f\u203c\ufe0fNEW HAIR\u203c\ufe0f\u26a0\ufe0f",
+            "Part 55 | The Power of Haircuts \ud83d\udd25\u2620\ufe0f",
+            "From Boring to Bombshell \ud83d\udca5 The Short Hair Glow-Up You Won\u2019t Believe! #ideas #hairstyle #haircut"
+          ]
+        },
+        {
+          "id": "c8_noise",
+          "name": "Short-Form GRWM Trends",
+          "description": "Content creators share their Get Ready With Me routines, often featuring personal stories, events, and humor in short video formats.",
+          "keywords": [
+            "GRWM",
+            "short hair",
+            "skincare",
+            "concert prep",
+            "viral shorts"
+          ],
+          "video_count": 34,
+          "sample_titles": [
+            "my skincare routine #shorts",
+            "one day \ud83e\udee2 #shorthair",
+            "Ranking The Best Short Hair Transition Ever #cuteness #shorthair #haircut #shorts",
+            "should I cut my hair this short?\ud83e\udee2 #shorts",
+            "GRWM (Get Ready With Me)"
+          ]
+        },
+        {
+          "id": "c8_m1",
+          "name": "Transparent Fashion Try-Ons",
+          "description": "Content creators showcase transparent lingerie, bikinis, and dresses through detailed try-on hauls, emphasizing fashion and body positivity.",
+          "keywords": [
+            "transparent",
+            "lingerie",
+            "bikini",
+            "try-on",
+            "haul"
+          ],
+          "video_count": 16,
+          "sample_titles": [
+            "(4K) Try-On Haul |Transparent Dress,Clothes, Bikinis & Lingerie | Winter outfit ideas 7 #seethrough",
+            "Fashion Lingerie & Bikini + See though transparent Try On Haul | Transparent Bikini Haul outfit idea",
+            "4K Micro Bikini Try-On Haul\u00a0\u00a0| Transparent Lingerie & See-through Dresses With Angelina Try on Haul",
+            "4K Micro Bikini Try-On Haul\u00a0\u00a0| Transparent Lingerie & See-through Dresses With Angelina Try on Haul",
+            "[4K] Transparent Lingerie & See-Through Dresses | outfit ideas| Micro Bikini Try-On Haul # 41"
+          ]
+        },
+        {
+          "id": "c8_m5",
+          "name": "Plus-Size Fashion Hauls",
+          "description": "Content creators showcase try-on hauls featuring plus-size clothing from various retailers, focusing on seasonal styles and affordable fashion finds.",
+          "keywords": [
+            "plus size",
+            "try-on haul",
+            "fashion",
+            "affordable",
+            "seasonal"
+          ],
+          "video_count": 12,
+          "sample_titles": [
+            "Spring Shein Haul| Plus-Size Clothing Try-on | Spring Styles",
+            "SHEIN try on haul #sheinpartner #fashionhaul #sheingals",
+            "CATO FASHIONS NEW ARRIVALS 2026! Try On Haul & Fashion Finds! #plussizefashion #plussizetryon #haul",
+            "SHEIN winter try on haul #sheinhaul",
+            "SHEIN fall try on haul #sheinpartner #fashionhaul #sheingals"
+          ]
+        },
+        {
+          "id": "c8_m3",
+          "name": "Personalized Get Ready With Me",
+          "description": "Content creators share their unique routines and experiences while preparing for various events, from school to weddings and dates.",
+          "keywords": [
+            "GRWM",
+            "makeup",
+            "hairstyle",
+            "vlog",
+            "event preparation"
+          ],
+          "video_count": 8,
+          "sample_titles": [
+            "get ready with us before school #momlife #grwm #makeuproutine  #hairstyle",
+            "Get Ready with Me!",
+            "Get ready with me to meet my LA crush for the first time! #GRWM #FirstDate #LACrush #FamilyTrip",
+            "Get Ready With Me *Wedding Edition* \ud83d\udc8d #shorts #makeup #beauty #grwm #wedding #getreadywithme",
+            "How Should She Smile?? FULL GRWM Here \u261d\ud83c\udffc\u261d\ud83c\udffc #grwm #getreadywithme #shorts"
+          ]
+        },
+        {
+          "id": "c8_m7",
+          "name": "Aesthetic Summer Try-On Hauls",
+          "description": "Content creators showcase trendy summer outfits through try-on hauls, focusing on aesthetics and style inspiration.",
+          "keywords": [
+            "aesthetic",
+            "summer",
+            "try-on",
+            "haul",
+            "outfits"
+          ],
+          "video_count": 5,
+          "sample_titles": [
+            "brandy melvile clothing try on haul #aesthetic #outfits",
+            "trendy summer clothing try on haul #aesthetic #outfits",
+            "Summer haul loading \ud83d\udecd\ufe0f | Garage try-on + cute fits #Shorts #ootd #styleinspo #outfitinspo",
+            "trendy aerie summer try on haul vlog #aesthetic #trending",
+            "new outfit try on haul #trending #aesthetic"
+          ]
+        },
+        {
+          "id": "c8_m4",
+          "name": "High School GRWM Chronicles",
+          "description": "This content is created by high school students sharing their Get Ready With Me (GRWM) experiences, focusing on makeup, fashion, and relatable school life moments.",
+          "keywords": [
+            "GRWM",
+            "high school",
+            "makeup",
+            "fashion",
+            "storytime"
+          ],
+          "video_count": 4,
+          "sample_titles": [
+            "#grwm to go target #fashion",
+            "The \u201cshut up\u201d\u2026 #bts #grwm #class #makeup thank you for captureing this gem",
+            "GRWM IN CLASS\ud83d\ude33#grwm #highschool #makeup #class",
+            "My first love\u2026.#grwm #subscribe #makeup #storytime #emmagrace"
+          ]
+        },
+        {
+          "id": "c8_m6",
+          "name": "Fashion Try-On Hauls",
+          "description": "Content creators showcase and review clothing items through try-on videos, offering outfit inspiration and styling tips.",
+          "keywords": [
+            "try-on",
+            "haul",
+            "fashion",
+            "outfit ideas",
+            "clothing review"
+          ],
+          "video_count": 4,
+          "sample_titles": [
+            "Try on!!#haul #clothes #tryonhaul #fashion #outfitideas #outfitinspo",
+            "edikted try on haul! \ud83d\ude1d\ud83d\ude1d",
+            "haul and try on! \ud83d\udecd\ufe0f #shopping #haul #shoppinghaul #springoutfit #fashion #clothinghaul #tryonhaul",
+            "trying on ALL my clothes #tryonhaul #clothes #outfit #fashion #egirl #alt #goth #closet #ootd"
+          ]
+        },
+        {
+          "id": "c8_m0",
+          "name": "Lululemon Try-On Reviews",
+          "description": "Content creators showcase and review their Lululemon purchases through try-on hauls, highlighting new collections and styles.",
+          "keywords": [
+            "Lululemon",
+            "try-on haul",
+            "fashion review",
+            "activewear",
+            "2024 collection"
+          ],
+          "video_count": 3,
+          "sample_titles": [
+            "LULULEMON christmas try on haul 2024 \ud83d\ude33 LULULEMON HAUL",
+            "LULULEMON giant haul try on haul 2024 \ud83d\ude33 LULULEMON HAUL",
+            "LULULEMON try on haul 2024 \ud83d\ude33 LULULEMON HAUL"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cat_9",
+      "name": "Personal Finance Education",
+      "description": "A comprehensive category focused on educating individuals about personal finance, investing, and budgeting strategies.",
+      "children": [
+        {
+          "id": "c9_noise",
+          "name": "Financial Literacy Insights",
+          "description": "Content creators in this niche provide concise summaries and actionable advice on personal finance, investing, and wealth management.",
+          "keywords": [
+            "book summaries",
+            "investing tips",
+            "financial advice",
+            "budgeting",
+            "money management"
+          ],
+          "video_count": 59,
+          "sample_titles": [
+            "5 Minutes Book Summary - How to Invest by David Rubenstein",
+            "Rich Dad, Poor Dad Summary",
+            "Investing Tips for Beginners",
+            "Best Investment Advice No One Listens To",
+            "QUIT SPENDING MONEY ON THESE 3 THINGS"
+          ]
+        },
+        {
+          "id": "c9_m6",
+          "name": "Index Fund Insights",
+          "description": "Content creators in this niche focus on educating viewers about index funds, ETFs, and their differences in a concise and engaging format.",
+          "keywords": [
+            "index funds",
+            "ETFs",
+            "investing",
+            "finance education",
+            "beginner investing"
+          ],
+          "video_count": 8,
+          "sample_titles": [
+            "What Is an Index Fund?",
+            "Index funds vs ETFs - Explained",
+            "Index Funds vs Stocks",
+            "Index funds for beginners",
+            "Difference between stocks, bonds, and index funds?"
+          ]
+        },
+        {
+          "id": "c9_m11",
+          "name": "Beginner Stock Market Education",
+          "description": "This content is created by finance educators and enthusiasts, focusing on teaching beginners the fundamentals of investing in stocks and understanding the stock market.",
+          "keywords": [
+            "stock market",
+            "investing",
+            "beginners",
+            "ETFs",
+            "technical analysis"
+          ],
+          "video_count": 7,
+          "sample_titles": [
+            "How To Buy S&P500 ETFs As A Beginner",
+            "How To Buy Stocks As A Beginner?",
+            "The stock market explained for beginners! #stockmarketforbeginners",
+            "How To Invest In Stocks As A Beginner - Ali Abdaal",
+            "How to read a stock chart"
+          ]
+        },
+        {
+          "id": "c9_m12",
+          "name": "Beginner Stock Market Education",
+          "description": "Content creators in this niche simplify stock market concepts for kids and beginners, providing easy-to-understand explanations and tutorials.",
+          "keywords": [
+            "stock market",
+            "trading",
+            "investing",
+            "financial literacy",
+            "beginners"
+          ],
+          "video_count": 7,
+          "sample_titles": [
+            "What is the Stock Market? - Super Simple Money for kids and beginners",
+            "How The Stock Exchange Works (For Dummies)",
+            "How The Stock Market Works \ud83d\udcc8 (very simple explanation)",
+            "Understand How Stock Market Works - Trade with Purab",
+            "How does the stock market work?"
+          ]
+        },
+        {
+          "id": "c9_m0",
+          "name": "Beginner Personal Finance Education",
+          "description": "Content creators in this niche provide accessible resources and tips for individuals starting their journey in personal finance and money management.",
+          "keywords": [
+            "personal finance",
+            "financial independence",
+            "money management",
+            "beginners",
+            "books",
+            "tips",
+            "financial literacy",
+            "#personalfinance",
+            "#financialknowledge"
+          ],
+          "video_count": 6,
+          "sample_titles": [
+            "3 simple books to learn personal finance (suitable for beginners) #book #personalfinance",
+            "3 Easy Tips To Become Financially Independent",
+            "Top 5 Personal Finance Tips for Beginners \ud83d\udcb8 \ud83d\udcb1 || Start Your Money Journey Today #financialknowledge",
+            "5 BOOKS TO MASTER YOUR MONEY | Personal Finance \ud83d\udcb0",
+            "Top 5 Personal Finance Tips for Beginners #shorts #finance #makingmoneyonline #money #beginners"
+          ]
+        },
+        {
+          "id": "c9_m4",
+          "name": "S&P 500 Investment Insights",
+          "description": "Content creators in this niche focus on strategies, opinions, and analysis related to investing in the S&P 500 and index funds.",
+          "keywords": [
+            "S&P 500",
+            "index funds",
+            "ETF",
+            "investing strategies",
+            "financial advice"
+          ],
+          "video_count": 6,
+          "sample_titles": [
+            "$10 Every Week into S&P 500 ETF VOO (AMAZING)",
+            "Charlie Munger: Why Most People Should Invest In S&P 500 Index | Daily Journal 2023 \u3010C:C.M 298\u3011",
+            "Is the S&P 500 still a good investment?! #money #finance #financialfreedom #invest #stockmarket",
+            "Why You Shouldn\u2019t ONLY Buy The S&P 500 \ud83d\udea8",
+            "Is The Best Investment Strategy To Buy Up The S&P 500? | \u200b\u2060@wolfofwallst"
+          ]
+        },
+        {
+          "id": "c9_m7",
+          "name": "Stock Market Basics",
+          "description": "Content creators explain fundamental investing concepts, strategies, and terminology for beginners in the stock market.",
+          "keywords": [
+            "investing",
+            "short selling",
+            "penny stocks",
+            "margin calls",
+            "personal finance"
+          ],
+          "video_count": 6,
+          "sample_titles": [
+            "Saving vs Investing",
+            "Penny Stocks Explained",
+            "Short Selling Explained Simply! #shortselling #stocks",
+            "How You Can Invest Under 18",
+            "Margin Calls, Explained! #stocks #investing #personalfinance"
+          ]
+        },
+        {
+          "id": "c9_m5",
+          "name": "Beginner Investment Strategies",
+          "description": "Content creators in this niche provide accessible guidance and tips for individuals new to investing, focusing on foundational concepts and practical steps.",
+          "keywords": [
+            "investing tips",
+            "beginners",
+            "financial literacy",
+            "investment strategies",
+            "how to invest"
+          ],
+          "video_count": 5,
+          "sample_titles": [
+            "Investing Tips for Beginners",
+            "How To Start Investing For Beginners! | Clever Girl Finance",
+            "How to start investing #investing",
+            "How to Invest for Beginners",
+            "How to invest $1,000"
+          ]
+        },
+        {
+          "id": "c9_m8",
+          "name": "Warren Buffett Investment Insights",
+          "description": "Content creators share Warren Buffett's investment philosophies and personal finance advice, focusing on index funds and stock market strategies.",
+          "keywords": [
+            "Warren Buffett",
+            "investment advice",
+            "index funds",
+            "personal finance",
+            "stock market"
+          ],
+          "video_count": 5,
+          "sample_titles": [
+            "Warren buffett gives Best Personal Finance Advice For You",
+            "Warren Buffett on index funds.",
+            "Warren Buffett: Bonds Or ETF's? \ud83e\udd14\ud83e\udd14\ud83e\udd14",
+            "Warren Buffett on investing in index fund",
+            "Warren Buffett's advice on what to invest in"
+          ]
+        },
+        {
+          "id": "c9_m9",
+          "name": "Fidelity Index Fund Insights",
+          "description": "Content creators in this niche focus on educating viewers about Fidelity index funds, highlighting top choices for investment and long-term wealth building.",
+          "keywords": [
+            "Fidelity",
+            "index funds",
+            "investment",
+            "wealth building",
+            "financial education"
+          ],
+          "video_count": 4,
+          "sample_titles": [
+            "3 Fidelity Index Funds That Will Make You RICH!",
+            "3 Index Funds for You to Research",
+            "3 Index Funds for You to Research",
+            "TOP 3 Fidelity Index Funds To Buy And Hold Forever!"
+          ]
+        },
+        {
+          "id": "c9_m1",
+          "name": "Couples Budgeting Strategies",
+          "description": "Content creators in this niche provide practical budgeting advice and tools for couples, especially those with varying incomes.",
+          "keywords": [
+            "budgeting",
+            "couples finance",
+            "money management",
+            "financial planning",
+            "low income"
+          ],
+          "video_count": 3,
+          "sample_titles": [
+            "How To Budget Your Money (Easy Tool)",
+            "Best Budgeting strategy for low income #shorts",
+            "How to budget as a couple if you make different amounts of money"
+          ]
+        },
+        {
+          "id": "c9_m2",
+          "name": "Index Fund Investment Strategies",
+          "description": "Content creators in this niche focus on analyzing and recommending index funds with high returns and growth potential for investors.",
+          "keywords": [
+            "index funds",
+            "investment",
+            "mutual funds",
+            "CAGR",
+            "SIP"
+          ],
+          "video_count": 3,
+          "sample_titles": [
+            "Top 4 Safe and Performing Index Funds in 2025\u203c\ufe0f",
+            "Best Index Funds to invest in 2025 | Highest CAGR in 5Y, 3Y & 1Y #mutualfunds #investment #sip",
+            "Top 10 Index Funds with Best 3Y, 5Y Returns! \ud83d\udd25 | SIP Returns 2025 #mutualfunds #investing #sip"
+          ]
+        },
+        {
+          "id": "c9_m3",
+          "name": "Quick Financial Insights",
+          "description": "Content created by Ankur Warikoo that provides concise financial planning tips and investment strategies in short-form videos.",
+          "keywords": [
+            "financial planning",
+            "investment tips",
+            "Ankur Warikoo",
+            "personal finance",
+            "shorts"
+          ],
+          "video_count": 3,
+          "sample_titles": [
+            "Rs. 100 ko INVEST karne ka SPLIT! | Ankur Warikoo #shorts",
+            "Financial Planning in 35 seconds! | Ankur Warikoo #shorts",
+            "Iss COUPLE ne FINANCIAL PLANNING kaise ki?! | Ankur Warikoo #shorts"
+          ]
+        },
+        {
+          "id": "c9_m10",
+          "name": "Essential Index Fund Investing",
+          "description": "Content creators in this niche focus on simplifying investment strategies by highlighting key index funds and ETFs for long-term wealth building.",
+          "keywords": [
+            "index funds",
+            "ETFs",
+            "personal finance",
+            "wealth mindset",
+            "investing"
+          ],
+          "video_count": 3,
+          "sample_titles": [
+            "Here are the only 4 Index Funds You Need For Life",
+            "4 Index Funds To Hold For Life",
+            "4 ETFs You Will Ever Need"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cat_10",
+      "name": "Language Learning",
+      "description": "A category focused on techniques and resources for acquiring new languages.",
+      "children": [
+        {
+          "id": "c10_noise",
+          "name": "Language Learning Hacks",
+          "description": "Content creators share tips, tricks, and resources for efficiently learning new languages through apps and practical methods.",
+          "keywords": [
+            "language learning",
+            "Duolingo",
+            "study tips",
+            "vocabulary",
+            "language apps"
+          ],
+          "video_count": 24,
+          "sample_titles": [
+            "How to Learn a Language Faster",
+            "anything to keep my streak going #duolingo #languagelearning",
+            "Using a language app to learn French?\u00a0Good start! But if you're struggling, you\u2019re not alone!",
+            "The Easiest Language?!",
+            "help me #pingoai and #spanish speakers #languagelearning #ani #learnspanish #spanishlanguage"
+          ]
+        },
+        {
+          "id": "c10_m1",
+          "name": "Multilingual Learning Techniques",
+          "description": "Content creators share effective strategies and routines for learning multiple languages quickly and efficiently.",
+          "keywords": [
+            "language learning",
+            "multilingual",
+            "language routine",
+            "English conversation",
+            "Spanish for beginners",
+            "hashtags"
+          ],
+          "video_count": 18,
+          "sample_titles": [
+            "My Minimalist Daily Language Learning Routine. Fluent in 5 Languages \ud83c\uddf5\ud83c\uddf9 \ud83c\uddf1\ud83c\uddfa \ud83c\udde9\ud83c\uddea \ud83c\uddeb\ud83c\uddf7 \ud83c\uddec\ud83c\udde7 (\ud83c\uddf0\ud83c\uddf7)",
+            "learn Spanish language For beginners",
+            "Learn ANY Language Fast For The Rest of Your Life",
+            "A1 English Listening Practice - Language Learning",
+            "My daily language learning routine"
+          ]
+        },
+        {
+          "id": "c10_m2",
+          "name": "Korean Language Learning",
+          "description": "Content creators share tips, lessons, and experiences related to learning the Korean language, often using platforms like Duolingo and engaging with the language community.",
+          "keywords": [
+            "Korean",
+            "language",
+            "learning",
+            "Duolingo",
+            "linguistics"
+          ],
+          "video_count": 5,
+          "sample_titles": [
+            "we\u2019re doing our spanish lessons with this one \ud83d\udde3\ufe0f #duolingo #pinkfluffyunicorns #languagelearning",
+            "learn phrases like this and so much more on lily video call \ud83d\udde3\ufe0f #duolingo #ai #languagelearning",
+            "duolingo users be like...  #languagelearning #learnkorean #duolingo #teuida",
+            "How to learn Korean #koreanlanguage",
+            "Why is Korean so hard though fr?! \ud83d\ude2d#learnkorean #koreantiktok #lingotok #tash #LanguageLearning"
+          ]
+        },
+        {
+          "id": "c10_m0",
+          "name": "Beginner Mandarin Learning",
+          "description": "This content is created by language enthusiasts and educators focusing on teaching basic Mandarin Chinese phrases and language skills for beginners.",
+          "keywords": [
+            "learn mandarin",
+            "study chinese",
+            "basic phrases",
+            "language learning",
+            "HSK"
+          ],
+          "video_count": 3,
+          "sample_titles": [
+            "\ud83d\udd25Join my Beginner Course to learn more Chinese! Link in bio \u263a\ud83d\ude4c",
+            "Learn Basic Chinese Phrases: \"I can/I will/I see/I agree/I promise\" in Mandarin Chinese",
+            "Easy popular Chinese phrases | easy Chinese language learning"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cat_11",
+      "name": "Pet Enthusiasm",
+      "description": "A category celebrating the joy and creativity found in the world of pets.",
+      "children": [
+        {
+          "id": "c11_m0",
+          "name": "Feline Humor and Artistry",
+          "description": "Content creators blend humor and creativity through entertaining cat videos, showcasing funny moments and artistic food hacks featuring pets.",
+          "keywords": [
+            "cat videos",
+            "funny cat moments",
+            "pet collective",
+            "cute animal videos",
+            "ranking"
+          ],
+          "video_count": 51,
+          "sample_titles": [
+            "Puff\u2019s in the kitchen blending food hacks with art!  \ud83d\udc3e #ThatLittlePuff",
+            "Top 5 Funniest Kai Cenat Moments \ud83d\ude02 | Hilarious Twitch & YouTube Highlights",
+            "Ranking The Funniest Black Cat Behavior",
+            "Cute Cat Compilation Part 1 \ud83d\udc31",
+            "When the catnip hits pt. 2"
+          ]
+        },
+        {
+          "id": "c11_m2",
+          "name": "Rescue Dog Transformations",
+          "description": "Content creators showcase heartwarming before-and-after stories of rescued dogs, highlighting their emotional journeys and physical transformations.",
+          "keywords": [
+            "rescue dogs",
+            "dog transformations",
+            "animal rescue",
+            "before and after",
+            "emotional stories"
+          ],
+          "video_count": 50,
+          "sample_titles": [
+            "This Rescue Dog's Transformation Will Leave You Speechless | The Dodo",
+            "Top 5 Craziest Transformations | The Dodo",
+            "Transformation: Before And After #animalshorts #animallover #rescue #dog #doglover #loveanimals",
+            "This rescued dog will break your heart and then will give you HOPE! Full video: www.HopeForPaws.org",
+            "This Dog Had Been In Chains For 5 Years  | The Dodo"
+          ]
+        },
+        {
+          "id": "c11_m1",
+          "name": "Dog Trick Training",
+          "description": "Content creators share tutorials and tips on teaching dogs various tricks, catering to both beginners and experienced trainers.",
+          "keywords": [
+            "dog tricks",
+            "dog training",
+            "trick tutorials",
+            "dog lovers",
+            "pet training"
+          ],
+          "video_count": 46,
+          "sample_titles": [
+            "8 Fun Tricks You Can Teach Your Dog To Do",
+            "The Best Trick I\u2019ve Taught My Dogs. Dog Daddy",
+            "Easy Dog Tricks For Beginners",
+            "3 Useful Tricks I Taught My Dog \ud83e\udd13 #dogtricks #dogtraining #dogtrick #bernesemountaindog",
+            "SuperDogs | Teach Your Dog The Trick - Shy | Dog Training"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cat_12",
+      "name": "Sourdough Baking",
+      "description": "A collection of techniques and methods for mastering the art of sourdough bread making.",
+      "children": [
+        {
+          "id": "c12_m0",
+          "name": "Sourdough Baking Techniques",
+          "description": "This content is created by home bakers and enthusiasts who share tips, recipes, and techniques for making sourdough bread from scratch.",
+          "keywords": [
+            "sourdough",
+            "bread making",
+            "baking tips",
+            "sourdough recipes",
+            "beginner baking"
+          ],
+          "video_count": 29,
+          "sample_titles": [
+            "Chocolate chip sourdough AND homemade whipped vanilla brown butter #sourdough #sourdoughbread #bread",
+            "The Only Sourdough Recipe You'll Ever Need",
+            "The easy sourdough recipe I use for my micro bakery orders! #sourdough #sourdoughrecipe",
+            "Easy how to make sourdough bread",
+            "Quick 24 Hour Sourdough bread recipe- Link to my guide in description #sourdough"
+          ]
+        },
+        {
+          "id": "c12_noise",
+          "name": "Quick Sourdough Techniques",
+          "description": "Content creators share time-saving tips and beginner-friendly methods for making sourdough bread without complex equipment.",
+          "keywords": [
+            "sourdough",
+            "bread making",
+            "beginner tips",
+            "artisan bread",
+            "quick recipes"
+          ],
+          "video_count": 14,
+          "sample_titles": [
+            "Sourdough bread in just 17 minutes? Watch how.",
+            "I wish I knew this in the beginning! #sourdough #sourdoughforbeginners",
+            "ONCE a week Sourdough Bread Making Process\ud83d\ude4c\ud83e\udd56 #timesaver #sourdough #hacks #shorts #recipes",
+            "Artisan-Style Bread",
+            "you can bake sourdough bread without a dutch oven"
+          ]
+        },
+        {
+          "id": "c12_m1",
+          "name": "Dutch Oven Sourdough Baking",
+          "description": "Content creators in this niche focus on teaching viewers how to bake sourdough bread using Dutch ovens, sharing tips, techniques, and recipes for perfect results.",
+          "keywords": [
+            "sourdough bread recipe",
+            "Dutch Oven baking",
+            "beginner sourdough tips",
+            "easy sourdough recipe",
+            "sourdough shaping tutorial"
+          ],
+          "video_count": 4,
+          "sample_titles": [
+            "How to bake your sourdough bread in a Dutch oven. This method works! No burnt bread!",
+            "Exactly how to bake your sourdough bread in a Dutch oven, including time and temp.",
+            "Here\u2019s how to bake your sourdough bread in a loaf pan, instead of a Dutch oven!",
+            "Your sunday baking routine: how to make perfect sourdough with a Dutch Oven #sourdoughbread"
+          ]
+        },
+        {
+          "id": "c12_m2",
+          "name": "Sourdough Baking Techniques",
+          "description": "This content is created by home bakers and enthusiasts who share innovative methods for baking sourdough bread without traditional equipment.",
+          "keywords": [
+            "sourdough",
+            "baking",
+            "open bake",
+            "no Dutch oven",
+            "bread"
+          ],
+          "video_count": 3,
+          "sample_titles": [
+            "How to bake sourdough bread without Dutch Oven: open bake method",
+            "No Dutch oven, no problem! #sourdoughbread #sourdoughbaking",
+            "Baking Sourdough without a Dutch Oven! #sourdoughbaking #sourdoughtips #sourdoughbread #sourdough"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cat_13",
+      "name": "Mental Math Techniques",
+      "description": "A collection of strategies and tricks to enhance mental arithmetic skills.",
+      "children": [
+        {
+          "id": "c13_m1",
+          "name": "Fast Math Tricks",
+          "description": "Content creators share quick and easy math techniques to enhance mental calculation skills and make learning math fun.",
+          "keywords": [
+            "math tricks",
+            "mental math",
+            "multiplication hacks",
+            "percentage calculations",
+            "times tables"
+          ],
+          "video_count": 42,
+          "sample_titles": [
+            "How to Calculate Percentages FAST!\u26a1 Easy Math Trick You\u2019ll Never Forget!  #maths #mathstricks",
+            "Genius Math Trick \ud83e\udde0\ud83e\udd2f",
+            "Speed Mental Math Exercise #shorts",
+            "How To Calculate Faster than a Calculator",
+            "Did you know this trick? \ud83e\udd2f #mathtrick #multiplication #math"
+          ]
+        },
+        {
+          "id": "c13_noise",
+          "name": "Mental Math Mastery",
+          "description": "Content creators in this niche focus on teaching quick mental math techniques, tricks, and exercises to enhance numerical skills and cognitive abilities.",
+          "keywords": [
+            "mental math",
+            "math tricks",
+            "abacus",
+            "math magic",
+            "mind math"
+          ],
+          "video_count": 5,
+          "sample_titles": [
+            "Mental Math Tricks",
+            "I Will Predict Your Number - Math Magic Trick",
+            "How to Multiply in Your Head",
+            "Cube Root Math Trick",
+            "Abacus Mental Math Demonstration - Strengthen Math Facts, Improve Focus, Concentration & Memory"
+          ]
+        },
+        {
+          "id": "c13_m0",
+          "name": "Mental Math Hacks",
+          "description": "Content creators share quick tips and tricks for mastering mental calculations, particularly focusing on percentages and shortcuts.",
+          "keywords": [
+            "mental math",
+            "percentages",
+            "shortcuts",
+            "math tricks",
+            "calculation hacks"
+          ],
+          "video_count": 3,
+          "sample_titles": [
+            "The secret of Chinese Math",
+            "Best Percent Hack - How find Percents Shortcut",
+            "How To Calculate Percents In Your Head"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cat_14",
+      "name": "Gaming Highlights",
+      "description": "A collection of content focused on gaming experiences, performance techniques, and nostalgic moments in gaming.",
+      "children": [
+        {
+          "id": "c14_m1",
+          "name": "Retro Gaming Nostalgia",
+          "description": "Content creators explore and celebrate classic video games, consoles, and the nostalgia associated with retro gaming culture.",
+          "keywords": [
+            "retro gaming",
+            "nostalgia",
+            "classic games",
+            "video game stores",
+            "retro consoles"
+          ],
+          "video_count": 48,
+          "sample_titles": [
+            "3 things every retro video game store should do! \ud83d\ude2c #retrogaming #videogames #gaming #shorts",
+            "Nostalgia From The Early 2000's You Forgot About",
+            "Are there actually 20.000 Games on this Gamestick? #retrogaming #retroconsole #nostalgia #retro",
+            "A world of classic games in your hands \ud83c\udfae\ud83d\udd79\ufe0f #retroconsole #console #retrogaming #retrogames",
+            "POV: Taking a break at a retro game store!"
+          ]
+        },
+        {
+          "id": "c14_m4",
+          "name": "PC Gaming Performance Hacks",
+          "description": "Content creators share tips and tricks to optimize PC and mobile gaming performance, focusing on increasing FPS and enhancing gameplay experience.",
+          "keywords": [
+            "FPS boost",
+            "PC optimization",
+            "gaming tips",
+            "tech hacks",
+            "performance tricks"
+          ],
+          "video_count": 40,
+          "sample_titles": [
+            "These 3 PC Tips Will Give You A Crazy Performance Boost \ud83e\udd2f #pctips #fpsboost #fps #tech #techtok #pc",
+            "INCREASE YOUR FPS WITH THIS TRICK! #shorts",
+            "Here\u2019s how to get more FPS | PC Tips #tech #pc #pcgaming",
+            "Boost Your FPS With This Simple Trick... \ud83d\ude31",
+            "boost your FPS in any game"
+          ]
+        },
+        {
+          "id": "c14_noise",
+          "name": "Competitive Gaming Highlights",
+          "description": "This content is created by gamers and esports enthusiasts showcasing intense gameplay moments, funny clips, and highlights from various competitive video games.",
+          "keywords": [
+            "gaming",
+            "highlights",
+            "esports",
+            "funny moments",
+            "competitive"
+          ],
+          "video_count": 34,
+          "sample_titles": [
+            "Call of Duty Black Ops 6 Prop Hunt Funny Moments",
+            "\"You know who this is right?\" Donk doing donk things that the BLAST Bounty \ud83d\udd2b",
+            "INSANE catch by Pittsburgh\u2019s Tristan Yarter! #highlights #frisbee",
+            "Gotta start doing this to get shots over Wemby \ud83d\udc80 (h/t ipanda757/TT) #shorts #basketball #highlights",
+            "This is a Sniper's DREAM [Warzone]"
+          ]
+        },
+        {
+          "id": "c14_m3",
+          "name": "Competitive Gaming Highlights",
+          "description": "Content creators share exciting and humorous moments from competitive gaming tournaments across various popular games.",
+          "keywords": [
+            "gaming",
+            "highlights",
+            "tournaments",
+            "funny moments",
+            "reactions"
+          ],
+          "video_count": 8,
+          "sample_titles": [
+            "Best dodgeball moment \ud83d\udd25 #shorts #dodgeball #highlights",
+            "Funny Reactions and FNCS Gaming Highlights  Must See Moments 3 #fortniteepic #nickeh30 #fortnite",
+            "Funny Reactions and FNCS Gaming Highlights  Must See Moments 2 #fortnite #fortniteepic",
+            "TOURNAMENTS MOMENTS #pmpleu #gameplay #pubgmobile #highlights #montage #bgmi #pubgm #iphone13pro",
+            "Gaming highlights & funny moments #warzone #cod #apexlegends #fortnite"
+          ]
+        },
+        {
+          "id": "c14_m6",
+          "name": "Competitive CS:GO Highlights",
+          "description": "Content creators showcase intense gameplay moments, including clutch plays, wallbangs, and rush strategies in Counter-Strike: Global Offensive.",
+          "keywords": [
+            "highlights",
+            "clutch",
+            "wallbang",
+            "gaming",
+            "CS:GO"
+          ],
+          "video_count": 6,
+          "sample_titles": [
+            "THIS ISN\u2019T LEGAL! m0NESY'S FILTHY DOUBLE WITH A WALLBANG NOSCOPE!  #esl #cs #\u043a\u0441 #csgo",
+            "THE BEST WALLBANG IN CS 1.6 #shorts #youtubeshorts #cs #gaming #highlights #bestmoments #wallbang",
+            "CLUTCH MOMENT \ud83d\ude0b #shorts #youtubeshorts #cs #gaming #highlights #bestmoments #clutch #fyp",
+            "RUSH MOMENT \ud83d\udc7a #shorts #youtubeshorts #cs #gaming #highlights #bestmoments #fragmovie #fyp",
+            "RUSH MOMENT \ud83d\ude01 #shorts #youtubeshorts #cs #gaming #highlights #bestmoments #fragmovie #fyp"
+          ]
+        },
+        {
+          "id": "c14_m2",
+          "name": "Epic Sports Highlights",
+          "description": "Content creators showcase the most thrilling and unforgettable moments from NBA and MLB games, focusing on extraordinary plays and highlights.",
+          "keywords": [
+            "sports",
+            "highlights",
+            "NBA",
+            "MLB",
+            "viral plays"
+          ],
+          "video_count": 5,
+          "sample_titles": [
+            "The MOST impossible finish in NBA history #shorts",
+            "The Mariners had that MLB The Show Showdown fielding in extras vs. the Yankees",
+            "[STREAM HIGHLIGHTS] FROM THE GAME THE CLASSROOMS!",
+            "TRIPLE PLAY!! \ud83d\udea8",
+            "This Nestor Cortes-Shohei Ohtani at-bat is still legendary \ud83e\udd23\ud83e\udd23"
+          ]
+        },
+        {
+          "id": "c14_m0",
+          "name": "Gaming Tech Unboxing",
+          "description": "This content is created by tech enthusiasts and gamers who showcase and review the latest gaming hardware and accessories through unboxing videos.",
+          "keywords": [
+            "unboxing",
+            "gaming",
+            "tech",
+            "hardware",
+            "reviews"
+          ],
+          "video_count": 3,
+          "sample_titles": [
+            "Unboxing my maxed out GeForce 5090 Gaming PC by #carterpcs #tech #techtok #techfacts #gaming",
+            "Unboxing the #REDMAGICAstra Gaming Tablet \ud83d\ude0f",
+            "Unboxing my new Steam Deck OLED #asmr #steamdeck #steam #unboxing #tech"
+          ]
+        },
+        {
+          "id": "c14_m5",
+          "name": "Precision Aiming Techniques",
+          "description": "Content creators in this niche focus on improving aiming skills in FPS games through eye training and reflex enhancement techniques.",
+          "keywords": [
+            "aiming",
+            "FPS",
+            "eye training",
+            "reflexes",
+            "gaming"
+          ],
+          "video_count": 3,
+          "sample_titles": [
+            "Eye Aiming in FPS Games",
+            "How To Aim Smoothly With Tension | #Aim #FPS #Gaming",
+            "Get Better Aim with this 60 FPS Eye Training #gaming #shorts"
+          ]
+        },
+        {
+          "id": "c14_m7",
+          "name": "Competitive CS2 Highlights",
+          "description": "Content creators compile and showcase the most entertaining and skillful moments from competitive CS2 events, focusing on gameplay highlights and player achievements.",
+          "keywords": [
+            "CS2",
+            "highlights",
+            "IEM Atlanta",
+            "funny moments",
+            "best plays"
+          ],
+          "video_count": 3,
+          "sample_titles": [
+            "FUNNY MOMENTS of IEM Atlanta 2026 | CS2",
+            "BEST MOMENTS of IEM Atlanta 2026 Play-off | CS2",
+            "KNIFE MOMENT by Maka #cac #asia #cs #cs2"
+          ]
+        }
+      ]
+    }
+  ]
+}
