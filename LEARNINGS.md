@@ -1452,6 +1452,24 @@ python3 pipeline/v3/5_evaluate.py          # ~5 sec
 3. **No sub-niche centroids**: Sub-niches inherit parent centroid for classification
 4. **LLM hallucination risk**: Some suggestions may not reflect real content patterns
 
+### V3 UI Features
+
+The V3 Process & Flowchart page includes all features from V2 plus V3-specific additions:
+
+| Feature | Description |
+|---------|-------------|
+| ELI5 Toggle | Simple vs technical explanation mode |
+| Clickable Data Flow | 8-step visual flow with modal popups showing details + code |
+| V2 vs V3 Comparison | Side-by-side improvements table |
+| How to Run Pipeline | Step-by-step with timing and cost info |
+| LLM Validation Process | 3 cards showing validated/partial/rejected stats |
+| V3 Key Features | Featured V3 Classifier card + 4 feature cards |
+| Why V3 Works/Doesn't | Pros and cons columns |
+| Evaluation Results | Stats grid + score breakdown with progress bars |
+| V3 vs Hackathon Brief | Full compliance table |
+| Source Distribution | Visual breakdown by source type |
+| Taxonomy Evolution | V0 → V3 progression table |
+
 ---
 
 ## V2/V3/V4 Roadmap
@@ -1640,5 +1658,5 @@ pipeline/v4/
 ---
 
 *Document created: 2026-05-22*
-*Last updated: 2026-05-22 (V3 LLM sub-niche discovery added)*
+*Last updated: 2026-05-22 (V3 UI Process & Flowchart added)*
 *Author: V0/V1/V2/V3 Pipeline Development*
