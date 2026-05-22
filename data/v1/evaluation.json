@@ -1,0 +1,79 @@
+{
+  "taxonomy_metrics": {
+    "total_niches": 209,
+    "total_categories": 20,
+    "total_subcategories": 77,
+    "coverage": 100.0,
+    "videos_covered": 3991,
+    "videos_total": 3991,
+    "niche_sizes": {
+      "min": 5,
+      "max": 50,
+      "mean": 19.1,
+      "median": 15.0,
+      "std": 13.3
+    },
+    "balance": {
+      "gini_coefficient": 0.3841,
+      "entropy": 0.9564,
+      "interpretation": "balanced"
+    },
+    "category_distribution": {
+      "Healthy Cooking": 19,
+      "Bodyweight Fitness": 18,
+      "Quick & Easy Meals": 14,
+      "Food & Dining": 14,
+      "Calisthenics Training": 13,
+      "Fitness & Weight Loss": 12,
+      "Makeup Tutorials": 12,
+      "Running & Training": 11,
+      "Calisthenics & Fitness": 10,
+      "Strength Training": 10
+    },
+    "avg_niches_per_category": 10.4,
+    "avg_niches_per_subcategory": 2.7
+  },
+  "clustering_quality": {
+    "category_silhouette": 0.1723,
+    "calinski_harabasz": 12.76,
+    "centroid_distances": {
+      "mean": 1.0666,
+      "min": 0.2996,
+      "max": 1.3306
+    },
+    "interpretation": {
+      "silhouette": "moderate"
+    }
+  },
+  "stability": {
+    "n_runs": 5,
+    "adjusted_rand_index": {
+      "mean": 0.7325,
+      "std": 0.0343,
+      "min": 0.6667,
+      "max": 0.7974
+    },
+    "normalized_mutual_info": {
+      "mean": 0.8518,
+      "std": 0.0144
+    },
+    "interpretation": {
+      "stability": "moderate",
+      "recommendation": "Clustering is reproducible"
+    }
+  },
+  "classification": {
+    "n_samples": 500,
+    "high_confidence_top1": 99.6,
+    "reasonable_top3": 100.0,
+    "covered_top5": 100.0,
+    "interpretation": "Classification confidence is good"
+  },
+  "hierarchy": {
+    "orphan_niches": 209,
+    "inconsistent_categories": 0,
+    "categories_used": 20,
+    "subcategories_used": 77,
+    "is_consistent": false
+  }
+}
