@@ -1586,38 +1586,82 @@ Return JSON with suggested sub-niches and which videos support each.
 - Can't discover 1000 micro-niches from 4K data points
 - More data = more confidence in cluster boundaries
 
-**Implementation Options:**
+---
 
-1. **Multi-Day YouTube Collection**
-   - Spread collection over 3-4 days
-   - 10K units/day × 4 days = 40K units
-   - Target: 20-30K unique videos
+#### V4 Implementation Options (Evaluated)
 
-2. **Multiple API Keys**
-   - Create additional Google Cloud projects
-   - Each gets 10K units/day
+**Option 1: Multi-Day YouTube Collection** ❌ REJECTED
+- Requires 3-4 days of collection
+- Not feasible for tight deadlines
 
-3. **Alternative Data Sources**
-   - Reddit API (free tier) - validate niches against subreddits
-   - TikTok scraping (Playwright) - cross-platform validation
-   - Google Trends - discover trending niches
+**Option 2: Multiple Google Cloud API Keys** ❌ REJECTED
+- Risk of collecting duplicate data across keys
+- Against ToS potentially
 
-4. **Smarter Keyword Generation**
-   - Use V2/V3 taxonomy to generate targeted keywords
-   - Fill gaps in underrepresented categories (Gaming, Travel, Tech)
-   - Use LLM to suggest seed keywords for sparse niches
+**Option 3: Expand LLM Breakdown (All Niches)** ✅ RECOMMENDED
+- V3 only processed 100 of 234 niches (cost control)
+- Process ALL 234 niches → potentially +500 more sub-niches
+- Cost: ~$0.35 total, Time: ~10 min
+- **Quick win, no new data needed, removes artificial limit**
 
-**V4 Pipeline:**
+**Option 4: Alternative Data APIs for Cross-Platform Data**
+
+| API | What it provides | Cost | Setup Time | Verdict |
+|-----|------------------|------|------------|---------|
+| **Apify TikTok Scraper** | 10K+ TikTok videos with hashtags | ~$5-10 | 30 min | ✅ Best option |
+| **Apify Instagram Scraper** | 10K+ Reels with captions | ~$5-10 | 30 min | ✅ Good option |
+| **SerpAPI (YouTube)** | Bypass quota, search results | ~$50/mo | 30 min | ✅ Good for YouTube gaps |
+| **Meta Instagram Graph API** | Official API, limited access | Free | 2 hrs | ⚠️ Only 30 hashtags/week, 1,500 posts max |
+| **TikTok Research API** | Official API, full access | Free | Days (approval) | ❌ Too slow |
+| **Reddit API** | Subreddit validation | Free | 1-2 hrs | ❌ No video data |
+| **Google Trends** | Trend validation | Free | 1 hr | ❌ No video data |
+| **Twitter/X API** | Hashtag trends | $100/mo | 1 hr | ❌ No video data |
+
+**Why Apify is recommended:**
+- Pre-built scrapers, no approval process
+- Instant access to TikTok/Instagram data
+- Same hashtag culture as YouTube Shorts
+- ~$10 for 10K+ videos is cost-effective
+- Cross-platform validation strengthens taxonomy
+
+**Instagram Graph API Limits (if using own Business account):**
+- 30 unique hashtags per 7-day rolling window
+- 50 results per hashtag search
+- Maximum: 1,500 posts per week
+- Good for spot-checking, not bulk data
+
+---
+
+#### Recommended V4 Pipeline
+
 ```
 pipeline/v4/
-├── 1_generate_keywords.py     # LLM-assisted keyword expansion
-├── 2_collect_day1.py          # YouTube collection (day 1)
-├── 2_collect_day2.py          # YouTube collection (day 2)
-├── 2_collect_day3.py          # YouTube collection (day 3)
-├── 3_merge_datasets.py        # Combine with V1 data
-├── 4_full_pipeline.py         # Re-run embedding + hashtag + LLM
-└── 5_evaluate.py              # Final evaluation
+├── 1_expand_llm_breakdown.py  # Process ALL 234 niches (no limit)
+├── 2_collect_tiktok.py        # Apify TikTok scraper (10K videos)
+├── 3_collect_instagram.py     # Apify Instagram scraper (10K Reels) [optional]
+├── 4_merge_crossplatform.py   # Combine YouTube + TikTok + Instagram
+├── 5_unified_taxonomy.py      # Re-cluster with cross-platform data
+└── 6_evaluate.py              # Final evaluation
 ```
+
+**Estimated V4 Results:**
+
+| Metric | V3 | V4 Target |
+|--------|-----|-----------|
+| Videos | 4K | 20-30K |
+| Niches | 593 | 900-1200 |
+| Platforms | YouTube only | YouTube + TikTok (+ Instagram) |
+| Cost | ~$0.15 | ~$15-25 |
+| Time | 30 min | 3-4 hrs |
+
+---
+
+#### V4 Decision Pending
+
+Options being considered:
+1. **Minimum V4**: Just expand LLM breakdown to all niches (~$0.35, 10 min)
+2. **Medium V4**: + Apify TikTok data (~$10, 1 hr)
+3. **Full V4**: + Apify Instagram + more YouTube via SerpAPI (~$50, 4 hrs)
 
 ---
 
@@ -1658,5 +1702,5 @@ pipeline/v4/
 ---
 
 *Document created: 2026-05-22*
-*Last updated: 2026-05-22 (V3 UI Process & Flowchart added)*
+*Last updated: 2026-05-22 (V4 planning options documented)*
 *Author: V0/V1/V2/V3 Pipeline Development*
