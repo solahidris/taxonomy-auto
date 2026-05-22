@@ -1068,6 +1068,205 @@ python3 pipeline/v1/6_evaluate.py  # Evaluation (~30 sec)
 
 ---
 
+## V2 Implementation Results
+
+V2 adds hashtag co-occurrence graph analysis (Approach A) to complement V1's embedding-based clustering.
+
+### V2 Pipeline Scripts
+
+| Script | Purpose |
+|--------|---------|
+| `pipeline/v2/1_build_hashtag_graph.py` | Extract hashtags, build co-occurrence graph |
+| `pipeline/v2/2_community_detection.py` | Louvain algorithm at 3 resolutions |
+| `pipeline/v2/3_merge_with_embeddings.py` | Cross-validate with V1 clusters |
+| `pipeline/v2/4_unified_taxonomy.py` | Create unified taxonomy, LLM naming for new niches |
+| `pipeline/v2/5_evaluate.py` | Compare V2 vs V1 |
+| `pipeline/v2/run.sh` | Full pipeline runner |
+
+### V2 Results Summary
+
+| Metric | V1 | V2 | Change |
+|--------|-----|-----|--------|
+| Total niches | 209 | 234 | +25 (+12%) |
+| Categories | 20 | 21 | +1 (Hashtag Discovered) |
+| Subcategories | 77 | 77 | - |
+| Approaches used | B only | A + B | +Approach A |
+
+### Hashtag Graph Statistics
+
+| Metric | Value |
+|--------|-------|
+| Total videos processed | 3,991 |
+| Videos with hashtags | 2,931 (73.4%) |
+| Unique hashtags | 1,586 |
+| Co-occurrence edges | 15,169 |
+| Average edge weight | 3.98 |
+
+### Louvain Community Detection
+
+Ran at 3 resolutions to build hierarchy:
+
+| Resolution | Level | Communities |
+|------------|-------|-------------|
+| 0.5 | Categories | 16 |
+| 1.0 | Subcategories | 22 |
+| 2.0 | Niches | 29 |
+
+### New Niches Discovered (via Hashtags)
+
+25 new niches discovered through hashtag co-occurrence that weren't found by embedding clustering:
+
+| Niche | Description | Top Hashtags |
+|-------|-------------|--------------|
+| Fitness Transformation Journeys | Personal fitness journeys, progress, challenges | #fitness, #workout, #gym, #motivation |
+| Quick Healthy Meals | Fast nutritious recipes for busy individuals | #recipe, #cooking, #mealprep, #easyrecipe |
+| Quick Cake Decorating Tips | Rapid cake decorating techniques | #shorts, #cakedecorating, #cake |
+| Interactive Food Experiences | Immersive food reviews, challenges | #food, #foodie, #yummy |
+| Bodyweight Fitness Journey | Home workouts without equipment | #homeworkout, #fitnessmotivation |
+| Affordable DIY Makeup Tutorials | Budget-friendly drugstore tutorials | #makeup, #howto, #drugstoremakeup |
+| Aesthetic Skincare ASMR | Skincare + ASMR relaxation | #skincare, #asmr, #aesthetic |
+
+(Plus 18 more cross-cutting niches spanning multiple V1 categories)
+
+### V2 Evaluation Scores
+
+```
+Overall Quality Score: 56.5/100
+
+Breakdown:
+  Coverage:           100.0/100
+  Balance:             50.0/100 (Gini 0.66 - more imbalanced)
+  Hashtag Validation:  16.0/100 (see Known Issue below)
+  New Discoveries:     60.0/100
+```
+
+### Success Criteria
+
+| Criterion | Target | Result | Status |
+|-----------|--------|--------|--------|
+| Hashtag graph built | >0 hashtags | 1,586 hashtags | **PASS** |
+| Community detection done | >0 communities | 29 communities | **PASS** |
+| New niches discovered | ≥10 new | 25 new | **PASS** |
+| V1 niches validated | ≥50% | 0% | **FAIL** |
+
+### Known Issue: V1 Validation Rate = 0%
+
+**Problem:** V1 taxonomy doesn't store `video_ids` in niches, only centroids. The cross-validation step couldn't map videos back to V1 niches.
+
+**Impact:** Can't validate V1 niches using hashtag communities. All V1 niches show `hashtag_validated: false`.
+
+**Fix for V3:** Modify V1 pipeline to store `video_ids` per niche, or use V1 metadata to rebuild the mapping.
+
+### What V2 Achieved
+
+1. **Approach A Implementation**: Hashtag co-occurrence graph successfully built
+2. **Community Detection**: Louvain algorithm found meaningful hashtag communities
+3. **New Niche Discovery**: 25 cross-cutting niches not found by embedding clustering alone
+4. **Hybrid Taxonomy**: Combined embedding + hashtag approaches
+5. **Source Tagging**: All niches tagged with `source: "embedding_clustered"` or `"hashtag_discovered"`
+6. **Hybrid Classifier**: V2 classifier combines embedding similarity + hashtag matching
+
+### V2 Classifier
+
+The V2 classifier (`/api/v2/classify`) uses a hybrid approach to classify creator content:
+
+**How It Works:**
+
+1. **Embedding-Based Niches (209 niches)**:
+   - Computes cosine similarity between input embedding and niche centroids
+   - If input contains hashtags that match niche's top_hashtags, adds a boost (up to +15%)
+   - Final score = embedding_similarity + hashtag_boost
+
+2. **Hashtag-Discovered Niches (25 niches)**:
+   - No centroids available (discovered via hashtag communities)
+   - Uses hashtag matching: checks if input hashtags overlap with niche's top_hashtags
+   - Also matches keywords from input text against niche keywords
+   - Score = (hashtag_match_ratio × 0.6 + keyword_match_ratio × 0.2) × 0.8
+
+**Scoring Formula:**
+
+```python
+# For embedding-based niches
+hashtag_boost = 0.15 * min(matched_hashtags, 3) / 3 if matched_hashtags > 0 else 0
+final_score = min(1.0, embedding_similarity + hashtag_boost)
+
+# For hashtag-discovered niches
+hashtag_score = matched_hashtags / min(niche_hashtags, 5) * 1.2  # capped at 1.0
+keyword_bonus = keyword_matches / total_keywords * 0.2
+final_score = (hashtag_score * 0.6 + keyword_bonus) * 0.8
+```
+
+**Features:**
+- **Multi-label**: Returns multiple niches if scores are within 8% of best match
+- **Open-set detection**: Flags "UNKNOWN" if best score < 35%
+- **Source tagging**: Each result shows if it came from embedding or hashtag discovery
+- **Matched hashtags**: Shows which hashtags contributed to the match
+
+**API Response:**
+```json
+{
+  "input_hashtags": ["fitness", "workout", "gym"],
+  "classification_status": "HIGH_CONFIDENCE",
+  "primary_niche": {
+    "niche_name": "Fitness Transformation Journeys",
+    "source": "hashtag_discovered",
+    "matched_hashtags": ["fitness", "workout", "gym"],
+    "confidence": 72.5
+  },
+  "stats": {
+    "matches_from_embedding": 3,
+    "matches_from_hashtag": 2
+  }
+}
+
+### V2 File Structure
+
+```
+data/v2/
+├── hashtag_graph.pkl     # NetworkX graph + tag_to_videos mapping
+├── graph_stats.json      # Graph statistics
+├── communities.json      # Louvain results at 3 resolutions
+├── merged_analysis.json  # Cross-validation with V1
+├── taxonomy.json         # Final V2 taxonomy (234 niches)
+└── evaluation.json       # V2 vs V1 comparison
+
+pipeline/v2/
+├── 1_build_hashtag_graph.py
+├── 2_community_detection.py
+├── 3_merge_with_embeddings.py
+├── 4_unified_taxonomy.py
+├── 5_evaluate.py
+└── run.sh
+
+pages/api/v2/
+├── classify.ts           # Hybrid classifier (embedding + hashtag)
+└── taxonomy.ts           # V2 taxonomy API endpoint
+```
+
+### How to Run V2
+
+```bash
+# Full pipeline
+cd pipeline/v2 && bash run.sh
+
+# Or individual steps
+python3 pipeline/v2/1_build_hashtag_graph.py   # ~10 sec
+python3 pipeline/v2/2_community_detection.py   # ~5 sec
+python3 pipeline/v2/3_merge_with_embeddings.py # ~5 sec
+python3 pipeline/v2/4_unified_taxonomy.py      # ~2 min (LLM calls)
+python3 pipeline/v2/5_evaluate.py              # ~5 sec
+```
+
+### V2 Learnings
+
+1. **Hashtag coverage is good**: 73.4% of videos have hashtags - strong signal
+2. **Cross-cutting niches exist**: Some content spans multiple embedding clusters but has unified hashtag communities
+3. **Community detection works**: Louvain at resolution 2.0 found 29 meaningful communities
+4. **Missing video_ids is a blocker**: Can't cross-validate without knowing which videos belong to which V1 niches
+5. **Balance trade-off**: New hashtag niches have variable sizes (732 to 10 videos), increasing Gini coefficient
+
+---
+
 ## V2/V3/V4 Roadmap
 
 ### Gap Analysis Summary
@@ -1232,10 +1431,11 @@ pipeline/v4/
 ### Success Metrics by Version
 
 **V2 Success:**
-- [ ] Hashtag graph built from existing tags
-- [ ] Community detection finds 20-50 communities
-- [ ] ≥10 new niches discovered (not found by V1)
-- [ ] Cross-validation: ≥70% of V1 niches confirmed by hashtag communities
+- [x] Hashtag graph built from existing tags (1,586 hashtags, 15,169 edges)
+- [x] Community detection finds 20-50 communities (29 at niche level)
+- [x] ≥10 new niches discovered (not found by V1) (25 new niches)
+- [x] Hybrid classifier implemented (embedding + hashtag matching)
+- [ ] Cross-validation: ≥70% of V1 niches confirmed by hashtag communities (0% - blocked by missing video_ids)
 
 **V3 Success:**
 - [ ] LLM generates 3-5 sub-niches per existing niche
@@ -1253,5 +1453,5 @@ pipeline/v4/
 ---
 
 *Document created: 2026-05-22*
-*Last updated: 2026-05-22 (V2/V3/V4 roadmap added)*
+*Last updated: 2026-05-22 (V2 classifier added)*
 *Author: V0/V1/V2+ Pipeline Development*

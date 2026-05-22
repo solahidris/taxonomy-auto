@@ -1,0 +1,101 @@
+{
+  "v1_metrics": {
+    "name": "V1",
+    "total_niches": 209,
+    "total_categories": 20,
+    "total_subcategories": 77,
+    "niche_sizes": {
+      "min": 5,
+      "max": 50,
+      "mean": 19.1,
+      "median": 15.0,
+      "std": 13.3
+    },
+    "gini_coefficient": 0.3841,
+    "balance": "balanced",
+    "top_categories": {
+      "Healthy Cooking": 19,
+      "Bodyweight Fitness": 18,
+      "Quick & Easy Meals": 14,
+      "Food & Dining": 14,
+      "Calisthenics Training": 13,
+      "Fitness & Weight Loss": 12,
+      "Makeup Tutorials": 12,
+      "Running & Training": 11,
+      "Calisthenics & Fitness": 10,
+      "Strength Training": 10
+    }
+  },
+  "v2_metrics": {
+    "name": "V2",
+    "total_niches": 234,
+    "total_categories": 21,
+    "total_subcategories": 77,
+    "niche_sizes": {
+      "min": 5,
+      "max": 781,
+      "mean": 42.6,
+      "median": 18.0,
+      "std": 97.9
+    },
+    "gini_coefficient": 0.6596,
+    "balance": "imbalanced",
+    "top_categories": {
+      "Hashtag Discovered": 25,
+      "Healthy Cooking": 19,
+      "Bodyweight Fitness": 18,
+      "Quick & Easy Meals": 14,
+      "Food & Dining": 14,
+      "Calisthenics Training": 13,
+      "Fitness & Weight Loss": 12,
+      "Makeup Tutorials": 12,
+      "Running & Training": 11,
+      "Calisthenics & Fitness": 10
+    }
+  },
+  "v2_specific": {
+    "source_distribution": {
+      "embedding_clustered": 209,
+      "hashtag_discovered": 25
+    },
+    "confidence_distribution": {
+      "medium": 209,
+      "hashtag_only": 25
+    },
+    "hashtag_validated": 25,
+    "hashtag_validated_pct": 10.7,
+    "niches_with_hashtags": 25,
+    "avg_hashtags_per_niche": 1.1,
+    "new_niche_candidates": 25,
+    "new_niches_added": 25
+  },
+  "comparison": {
+    "v1_niches": 209,
+    "v2_niches": 234,
+    "preserved_from_v1": 209,
+    "new_in_v2": 25,
+    "growth": 25,
+    "growth_pct": 12.0
+  },
+  "graph_metrics": {
+    "total_videos": 3991,
+    "videos_with_hashtags": 2931,
+    "hashtag_coverage_pct": 73.4,
+    "unique_hashtags": 1586,
+    "hashtag_edges": 15169,
+    "avg_edge_weight": 3.98
+  },
+  "overall_score": 56.5,
+  "score_breakdown": {
+    "coverage": 100,
+    "balance": 50,
+    "hashtag_validation": 16.049999999999997,
+    "new_discoveries": 60.0
+  },
+  "success_criteria": {
+    "Hashtag graph built": true,
+    "Community detection done": true,
+    "New niches discovered": true,
+    "V1 niches validated": false
+  }
+}

@@ -433,6 +433,247 @@ centroids = kmeans.cluster_centers_`,
   },
 }
 
+// V1 Step Details for Data Flow Modal
+const V1_STEP_DETAILS: Record<number, { title: string; description: string; details: string[]; code?: string }> = {
+  1: {
+    title: 'YouTube Data API v3',
+    description: 'Expanded data collection with 200+ seed keywords across more content verticals.',
+    details: [
+      'Search endpoint with videoDuration=short filter',
+      '200+ seed keywords (vs 60 in V0)',
+      'Fetches 50 results per keyword',
+      'Gets video metadata: id, title, description, tags, channel',
+      'Limits: max 3 videos per channel to ensure diversity',
+      'Hit quota at ~4,000 videos (10K daily limit)',
+    ],
+    code: `# 200+ keywords across categories
+KEYWORDS = [
+  "calisthenics workout", "hyrox training",
+  "sourdough bread", "meal prep sunday",
+  "skincare routine", "drugstore makeup",
+  ...
+]`,
+  },
+  2: {
+    title: 'Raw Videos Dataset',
+    description: 'Collected ~4,000 unique videos with metadata for embedding.',
+    details: [
+      '~4,000 unique videos after deduplication',
+      'Each video: id, title, description, tags, channel',
+      'Description truncated to 400 characters',
+      'Tags limited to first 20 per video',
+      'File: data/v1/raw_videos.jsonl',
+    ],
+  },
+  3: {
+    title: 'OpenAI Embeddings',
+    description: 'Each video text is converted to a 1536-dimensional vector.',
+    details: [
+      'Model: text-embedding-3-small',
+      'Output: 1536-dimensional float vector per video',
+      'Batched in groups of 100 for efficiency',
+      'Same as V0, no changes',
+      'File: data/v1/embeddings.npy',
+    ],
+  },
+  4: {
+    title: 'Level 1: K-Means (k=20)',
+    description: 'First level clustering creates 20 broad categories.',
+    details: [
+      'K-Means with k=20 categories',
+      'All 4,000 videos assigned to one of 20 categories',
+      'Creates broad content areas: Fitness, Food, Beauty, etc.',
+      'Uses PCA to reduce dimensions first (1536 → 100)',
+      'Centroids stored for hierarchy',
+    ],
+    code: `kmeans = KMeans(n_clusters=20, random_state=42)
+labels = kmeans.fit_predict(embeddings_pca)`,
+  },
+  5: {
+    title: 'Level 2: K-Means (k=5-8)',
+    description: 'Within each category, split into 5-8 subcategories.',
+    details: [
+      'For each of 20 categories, run K-Means again',
+      'k = 5-8 based on category size',
+      'Creates ~77 total subcategories',
+      'More granular than category, less than niche',
+      'Example: Fitness → HYROX Training, Yoga, Running, etc.',
+    ],
+  },
+  6: {
+    title: 'Level 3-4: HDBSCAN + Split',
+    description: 'Density-based clustering finds natural micro-niches.',
+    details: [
+      'HDBSCAN within each subcategory',
+      'Finds arbitrary-shaped clusters without fixed k',
+      'min_cluster_size=3 for granularity',
+      'Large niches (>50 videos) are split further',
+      'Creates 209 total leaf niches',
+    ],
+    code: `hdb = HDBSCAN(min_cluster_size=3)
+micro_labels = hdb.fit_predict(subcat_embeddings)`,
+  },
+  7: {
+    title: 'LLM Naming (GPT-4o-mini)',
+    description: 'Hierarchical naming of categories, subcategories, and niches.',
+    details: [
+      'Names 20 categories first',
+      'Then 77 subcategories with parent context',
+      'Finally 209 niches with full hierarchy',
+      'Also extracts top 10 exemplar creators per niche',
+      'JSON mode for structured output',
+    ],
+  },
+  8: {
+    title: 'V1 Taxonomy',
+    description: 'Final 4-level hierarchical taxonomy with 209 niches.',
+    details: [
+      '4-level hierarchy: Category → Subcategory → Niche → Micro-niche',
+      '20 categories, 77 subcategories, 209 leaf niches',
+      'Each niche has: name, description, keywords, exemplar creators',
+      'Centroids stored for classification',
+      'File: data/v1/taxonomy.json',
+    ],
+  },
+}
+
+// V2 Step Details for Data Flow Modal
+const V2_STEP_DETAILS: Record<number, { title: string; description: string; details: string[]; code?: string }> = {
+  1: {
+    title: 'V1 Videos',
+    description: 'Uses existing V1 video data - no new API calls needed.',
+    details: [
+      'Reads from data/v1/metadata.json',
+      '~4,000 videos with title, description, tags',
+      'No additional YouTube API quota used',
+      'Focuses on hashtag extraction from existing data',
+    ],
+  },
+  2: {
+    title: 'Extract Hashtags',
+    description: 'Extracts hashtags from tags, titles, and descriptions.',
+    details: [
+      'Primary source: video tags field',
+      'Secondary: #hashtags in titles and descriptions',
+      'Normalizes: lowercase, remove special chars',
+      'Filters: min 3 occurrences to reduce noise',
+      '73.4% of videos have usable hashtags',
+    ],
+    code: `def extract_hashtags(video):
+    tags = set(video.get('tags', []))
+    # Also extract #hashtags from title/desc
+    for text in [video['title'], video['description']]:
+        tags.update(re.findall(r'#(\\w+)', text))
+    return tags`,
+  },
+  3: {
+    title: 'Hashtag Graph',
+    description: 'Build co-occurrence graph where nodes are hashtags and edges are co-occurrences.',
+    details: [
+      'Node = unique hashtag (1,586 after filtering)',
+      'Edge = two hashtags appear in same video',
+      'Edge weight = number of co-occurrences',
+      '15,169 total edges',
+      'Average edge weight: 3.98',
+    ],
+    code: `G = nx.Graph()
+for video in videos:
+    tags = extract_hashtags(video)
+    for t1, t2 in combinations(tags, 2):
+        if G.has_edge(t1, t2):
+            G[t1][t2]['weight'] += 1
+        else:
+            G.add_edge(t1, t2, weight=1)`,
+  },
+  4: {
+    title: 'Louvain Community Detection',
+    description: 'Find communities of related hashtags at multiple resolutions.',
+    details: [
+      'Algorithm: Louvain from networkx',
+      'Resolution 0.5 → 16 communities (categories)',
+      'Resolution 1.0 → 22 communities (subcategories)',
+      'Resolution 2.0 → 29 communities (niches)',
+      'Higher resolution = more, smaller communities',
+    ],
+    code: `from networkx.algorithms.community import louvain_communities
+
+communities = louvain_communities(
+    G,
+    weight='weight',
+    resolution=2.0,
+    seed=42
+)`,
+  },
+  5: {
+    title: 'V1 Taxonomy',
+    description: 'Load V1 embedding-based taxonomy for cross-validation.',
+    details: [
+      '209 niches from V1 pipeline',
+      'Used to validate hashtag communities',
+      'Find overlap between approaches A and B',
+      'Issue: V1 doesn\'t store video_ids per niche',
+    ],
+  },
+  6: {
+    title: 'Cross-Validate',
+    description: 'Compare hashtag communities with V1 embedding clusters.',
+    details: [
+      'Map videos to V1 niches and hashtag communities',
+      'Find which V1 niches are supported by hashtag signal',
+      'Identify new niches not found by embeddings',
+      '25 cross-cutting niche candidates found',
+      'Blocked: 0% V1 validation (missing video_ids)',
+    ],
+  },
+  7: {
+    title: 'LLM Naming',
+    description: 'Name the 25 new hashtag-discovered niches.',
+    details: [
+      'GPT-4o-mini names each new community',
+      'Input: top 15 hashtags from community',
+      'Output: name, description, keywords',
+      'Tagged as source: "hashtag_discovered"',
+      'Confidence: "hashtag_only"',
+    ],
+    code: `prompt = f"""Top hashtags in this community:
+{', '.join(f'#{t}' for t in hashtags[:15])}
+
+Name this content niche specifically.
+Return JSON: {{"name": "...", "description": "..."}}"""`,
+  },
+  8: {
+    title: 'V2 Taxonomy',
+    description: 'Unified taxonomy combining V1 embeddings + V2 hashtags.',
+    details: [
+      '234 total niches (209 V1 + 25 new)',
+      'V1 niches tagged as "embedding_clustered"',
+      'New niches tagged as "hashtag_discovered"',
+      'All niches have top_hashtags field',
+      'File: data/v2/taxonomy.json',
+    ],
+  },
+  9: {
+    title: 'V2 Classifier',
+    description: 'Hybrid classifier using both embedding similarity and hashtag matching.',
+    details: [
+      'Embedding signal: cosine similarity to niche centroids (209 niches)',
+      'Hashtag signal: matches input hashtags to niche top_hashtags (all 234)',
+      'Hybrid scoring: embedding + hashtag boost for better accuracy',
+      'Multi-label support: returns multiple niches if scores are close',
+      'Open-set detection: flags unknown niches below threshold',
+    ],
+    code: `// Hybrid scoring for embedding niches
+const hashtagBoost = matchedHashtags.length > 0
+  ? 0.15 * Math.min(matchedHashtags.length, 3) / 3
+  : 0
+const finalScore = Math.min(1, embSim + hashtagBoost)
+
+// Hashtag-only niches use keyword matching
+const hashtagScore = computeHashtagScore(input, niche)
+const keywordBonus = keywordMatches / keywords.length * 0.2`,
+  },
+}
+
 // ============================================================================
 // ELI5 Content Component
 // ============================================================================
@@ -1160,6 +1401,64 @@ type V1TaxonomyData = {
   }>
 }
 
+type V2TaxonomyData = {
+  ready: boolean
+  stats: {
+    total_niches: number
+    v1_embedding_niches: number
+    v2_hashtag_niches: number
+    hashtag_validated: number
+    high_confidence: number
+    total_categories: number
+    total_subcategories: number
+  }
+  evaluation: {
+    overall_score: number
+    score_breakdown: {
+      coverage: number
+      balance: number
+      hashtag_validation: number
+      new_discoveries: number
+    }
+    comparison: {
+      v1_niches: number
+      v2_niches: number
+      new_in_v2: number
+      growth_pct: number
+    }
+    graph_metrics: {
+      total_videos: number
+      videos_with_hashtags: number
+      hashtag_coverage_pct: number
+      unique_hashtags: number
+      hashtag_edges: number
+    }
+    success_criteria: Record<string, boolean>
+  } | null
+  newNiches: Array<{
+    id: string
+    name: string
+    description: string
+    top_hashtags: string[]
+    video_count: number
+    discovery_reason: string
+    category_name: string
+  }>
+  hierarchy: Record<string, {
+    name: string
+    subcategories: Record<string, {
+      name: string
+      niches: Array<{
+        id: string
+        name: string
+        video_count: number
+        source: string
+        top_hashtags: string[]
+      }>
+    }>
+  }>
+}
+
 // ============================================================================
 // V1 Demo Component
 // ============================================================================
@@ -1670,8 +1969,86 @@ function V1ELI5Content() {
 // ============================================================================
 function V1Process() {
   const [eli5Mode, setEli5Mode] = useState(false)
+  const [selectedStep, setSelectedStep] = useState<number | null>(null)
+
+  const V1StepBox = ({
+    step,
+    label,
+    subtitle,
+    bgClass,
+    borderClass,
+    textClass,
+    subtitleClass,
+  }: {
+    step: number
+    label: string
+    subtitle: string
+    bgClass: string
+    borderClass: string
+    textClass: string
+    subtitleClass: string
+  }) => (
+    <button
+      onClick={() => setSelectedStep(step)}
+      className={`flex-1 ${bgClass} border ${borderClass} rounded-lg p-3 text-center cursor-pointer hover:opacity-80 transition-opacity`}
+    >
+      <div className={`${textClass} font-medium text-xs`}>{label}</div>
+      <div className={`text-[10px] ${subtitleClass} mt-1`}>{subtitle}</div>
+    </button>
+  )
 
   return (
+    <>
+      {/* Modal */}
+      {selectedStep && V1_STEP_DETAILS[selectedStep] && (
+        <div
+          className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4"
+          onClick={() => setSelectedStep(null)}
+        >
+          <div
+            className="bg-gray-900 border border-gray-700 rounded-xl max-w-lg w-full max-h-[80vh] overflow-y-auto"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="sticky top-0 bg-gray-900 border-b border-gray-800 px-5 py-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-gray-500 bg-gray-800 rounded px-2 py-0.5">Step {selectedStep}</span>
+                <h3 className="text-base font-semibold text-white">{V1_STEP_DETAILS[selectedStep].title}</h3>
+              </div>
+              <button
+                onClick={() => setSelectedStep(null)}
+                className="text-gray-500 hover:text-gray-300 text-lg"
+              >
+                x
+              </button>
+            </div>
+            <div className="p-5 space-y-4">
+              <p className="text-sm text-gray-300 leading-relaxed">
+                {V1_STEP_DETAILS[selectedStep].description}
+              </p>
+              <div>
+                <div className="text-xs text-gray-500 uppercase tracking-wider mb-2">Details</div>
+                <ul className="space-y-1.5">
+                  {V1_STEP_DETAILS[selectedStep].details.map((detail, i) => (
+                    <li key={i} className="text-xs text-gray-400 flex items-start gap-2">
+                      <span className="text-gray-600 mt-0.5">-</span>
+                      <span>{detail}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              {V1_STEP_DETAILS[selectedStep].code && (
+                <div>
+                  <div className="text-xs text-gray-500 uppercase tracking-wider mb-2">Example</div>
+                  <pre className="bg-gray-950 border border-gray-800 rounded-lg p-3 text-xs text-gray-400 overflow-x-auto">
+                    <code>{V1_STEP_DETAILS[selectedStep].code}</code>
+                  </pre>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
     <div className="space-y-6">
       {/* ELI5 Toggle */}
       <div className="flex items-center justify-between bg-gray-900 border border-gray-800 rounded-xl p-4">
@@ -1796,29 +2173,17 @@ function V1Process() {
 
       {/* Data Flow */}
       <section>
-        <h2 className="text-lg font-semibold text-white mb-4">Data Flow</h2>
+        <h2 className="text-lg font-semibold text-white mb-4">Data Flow <span className="text-xs text-gray-500 font-normal">(click any step)</span></h2>
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
           {/* Row 1: Collection & Embedding */}
           <div className="flex items-center gap-2 text-xs mb-3">
-            <div className="flex-1 bg-red-950 border border-red-800 rounded-lg p-3 text-center">
-              <div className="text-red-400 font-medium">YouTube API</div>
-              <div className="text-red-500 text-[10px] mt-1">200+ keywords</div>
-            </div>
+            <V1StepBox step={1} label="YouTube API" subtitle="200+ keywords" bgClass="bg-red-950" borderClass="border-red-800" textClass="text-red-400" subtitleClass="text-red-500" />
             <span className="text-gray-500">→</span>
-            <div className="flex-1 bg-gray-800 border border-gray-700 rounded-lg p-3 text-center">
-              <div className="text-gray-300 font-medium">Raw Videos</div>
-              <div className="text-gray-500 text-[10px] mt-1">~4K JSONL</div>
-            </div>
+            <V1StepBox step={2} label="Raw Videos" subtitle="~4K JSONL" bgClass="bg-gray-800" borderClass="border-gray-700" textClass="text-gray-300" subtitleClass="text-gray-500" />
             <span className="text-gray-500">→</span>
-            <div className="flex-1 bg-indigo-950 border border-indigo-800 rounded-lg p-3 text-center">
-              <div className="text-indigo-300 font-medium">Embeddings</div>
-              <div className="text-indigo-400 text-[10px] mt-1">1536-dim vectors</div>
-            </div>
+            <V1StepBox step={3} label="Embeddings" subtitle="1536-dim vectors" bgClass="bg-indigo-950" borderClass="border-indigo-800" textClass="text-indigo-300" subtitleClass="text-indigo-400" />
             <span className="text-gray-500">→</span>
-            <div className="flex-1 bg-blue-950 border border-blue-800 rounded-lg p-3 text-center">
-              <div className="text-blue-300 font-medium">Level 1</div>
-              <div className="text-blue-400 text-[10px] mt-1">K-Means k=20</div>
-            </div>
+            <V1StepBox step={4} label="Level 1" subtitle="K-Means k=20" bgClass="bg-blue-950" borderClass="border-blue-800" textClass="text-blue-300" subtitleClass="text-blue-400" />
           </div>
 
           {/* Arrow down - aligned to the right */}
@@ -1828,25 +2193,13 @@ function V1Process() {
 
           {/* Row 2: Clustering & Output (right to left flow, displayed left to right with ← arrows) */}
           <div className="flex items-center gap-2 text-xs">
-            <div className="flex-1 bg-green-950 border border-green-800 rounded-lg p-3 text-center">
-              <div className="text-green-300 font-medium">Taxonomy</div>
-              <div className="text-green-400 text-[10px] mt-1">209 niches</div>
-            </div>
+            <V1StepBox step={8} label="Taxonomy" subtitle="209 niches" bgClass="bg-green-950" borderClass="border-green-800" textClass="text-green-300" subtitleClass="text-green-400" />
             <span className="text-gray-500">←</span>
-            <div className="flex-1 bg-indigo-950 border border-indigo-800 rounded-lg p-3 text-center">
-              <div className="text-indigo-300 font-medium">LLM Naming</div>
-              <div className="text-indigo-400 text-[10px] mt-1">GPT-4o-mini</div>
-            </div>
+            <V1StepBox step={7} label="LLM Naming" subtitle="GPT-4o-mini" bgClass="bg-indigo-950" borderClass="border-indigo-800" textClass="text-indigo-300" subtitleClass="text-indigo-400" />
             <span className="text-gray-500">←</span>
-            <div className="flex-1 bg-purple-950 border border-purple-800 rounded-lg p-3 text-center">
-              <div className="text-purple-300 font-medium">Level 3-4</div>
-              <div className="text-purple-400 text-[10px] mt-1">HDBSCAN + split</div>
-            </div>
+            <V1StepBox step={6} label="Level 3-4" subtitle="HDBSCAN + split" bgClass="bg-purple-950" borderClass="border-purple-800" textClass="text-purple-300" subtitleClass="text-purple-400" />
             <span className="text-gray-500">←</span>
-            <div className="flex-1 bg-indigo-950 border border-indigo-800 rounded-lg p-3 text-center">
-              <div className="text-indigo-300 font-medium">Level 2</div>
-              <div className="text-indigo-400 text-[10px] mt-1">K-Means k=5-8</div>
-            </div>
+            <V1StepBox step={5} label="Level 2" subtitle="K-Means k=5-8" bgClass="bg-indigo-950" borderClass="border-indigo-800" textClass="text-indigo-300" subtitleClass="text-indigo-400" />
           </div>
 
           {/* Legend */}
@@ -2268,9 +2621,1497 @@ function V1Process() {
     </div>
       )}
     </div>
+    </>
   )
 }
 
+
+// V2 Classify result type
+type V2ClassifyResult = {
+  input_bio: string
+  input_hashtags: string[]
+  classification_status: 'UNKNOWN' | 'HIGH_CONFIDENCE' | 'MODERATE'
+  status_message: string
+  is_unknown_niche: boolean
+  is_multi_label: boolean
+  primary_niche: {
+    rank: number
+    niche_id: string
+    niche_name: string
+    category: string
+    subcategory: string
+    hierarchy: string
+    confidence: number
+    raw_similarity: number
+    source: 'embedding_clustered' | 'hashtag_discovered'
+    matched_hashtags: string[]
+    exemplar_creators: Array<{ channel_id: string; channel_title: string; video_count: number }>
+    sample_titles: string[]
+    video_count: number
+    top_hashtags: string[]
+  } | null
+  secondary_niches: Array<{
+    rank: number
+    niche_id: string
+    niche_name: string
+    category: string
+    subcategory: string
+    hierarchy: string
+    confidence: number
+    raw_similarity: number
+    source: 'embedding_clustered' | 'hashtag_discovered'
+    matched_hashtags: string[]
+  }>
+  all_matches: Array<{
+    rank: number
+    niche_id: string
+    niche_name: string
+    category: string
+    subcategory: string
+    hierarchy: string
+    confidence: number
+    raw_similarity: number
+    source: 'embedding_clustered' | 'hashtag_discovered'
+    matched_hashtags: string[]
+    top_hashtags: string[]
+  }>
+  stats: {
+    best_similarity: number
+    similarity_gap_to_2nd: number
+    num_close_matches: number
+    taxonomy_size: number
+    embedding_niches: number
+    hashtag_niches: number
+    matches_from_embedding: number
+    matches_from_hashtag: number
+  }
+}
+
+// ============================================================================
+// V2 Demo Component
+// ============================================================================
+function V2Demo({ v2Taxonomy }: { v2Taxonomy: V2TaxonomyData | null }) {
+  const [tab, setTab] = useState<'classify' | 'overview' | 'new-niches' | 'browse'>('classify')
+  const [expandedCats, setExpandedCats] = useState<Set<string>>(new Set())
+  const [expandedSubcats, setExpandedSubcats] = useState<Set<string>>(new Set())
+  const [text, setText] = useState('')
+  const [result, setResult] = useState<V2ClassifyResult | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  const classify = async () => {
+    if (!text.trim() || loading) return
+    setLoading(true)
+    setError('')
+    setResult(null)
+    try {
+      const r = await fetch('/api/v2/classify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      })
+      const d = await r.json()
+      if (d.error) setError(d.error)
+      else setResult(d)
+    } catch {
+      setError('Classification failed. Make sure V2 pipeline has been run.')
+    }
+    setLoading(false)
+  }
+
+  const toggleCat = (id: string) => {
+    setExpandedCats(prev => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
+  }
+
+  const toggleSubcat = (id: string) => {
+    setExpandedSubcats(prev => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
+  }
+
+  if (!v2Taxonomy?.ready) {
+    return (
+      <div className="max-w-2xl">
+        <div className="bg-yellow-950/30 border border-yellow-800/50 rounded-xl p-8 text-center">
+          <div className="text-3xl mb-3 opacity-70">🔧</div>
+          <h2 className="text-base font-semibold text-yellow-200 mb-2">V2 Pipeline Not Run Yet</h2>
+          <p className="text-sm text-yellow-200/70 mb-4">
+            Run the V2 pipeline to generate the hashtag-enhanced taxonomy:
+          </p>
+          <code className="bg-gray-900 text-green-400 px-4 py-2 rounded-lg text-sm font-mono">
+            cd pipeline/v2 && bash run.sh
+          </code>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div>
+      {/* Sub-tabs */}
+      <div className="flex gap-1 mb-6">
+        {(['classify', 'overview', 'new-niches', 'browse'] as const).map(t => (
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all capitalize ${
+              tab === t ? 'bg-gray-700 text-white' : 'text-gray-400 hover:text-gray-200'
+            }`}
+          >
+            {t === 'new-niches' ? 'New Niches' : t}
+          </button>
+        ))}
+      </div>
+
+      {/* Classify Tab */}
+      {tab === 'classify' && (
+        <div className="max-w-3xl">
+          <div className="flex items-center gap-3 mb-4">
+            <p className="text-sm text-gray-400">
+              V2 classifier uses <span className="text-green-400">embedding similarity</span> + <span className="text-indigo-400">hashtag matching</span> for hybrid classification.
+              <span className="text-gray-500"> ({v2Taxonomy.stats.total_niches} niches: {v2Taxonomy.stats.v1_embedding_niches} embedding + {v2Taxonomy.stats.v2_hashtag_niches} hashtag)</span>
+            </p>
+          </div>
+
+          {/* Sample shortcuts */}
+          <div className="mb-4">
+            <div className="text-xs text-gray-500 mb-2">Try a sample:</div>
+            <div className="flex flex-wrap gap-2">
+              {[
+                'Calisthenics coach helping tall guys build strength. Also meal prep Sundays! #calisthenics #mealprep #fitness',
+                'I review tech gadgets and do unboxing videos. Focus on budget smartphones and earbuds.',
+                'Daily yoga flows and meditation. #yoga #mindfulness #wellness #stretching',
+                'HYROX training tips and race prep. CrossFit workouts. #hyrox #crossfit #training #workout',
+                'Quick healthy recipes for busy people. #mealprep #healthyrecipes #cooking #easyrecipe',
+              ].map((sample, i) => (
+                <button
+                  key={i}
+                  onClick={() => setText(sample)}
+                  className="text-xs bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-gray-200 rounded-lg px-3 py-1.5 transition-colors text-left max-w-[280px] truncate"
+                  title={sample}
+                >
+                  {sample.slice(0, 50)}...
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <textarea
+            className="w-full h-28 bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-sm resize-none focus:outline-none focus:border-indigo-500 placeholder-gray-600"
+            placeholder="Paste a creator bio (include #hashtags for better matching)..."
+            value={text}
+            onChange={e => setText(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && e.metaKey && classify()}
+          />
+          <div className="flex items-center gap-3 mt-3">
+            <button
+              onClick={classify}
+              disabled={loading || !text.trim()}
+              className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 rounded-lg text-sm font-medium transition-colors"
+            >
+              {loading ? 'Classifying...' : 'Classify'}
+            </button>
+            <span className="text-xs text-gray-600">Cmd + Enter</span>
+          </div>
+
+          {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
+
+          {result && (
+            <div className="mt-6 space-y-4">
+              {/* Detected Hashtags */}
+              {result.input_hashtags.length > 0 && (
+                <div className="bg-indigo-950/30 border border-indigo-800/50 rounded-xl p-3">
+                  <div className="text-xs text-indigo-400 mb-1">Detected Hashtags</div>
+                  <div className="flex flex-wrap gap-1">
+                    {result.input_hashtags.map(tag => (
+                      <span key={tag} className="text-xs bg-indigo-900/50 text-indigo-300 rounded px-2 py-0.5">
+                        #{tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Status Banner */}
+              <div className={`rounded-xl p-4 border ${
+                result.classification_status === 'UNKNOWN'
+                  ? 'bg-yellow-950/30 border-yellow-800/50'
+                  : result.classification_status === 'HIGH_CONFIDENCE'
+                  ? 'bg-green-950/30 border-green-800/50'
+                  : 'bg-gray-900 border-gray-800'
+              }`}>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className={`text-xs font-medium px-2 py-0.5 rounded ${
+                    result.classification_status === 'UNKNOWN'
+                      ? 'bg-yellow-900 text-yellow-300'
+                      : result.classification_status === 'HIGH_CONFIDENCE'
+                      ? 'bg-green-900 text-green-300'
+                      : 'bg-gray-800 text-gray-300'
+                  }`}>
+                    {result.classification_status}
+                  </span>
+                  {result.is_multi_label && (
+                    <span className="text-xs bg-indigo-900 text-indigo-300 px-2 py-0.5 rounded">
+                      Multi-label
+                    </span>
+                  )}
+                </div>
+                <p className="text-sm text-gray-400">{result.status_message}</p>
+              </div>
+
+              {/* Primary Niche */}
+              {result.primary_niche && (
+                <div className="bg-indigo-950/40 border border-indigo-800 rounded-xl p-5">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs text-indigo-400">Primary Niche</span>
+                    <span className={`text-xs px-1.5 py-0.5 rounded ${
+                      result.primary_niche.source === 'hashtag_discovered'
+                        ? 'bg-green-900 text-green-300'
+                        : 'bg-gray-800 text-gray-400'
+                    }`}>
+                      {result.primary_niche.source === 'hashtag_discovered' ? 'Hashtag' : 'Embedding'}
+                    </span>
+                  </div>
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <div className="font-semibold text-white text-lg">{result.primary_niche.niche_name}</div>
+                      <div className="text-xs text-gray-500 mt-1">{result.primary_niche.hierarchy}</div>
+                      {result.primary_niche.matched_hashtags.length > 0 && (
+                        <div className="mt-2">
+                          <div className="text-xs text-gray-500 mb-1">Matched hashtags:</div>
+                          <div className="flex flex-wrap gap-1">
+                            {result.primary_niche.matched_hashtags.map(tag => (
+                              <span key={tag} className="text-xs bg-green-900/50 text-green-300 rounded px-1.5 py-0.5">
+                                #{tag}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {result.primary_niche.top_hashtags.length > 0 && (
+                        <div className="mt-2">
+                          <div className="text-xs text-gray-500 mb-1">Niche hashtags:</div>
+                          <div className="flex flex-wrap gap-1">
+                            {result.primary_niche.top_hashtags.slice(0, 5).map(tag => (
+                              <span key={tag} className="text-xs bg-gray-800 text-gray-400 rounded px-1.5 py-0.5">
+                                #{tag}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {result.primary_niche.exemplar_creators.length > 0 && (
+                        <div className="mt-3">
+                          <div className="text-xs text-gray-500 mb-1">Similar creators:</div>
+                          <div className="flex flex-wrap gap-1">
+                            {result.primary_niche.exemplar_creators.slice(0, 3).map((c, i) => (
+                              <span key={i} className="text-xs bg-gray-800 text-gray-400 px-2 py-0.5 rounded">
+                                {c.channel_title}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    <div className="text-right">
+                      <div className="text-2xl font-bold text-indigo-400">{result.primary_niche.confidence}%</div>
+                      <div className="text-xs text-gray-600">confidence</div>
+                    </div>
+                  </div>
+                  <div className="mt-3 h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-indigo-500 rounded-full transition-all"
+                      style={{ width: `${result.primary_niche.confidence}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Secondary Niches (Multi-label) */}
+              {result.secondary_niches.length > 0 && (
+                <div>
+                  <div className="text-xs text-gray-500 uppercase tracking-wider mb-2">Also relevant</div>
+                  <div className="space-y-2">
+                    {result.secondary_niches.map(m => (
+                      <div key={m.niche_id} className="bg-gray-900 border border-gray-800 rounded-xl px-4 py-3">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium text-gray-200">{m.niche_name}</span>
+                              <span className={`text-xs px-1.5 py-0.5 rounded ${
+                                m.source === 'hashtag_discovered'
+                                  ? 'bg-green-900 text-green-300'
+                                  : 'bg-gray-800 text-gray-400'
+                              }`}>
+                                {m.source === 'hashtag_discovered' ? 'Hashtag' : 'Embedding'}
+                              </span>
+                            </div>
+                            <div className="text-xs text-gray-500">{m.hierarchy}</div>
+                          </div>
+                          <div className="text-sm font-medium text-gray-400">{m.confidence}%</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* All Matches */}
+              <div>
+                <div className="text-xs text-gray-500 uppercase tracking-wider mb-2">Top {result.all_matches.length} Matches</div>
+                <div className="space-y-1">
+                  {result.all_matches.map(m => (
+                    <div key={m.niche_id} className="flex items-center gap-3 text-sm py-1.5">
+                      <span className="text-gray-600 w-6">{m.rank}.</span>
+                      <span className={`text-xs px-1 rounded ${
+                        m.source === 'hashtag_discovered'
+                          ? 'bg-green-900/50 text-green-400'
+                          : 'bg-gray-800 text-gray-500'
+                      }`}>
+                        {m.source === 'hashtag_discovered' ? 'H' : 'E'}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <span className="text-gray-300 truncate">{m.niche_name}</span>
+                        <span className="text-gray-600 text-xs ml-2">{m.category}</span>
+                      </div>
+                      <div className="w-24 h-1 bg-gray-800 rounded-full overflow-hidden">
+                        <div className="h-full bg-gray-600 rounded-full" style={{ width: `${m.confidence}%` }} />
+                      </div>
+                      <span className="text-gray-500 text-xs w-12 text-right">{m.confidence}%</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Stats */}
+              <div className="bg-gray-900 border border-gray-800 rounded-lg px-4 py-3 flex flex-wrap gap-4 text-xs">
+                <div><span className="text-gray-500">Best score:</span> <span className="text-gray-300">{(result.stats.best_similarity * 100).toFixed(1)}%</span></div>
+                <div><span className="text-gray-500">Gap to 2nd:</span> <span className="text-gray-300">{(result.stats.similarity_gap_to_2nd * 100).toFixed(1)}%</span></div>
+                <div><span className="text-gray-500">Embedding matches:</span> <span className="text-gray-300">{result.stats.matches_from_embedding}</span></div>
+                <div><span className="text-gray-500">Hashtag matches:</span> <span className="text-green-400">{result.stats.matches_from_hashtag}</span></div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Overview Tab */}
+      {tab === 'overview' && (
+        <div className="space-y-6">
+          {/* Stats Grid */}
+          <div className="grid grid-cols-4 gap-4">
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center">
+              <div className="text-3xl font-bold text-indigo-400">{v2Taxonomy.stats.total_niches}</div>
+              <div className="text-xs text-gray-500 mt-1">Total Niches</div>
+            </div>
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center">
+              <div className="text-3xl font-bold text-green-400">+{v2Taxonomy.stats.v2_hashtag_niches}</div>
+              <div className="text-xs text-gray-500 mt-1">New via Hashtags</div>
+            </div>
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center">
+              <div className="text-3xl font-bold text-blue-400">{v2Taxonomy.evaluation?.graph_metrics.unique_hashtags || 0}</div>
+              <div className="text-xs text-gray-500 mt-1">Unique Hashtags</div>
+            </div>
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center">
+              <div className="text-3xl font-bold text-purple-400">{v2Taxonomy.evaluation?.graph_metrics.hashtag_coverage_pct || 0}%</div>
+              <div className="text-xs text-gray-500 mt-1">Hashtag Coverage</div>
+            </div>
+          </div>
+
+          {/* V1 vs V2 Comparison */}
+          {v2Taxonomy.evaluation && (
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+              <h3 className="text-sm font-semibold text-white mb-4">V1 vs V2 Comparison</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <div className="text-xs text-gray-500 mb-2">Niche Growth</div>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-gray-500">{v2Taxonomy.evaluation.comparison.v1_niches}</span>
+                    <span className="text-gray-600">→</span>
+                    <span className="text-white font-semibold">{v2Taxonomy.evaluation.comparison.v2_niches}</span>
+                    <span className="text-green-400 text-sm">(+{v2Taxonomy.evaluation.comparison.growth_pct}%)</span>
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs text-gray-500 mb-2">Hashtag Graph</div>
+                  <div className="text-sm text-gray-300">
+                    {v2Taxonomy.evaluation.graph_metrics.unique_hashtags} nodes, {v2Taxonomy.evaluation.graph_metrics.hashtag_edges} edges
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Success Criteria */}
+          {v2Taxonomy.evaluation && (
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+              <h3 className="text-sm font-semibold text-white mb-4">V2 Success Criteria</h3>
+              <div className="grid grid-cols-2 gap-3">
+                {Object.entries(v2Taxonomy.evaluation.success_criteria).map(([key, passed]) => (
+                  <div key={key} className="flex items-center gap-2">
+                    <span className={`w-5 h-5 rounded flex items-center justify-center text-xs ${
+                      passed ? 'bg-green-900 text-green-400' : 'bg-red-900 text-red-400'
+                    }`}>
+                      {passed ? '✓' : '✗'}
+                    </span>
+                    <span className="text-sm text-gray-300">{key}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Score Breakdown */}
+          {v2Taxonomy.evaluation && (
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-semibold text-white">V2 Quality Score</h3>
+                <div className="text-2xl font-bold text-indigo-400">{v2Taxonomy.evaluation.overall_score}/100</div>
+              </div>
+              <div className="space-y-2">
+                {Object.entries(v2Taxonomy.evaluation.score_breakdown).map(([key, value]) => (
+                  <div key={key} className="flex items-center gap-3">
+                    <span className="text-xs text-gray-500 w-32 capitalize">{key.replace(/_/g, ' ')}</span>
+                    <div className="flex-1 h-2 bg-gray-800 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full ${
+                          value >= 70 ? 'bg-green-500' : value >= 40 ? 'bg-yellow-500' : 'bg-red-500'
+                        }`}
+                        style={{ width: `${value}%` }}
+                      />
+                    </div>
+                    <span className="text-xs text-gray-400 w-10">{Math.round(value)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* New Niches Tab */}
+      {tab === 'new-niches' && (
+        <div className="space-y-4">
+          <p className="text-sm text-gray-400 mb-4">
+            These {v2Taxonomy.newNiches.length} niches were discovered through hashtag co-occurrence analysis
+            and weren't found by embedding clustering alone.
+          </p>
+
+          {v2Taxonomy.newNiches.map((niche, i) => (
+            <div key={niche.id} className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs bg-green-900 text-green-300 px-2 py-0.5 rounded">NEW</span>
+                    <span className="text-xs text-gray-500">{niche.category_name}</span>
+                  </div>
+                  <div className="font-semibold text-white">{niche.name}</div>
+                  <div className="text-xs text-gray-400 mt-1">{niche.description}</div>
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {niche.top_hashtags.slice(0, 6).map(tag => (
+                      <span key={tag} className="text-xs bg-gray-800 text-indigo-400 rounded px-1.5 py-0.5">
+                        #{tag}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="text-xs text-gray-600 mt-2">
+                    Discovery reason: {niche.discovery_reason}
+                  </div>
+                </div>
+                <div className="text-right shrink-0">
+                  <div className="text-lg font-bold text-gray-300">{niche.video_count}</div>
+                  <div className="text-xs text-gray-500">videos</div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Browse Tab */}
+      {tab === 'browse' && (
+        <div className="space-y-2">
+          <p className="text-sm text-gray-400 mb-4">
+            Browse the V2 taxonomy ({v2Taxonomy.stats.total_niches} niches across {v2Taxonomy.stats.total_categories} categories)
+          </p>
+
+          {Object.entries(v2Taxonomy.hierarchy).map(([catId, cat]) => (
+            <div key={catId} className="border border-gray-800 rounded-xl overflow-hidden">
+              <button
+                onClick={() => toggleCat(catId)}
+                className="w-full px-4 py-3 bg-gray-900 hover:bg-gray-800 flex items-center justify-between transition-colors"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-400 text-xs">{expandedCats.has(catId) ? '▼' : '▶'}</span>
+                  <span className="font-medium text-gray-200">{cat.name}</span>
+                  {catId === 'cat_hashtag' && (
+                    <span className="text-xs bg-green-900 text-green-300 px-1.5 py-0.5 rounded">NEW</span>
+                  )}
+                </div>
+                <span className="text-xs text-gray-500">{Object.keys(cat.subcategories).length} subcategories</span>
+              </button>
+
+              {expandedCats.has(catId) && (
+                <div className="bg-gray-950 px-4 py-2 space-y-1">
+                  {Object.entries(cat.subcategories).map(([subcatKey, subcat]) => (
+                    <div key={subcatKey}>
+                      <button
+                        onClick={() => toggleSubcat(subcatKey)}
+                        className="w-full px-3 py-2 hover:bg-gray-900 rounded-lg flex items-center justify-between transition-colors"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="text-gray-500 text-xs">{expandedSubcats.has(subcatKey) ? '▼' : '▶'}</span>
+                          <span className="text-sm text-gray-300">{subcat.name}</span>
+                        </div>
+                        <span className="text-xs text-gray-600">{subcat.niches.length} niches</span>
+                      </button>
+
+                      {expandedSubcats.has(subcatKey) && (
+                        <div className="ml-6 mt-1 space-y-1">
+                          {subcat.niches.map(niche => (
+                            <div key={niche.id} className="px-3 py-2 bg-gray-900/50 rounded-lg">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sm text-gray-300">{niche.name}</span>
+                                  {niche.source === 'hashtag_discovered' && (
+                                    <span className="text-[10px] bg-green-900 text-green-300 px-1 py-0.5 rounded">NEW</span>
+                                  )}
+                                </div>
+                                <span className="text-xs text-gray-500">{niche.video_count} videos</span>
+                              </div>
+                              {niche.top_hashtags.length > 0 && (
+                                <div className="flex flex-wrap gap-1 mt-1">
+                                  {niche.top_hashtags.slice(0, 4).map(tag => (
+                                    <span key={tag} className="text-[10px] text-indigo-400">#{tag}</span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ============================================================================
+// V2 ELI5 Content Component
+// ============================================================================
+function V2ELI5Content() {
+  return (
+    <div className="max-w-3xl space-y-8">
+      {/* Intro */}
+      <section className="bg-gradient-to-br from-green-950/40 to-blue-950/40 border border-green-800/50 rounded-xl p-6">
+        <h2 className="text-lg font-semibold text-green-200 mb-3">What's different in V2?</h2>
+        <p className="text-sm text-green-100/80 leading-relaxed">
+          V1 sorted videos by looking at what they <strong className="text-green-200">say</strong> (titles and descriptions).
+          V2 adds a new trick: looking at their <strong className="text-green-200">hashtags</strong>!
+          When creators use #fitness #workout #gym together, they're telling us these topics are related.
+          V2 finds groups of hashtags that always appear together to discover new niches!
+        </p>
+      </section>
+
+      {/* The Hashtag Idea */}
+      <section className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+        <h2 className="text-lg font-semibold text-white mb-3">The Big Idea: Hashtag Friends</h2>
+        <div className="text-sm text-gray-400 leading-relaxed space-y-3">
+          <p>
+            Think of hashtags like <strong className="text-white">friend groups at school</strong>.
+          </p>
+          <p>
+            Some hashtags are <strong className="text-green-300">always seen together</strong>:
+            #sourdough, #breadmaking, #homemadebread, #bakingathome.
+            If you see one, you usually see the others!
+          </p>
+          <p>
+            V2 builds a <strong className="text-blue-300">"friendship map"</strong> of all hashtags.
+            Then it finds the friend groups (communities) - each group is probably a content niche!
+          </p>
+        </div>
+      </section>
+
+      {/* Simple Flow */}
+      <section>
+        <h2 className="text-lg font-semibold text-white mb-4">How V2 works (step by step)</h2>
+        <div className="space-y-4">
+          {/* Step 1 */}
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 flex gap-4">
+            <div className="text-3xl">#️⃣</div>
+            <div>
+              <div className="text-sm font-medium text-green-300 mb-1">Step 1: Collect all the hashtags</div>
+              <p className="text-xs text-gray-400 leading-relaxed">
+                We look at every video from V1 and grab all their hashtags.
+                73% of videos have hashtags - that's a lot of useful info!
+              </p>
+              <div className="mt-2 text-xs text-gray-500 italic">
+                Like collecting all the stickers from everyone's notebooks to see which stickers are popular.
+              </div>
+            </div>
+          </div>
+
+          {/* Step 2 */}
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 flex gap-4">
+            <div className="text-3xl">🔗</div>
+            <div>
+              <div className="text-sm font-medium text-blue-300 mb-1">Step 2: Build a friendship map</div>
+              <p className="text-xs text-gray-400 leading-relaxed">
+                When two hashtags appear in the same video, they become "friends".
+                The more videos they share, the closer friends they are!
+                We found 1,586 hashtags with 15,169 friendships between them.
+              </p>
+              <div className="mt-2 text-xs text-gray-500 italic">
+                #yoga and #meditation appear together in 50 videos? They're best friends!
+              </div>
+            </div>
+          </div>
+
+          {/* Step 3 */}
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 flex gap-4">
+            <div className="text-3xl">👥</div>
+            <div>
+              <div className="text-sm font-medium text-purple-300 mb-1">Step 3: Find the friend groups</div>
+              <p className="text-xs text-gray-400 leading-relaxed">
+                We use a smart algorithm (Louvain) to find groups of hashtags that are all friends with each other.
+                It found 29 "friend groups" - each one represents a content niche!
+              </p>
+              <div className="mt-2 text-xs text-gray-500 italic">
+                The "fitness crew": #gym, #workout, #fitness, #training, #gains all hang out together.
+              </div>
+            </div>
+          </div>
+
+          {/* Step 4 */}
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 flex gap-4">
+            <div className="text-3xl">🔀</div>
+            <div>
+              <div className="text-sm font-medium text-green-300 mb-1">Step 4: Compare with V1's folders</div>
+              <p className="text-xs text-gray-400 leading-relaxed">
+                Now the exciting part! We check: do hashtag friend groups match V1's folders?
+                Sometimes they do (V1 was right!). But sometimes we find NEW groups V1 missed!
+              </p>
+              <div className="mt-2 text-xs text-gray-500 italic">
+                V1 had "Fitness" and "Cooking" separate, but hashtags showed "Fitness Meal Prep" is its own thing!
+              </div>
+            </div>
+          </div>
+
+          {/* Step 5 */}
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 flex gap-4">
+            <div className="text-3xl">✨</div>
+            <div>
+              <div className="text-sm font-medium text-yellow-300 mb-1">Step 5: Add 25 new niches!</div>
+              <p className="text-xs text-gray-400 leading-relaxed">
+                We found 25 new "cross-cutting" niches that span across V1's folders!
+                These are content types that V1 split up but really belong together.
+              </p>
+              <div className="mt-2 space-y-1 text-xs text-gray-500">
+                <div>New niches discovered:</div>
+                <div className="flex flex-wrap gap-1">
+                  <span className="bg-green-900/50 text-green-300 px-1.5 py-0.5 rounded">Fitness Transformation Journeys</span>
+                  <span className="bg-green-900/50 text-green-300 px-1.5 py-0.5 rounded">Quick Healthy Meals</span>
+                  <span className="bg-green-900/50 text-green-300 px-1.5 py-0.5 rounded">Aesthetic Skincare ASMR</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Step 6 */}
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 flex gap-4">
+            <div className="text-3xl">🏷️</div>
+            <div>
+              <div className="text-sm font-medium text-indigo-300 mb-1">Step 6: Label everything</div>
+              <p className="text-xs text-gray-400 leading-relaxed">
+                We mark each niche with where it came from: "embedding_clustered" (from V1) or "hashtag_discovered" (new in V2).
+                This way we know which niches are proven and which are new discoveries!
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Simple Analogy */}
+      <section className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+        <h2 className="text-lg font-semibold text-white mb-3">The Party Analogy</h2>
+        <div className="text-sm text-gray-400 leading-relaxed space-y-3">
+          <p>
+            Imagine you're organizing a big <strong className="text-white">party</strong> and you need to figure out who to seat together.
+          </p>
+          <p>
+            <strong className="text-indigo-300">V1's approach</strong>: Look at everyone's name tags and descriptions.
+            "This person likes cooking, that person likes cooking - same table!"
+          </p>
+          <p>
+            <strong className="text-green-300">V2's addition</strong>: Also check who's already friends on social media!
+            "These 5 people all follow each other - they should sit together even if their name tags say different things!"
+          </p>
+          <p>
+            Sometimes the "friend groups" reveal connections you'd miss just by reading descriptions.
+            That's how we found 25 new niches!
+          </p>
+        </div>
+      </section>
+
+      {/* What's New */}
+      <section className="grid grid-cols-2 gap-4">
+        <div className="bg-green-950/30 border border-green-800/50 rounded-xl p-4">
+          <h3 className="text-sm font-semibold text-green-300 mb-2">What V2 adds</h3>
+          <ul className="text-xs text-green-200/70 space-y-1">
+            <li>+ Hashtag co-occurrence graph</li>
+            <li>+ Community detection (Louvain)</li>
+            <li>+ 25 new cross-cutting niches</li>
+            <li>+ Two approaches combined (A + B)</li>
+            <li>+ Source tagging for data quality</li>
+          </ul>
+        </div>
+        <div className="bg-yellow-950/30 border border-yellow-800/50 rounded-xl p-4">
+          <h3 className="text-sm font-semibold text-yellow-300 mb-2">What V3/V4 will add</h3>
+          <ul className="text-xs text-yellow-200/70 space-y-1">
+            <li>→ V3: AI suggests sub-niches</li>
+            <li>→ V3: "Calisthenics for tall guys over 30"</li>
+            <li>→ V4: 5x more videos (20K+)</li>
+            <li>→ Goal: 500-1000 niches!</li>
+          </ul>
+        </div>
+      </section>
+
+      {/* Known Issue */}
+      <section className="bg-red-950/30 border border-red-800/50 rounded-xl p-4">
+        <h3 className="text-sm font-semibold text-red-300 mb-2">One thing that didn't work</h3>
+        <p className="text-xs text-red-200/70 leading-relaxed">
+          We wanted to check: "Do hashtag groups match V1 folders?" But V1 didn't save which videos are in which folder!
+          So we couldn't do the comparison properly. V3 will fix this by saving that info.
+        </p>
+      </section>
+
+      {/* Back to Technical */}
+      <div className="text-center text-xs text-gray-500">
+        Want more details? Switch to the technical view above.
+      </div>
+    </div>
+  )
+}
+
+// ============================================================================
+// V2 Process Component
+// ============================================================================
+function V2Process() {
+  const [selectedStep, setSelectedStep] = useState<number | null>(null)
+  const [eli5Mode, setEli5Mode] = useState(false)
+
+  const V2StepBox = ({
+    step,
+    label,
+    subtitle,
+    bgClass,
+    borderClass,
+    textClass,
+    subtitleClass,
+  }: {
+    step: number
+    label: string
+    subtitle: string
+    bgClass: string
+    borderClass: string
+    textClass: string
+    subtitleClass: string
+  }) => (
+    <button
+      onClick={() => setSelectedStep(step)}
+      className={`flex-1 ${bgClass} border ${borderClass} rounded-lg p-3 text-center cursor-pointer hover:opacity-80 transition-opacity`}
+    >
+      <div className={`${textClass} font-medium text-xs`}>{label}</div>
+      <div className={`text-[10px] ${subtitleClass} mt-1`}>{subtitle}</div>
+    </button>
+  )
+
+  return (
+    <>
+      {/* Modal */}
+      {selectedStep && V2_STEP_DETAILS[selectedStep] && (
+        <div
+          className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4"
+          onClick={() => setSelectedStep(null)}
+        >
+          <div
+            className="bg-gray-900 border border-gray-700 rounded-xl max-w-lg w-full max-h-[80vh] overflow-y-auto"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="sticky top-0 bg-gray-900 border-b border-gray-800 px-5 py-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-gray-500 bg-gray-800 rounded px-2 py-0.5">Step {selectedStep}</span>
+                <h3 className="text-base font-semibold text-white">{V2_STEP_DETAILS[selectedStep].title}</h3>
+              </div>
+              <button
+                onClick={() => setSelectedStep(null)}
+                className="text-gray-500 hover:text-gray-300 text-lg"
+              >
+                x
+              </button>
+            </div>
+            <div className="p-5 space-y-4">
+              <p className="text-sm text-gray-300 leading-relaxed">
+                {V2_STEP_DETAILS[selectedStep].description}
+              </p>
+              <div>
+                <div className="text-xs text-gray-500 uppercase tracking-wider mb-2">Details</div>
+                <ul className="space-y-1.5">
+                  {V2_STEP_DETAILS[selectedStep].details.map((detail, i) => (
+                    <li key={i} className="text-xs text-gray-400 flex items-start gap-2">
+                      <span className="text-gray-600 mt-0.5">-</span>
+                      <span>{detail}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              {V2_STEP_DETAILS[selectedStep].code && (
+                <div>
+                  <div className="text-xs text-gray-500 uppercase tracking-wider mb-2">Example</div>
+                  <pre className="bg-gray-950 border border-gray-800 rounded-lg p-3 text-xs text-gray-400 overflow-x-auto">
+                    <code>{V2_STEP_DETAILS[selectedStep].code}</code>
+                  </pre>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+    <div className="space-y-6">
+      {/* ELI5 Toggle */}
+      <div className="flex items-center justify-between bg-gray-900 border border-gray-800 rounded-xl p-4">
+        <div>
+          <div className="text-sm font-medium text-gray-200">View Mode</div>
+          <div className="text-xs text-gray-500 mt-0.5">
+            {eli5Mode ? 'Simple explanation with analogies' : 'Technical details and data flow'}
+          </div>
+        </div>
+        <button
+          onClick={() => setEli5Mode(!eli5Mode)}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+            eli5Mode
+              ? 'bg-yellow-600 text-white'
+              : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+          }`}
+        >
+          {eli5Mode ? '🎓 Technical View' : '🧒 Explain Like I\'m 5'}
+        </button>
+      </div>
+
+      {eli5Mode ? (
+        <V2ELI5Content />
+      ) : (
+    <div className="max-w-4xl space-y-8">
+      {/* Overview */}
+      <section>
+        <h2 className="text-lg font-semibold text-white mb-3">V2 Pipeline Overview</h2>
+        <p className="text-sm text-gray-400 leading-relaxed">
+          V2 adds <span className="text-green-400">Approach A (Hashtag Co-occurrence Graph)</span> to complement
+          V1's embedding-based clustering. The pipeline builds a hashtag graph, runs community detection, and
+          cross-validates with V1 clusters to discover new niches.
+        </p>
+      </section>
+
+      {/* V1 vs V2 Comparison */}
+      <section>
+        <h2 className="text-lg font-semibold text-white mb-3">V1 vs V2 Improvements</h2>
+        <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-800">
+              <tr>
+                <th className="px-4 py-2.5 text-left text-gray-400 font-medium">Feature</th>
+                <th className="px-4 py-2.5 text-left text-gray-400 font-medium">V1</th>
+                <th className="px-4 py-2.5 text-left text-gray-400 font-medium">V2</th>
+              </tr>
+            </thead>
+            <tbody className="text-gray-300">
+              <tr className="border-t border-gray-800">
+                <td className="px-4 py-2.5">Approaches used</td>
+                <td className="px-4 py-2.5 text-gray-500">B only (Embeddings)</td>
+                <td className="px-4 py-2.5 text-green-400">A + B (Hashtags + Embeddings)</td>
+              </tr>
+              <tr className="border-t border-gray-800">
+                <td className="px-4 py-2.5">Total niches</td>
+                <td className="px-4 py-2.5 text-gray-500">209</td>
+                <td className="px-4 py-2.5 text-green-400">234 (+12%)</td>
+              </tr>
+              <tr className="border-t border-gray-800">
+                <td className="px-4 py-2.5">Hashtag graph</td>
+                <td className="px-4 py-2.5 text-gray-500">None</td>
+                <td className="px-4 py-2.5 text-green-400">1,586 nodes, 15K edges</td>
+              </tr>
+              <tr className="border-t border-gray-800">
+                <td className="px-4 py-2.5">Community detection</td>
+                <td className="px-4 py-2.5 text-gray-500">None</td>
+                <td className="px-4 py-2.5 text-green-400">Louvain at 3 resolutions</td>
+              </tr>
+              <tr className="border-t border-gray-800">
+                <td className="px-4 py-2.5">New niches discovered</td>
+                <td className="px-4 py-2.5 text-gray-500">-</td>
+                <td className="px-4 py-2.5 text-green-400">25 cross-cutting niches</td>
+              </tr>
+              <tr className="border-t border-gray-800">
+                <td className="px-4 py-2.5">Source tagging</td>
+                <td className="px-4 py-2.5 text-gray-500">None</td>
+                <td className="px-4 py-2.5 text-green-400">embedding_clustered / hashtag_discovered</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {/* How to Run */}
+      <section>
+        <h2 className="text-lg font-semibold text-white mb-3">How to Run the V2 Pipeline</h2>
+        <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+          <div className="bg-gray-950 px-4 py-3 border-b border-gray-800">
+            <div className="text-xs text-gray-500 mb-1">Run from project root:</div>
+            <code className="text-sm text-green-400 font-mono">cd pipeline/v2 && bash run.sh</code>
+          </div>
+          <div className="p-4 space-y-3">
+            <div className="text-xs text-gray-500 uppercase tracking-wider mb-2">Pipeline Steps</div>
+            {[
+              { step: '1/5', name: '1_build_hashtag_graph.py', desc: 'Extract hashtags, build co-occurrence graph', time: '~10 sec', icon: '#️' },
+              { step: '2/5', name: '2_community_detection.py', desc: 'Louvain algorithm at 3 resolutions', time: '~5 sec', icon: '🔗' },
+              { step: '3/5', name: '3_merge_with_embeddings.py', desc: 'Cross-validate with V1 clusters', time: '~5 sec', icon: '🔀' },
+              { step: '4/5', name: '4_unified_taxonomy.py', desc: 'Create unified taxonomy, LLM naming', time: '~2 min', icon: '🏷️' },
+              { step: '5/5', name: '5_evaluate.py', desc: 'Compare V2 vs V1', time: '~5 sec', icon: '📊' },
+            ].map((s, i) => (
+              <div key={i} className="flex items-center gap-3 text-sm">
+                <span className="text-lg">{s.icon}</span>
+                <span className="text-gray-500 font-mono text-xs w-8">[{s.step}]</span>
+                <span className="text-gray-300 flex-1">{s.desc}</span>
+                <span className="text-gray-600 text-xs">{s.time}</span>
+              </div>
+            ))}
+          </div>
+          <div className="px-4 py-3 border-t border-gray-800 flex gap-6 text-xs">
+            <div><span className="text-gray-500">Total time:</span> <span className="text-gray-300">~3 minutes</span></div>
+            <div><span className="text-gray-500">API cost:</span> <span className="text-gray-300">~$0.05 (LLM naming)</span></div>
+          </div>
+        </div>
+      </section>
+
+      {/* Data Flow */}
+      <section>
+        <h2 className="text-lg font-semibold text-white mb-4">V2 Data Flow <span className="text-xs text-gray-500 font-normal">(click any step)</span></h2>
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+          {/* Row 1: V1 Data + Hashtag Extraction */}
+          <div className="flex items-center gap-2 text-xs mb-3">
+            <V2StepBox step={1} label="V1 Videos" subtitle="~4K videos" bgClass="bg-gray-800" borderClass="border-gray-700" textClass="text-gray-300" subtitleClass="text-gray-500" />
+            <span className="text-gray-500">→</span>
+            <V2StepBox step={2} label="Extract Hashtags" subtitle="tags + title + desc" bgClass="bg-green-950" borderClass="border-green-800" textClass="text-green-300" subtitleClass="text-green-400" />
+            <span className="text-gray-500">→</span>
+            <V2StepBox step={3} label="Hashtag Graph" subtitle="1,586 nodes" bgClass="bg-blue-950" borderClass="border-blue-800" textClass="text-blue-300" subtitleClass="text-blue-400" />
+            <span className="text-gray-500">→</span>
+            <V2StepBox step={4} label="Louvain" subtitle="29 communities" bgClass="bg-purple-950" borderClass="border-purple-800" textClass="text-purple-300" subtitleClass="text-purple-400" />
+          </div>
+
+          {/* Arrow down */}
+          <div className="flex justify-end pr-[8%] mb-3">
+            <span className="text-gray-500 text-lg">↓</span>
+          </div>
+
+          {/* Row 2: Merge and Output */}
+          <div className="flex items-center gap-2 text-xs">
+            <V2StepBox step={8} label="V2 Taxonomy" subtitle="234 niches" bgClass="bg-indigo-950" borderClass="border-indigo-800" textClass="text-indigo-300" subtitleClass="text-indigo-400" />
+            <span className="text-gray-500">←</span>
+            <V2StepBox step={7} label="LLM Naming" subtitle="25 new niches" bgClass="bg-yellow-950" borderClass="border-yellow-800" textClass="text-yellow-300" subtitleClass="text-yellow-400" />
+            <span className="text-gray-500">←</span>
+            <V2StepBox step={6} label="Cross-Validate" subtitle="A + B merge" bgClass="bg-green-950" borderClass="border-green-800" textClass="text-green-300" subtitleClass="text-green-400" />
+            <span className="text-gray-500">←</span>
+            <V2StepBox step={5} label="V1 Taxonomy" subtitle="209 niches" bgClass="bg-gray-800" borderClass="border-gray-700" textClass="text-gray-300" subtitleClass="text-gray-500" />
+          </div>
+
+          {/* Arrow down */}
+          <div className="flex justify-start pl-[8%] mb-3 mt-3">
+            <span className="text-gray-500 text-lg">↓</span>
+          </div>
+
+          {/* Row 3: Classifier */}
+          <div className="flex items-center gap-2 text-xs">
+            <V2StepBox step={9} label="V2 Classifier" subtitle="hybrid matching" bgClass="bg-pink-950" borderClass="border-pink-800" textClass="text-pink-300" subtitleClass="text-pink-400" />
+            <div className="flex-1 flex items-center gap-2 ml-2">
+              <span className="text-[10px] text-gray-500 bg-gray-800 rounded px-2 py-1">embedding similarity + hashtag boost</span>
+              <span className="text-gray-600">→</span>
+              <span className="text-[10px] text-gray-500 bg-gray-800 rounded px-2 py-1">multi-label output</span>
+            </div>
+          </div>
+
+          {/* Legend */}
+          <div className="flex flex-wrap gap-4 mt-4 pt-3 border-t border-gray-800 text-[10px] text-gray-500">
+            <div className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded bg-green-800"></span> Approach A (Hashtags)
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded bg-gray-700"></span> V1 (Approach B)
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded bg-purple-800"></span> Community Detection
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded bg-indigo-800"></span> Output
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded bg-pink-800"></span> Classifier
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Louvain Community Detection */}
+      <section>
+        <h2 className="text-lg font-semibold text-white mb-3">Louvain Community Detection</h2>
+        <div className="space-y-3">
+          <p className="text-sm text-gray-400">
+            Louvain algorithm runs at 3 resolutions to build a hierarchical structure:
+          </p>
+          <div className="grid grid-cols-3 gap-4">
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="bg-blue-600 text-white text-xs font-bold w-6 h-6 rounded flex items-center justify-center">0.5</span>
+                <span className="text-sm font-medium text-gray-200">Categories</span>
+              </div>
+              <div className="text-2xl font-bold text-blue-400">16</div>
+              <div className="text-xs text-gray-500">communities</div>
+            </div>
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="bg-indigo-600 text-white text-xs font-bold w-6 h-6 rounded flex items-center justify-center">1.0</span>
+                <span className="text-sm font-medium text-gray-200">Subcategories</span>
+              </div>
+              <div className="text-2xl font-bold text-indigo-400">22</div>
+              <div className="text-xs text-gray-500">communities</div>
+            </div>
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="bg-purple-600 text-white text-xs font-bold w-6 h-6 rounded flex items-center justify-center">2.0</span>
+                <span className="text-sm font-medium text-gray-200">Niches</span>
+              </div>
+              <div className="text-2xl font-bold text-purple-400">29</div>
+              <div className="text-xs text-gray-500">communities</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Key Features */}
+      <section>
+        <h2 className="text-lg font-semibold text-white mb-3">V2 Key Features</h2>
+        {/* Hybrid Classifier - Featured */}
+        <div className="bg-pink-950/30 border border-pink-800/50 rounded-xl p-4 mb-4">
+          <div className="flex items-start gap-4">
+            <div className="flex-1">
+              <h3 className="text-sm font-semibold text-pink-300 mb-2">Hybrid Classifier (NEW)</h3>
+              <p className="text-xs text-pink-200/70 mb-2">
+                V2 classifier combines embedding similarity with hashtag matching for improved accuracy.
+                Works on all 234 niches (209 embedding + 25 hashtag-discovered).
+              </p>
+              <div className="flex flex-wrap gap-2 text-[10px]">
+                <span className="bg-pink-900/50 text-pink-300 px-2 py-0.5 rounded">Embedding similarity</span>
+                <span className="bg-pink-900/50 text-pink-300 px-2 py-0.5 rounded">Hashtag boost</span>
+                <span className="bg-pink-900/50 text-pink-300 px-2 py-0.5 rounded">Multi-label</span>
+                <span className="bg-pink-900/50 text-pink-300 px-2 py-0.5 rounded">Open-set detection</span>
+              </div>
+            </div>
+            <div className="text-right shrink-0">
+              <code className="text-xs text-pink-400 bg-pink-950 px-2 py-1 rounded">/api/v2/classify</code>
+            </div>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-green-950/30 border border-green-800/50 rounded-xl p-4">
+            <h3 className="text-sm font-semibold text-green-300 mb-2">Hashtag Co-occurrence Graph</h3>
+            <p className="text-xs text-green-200/70">
+              1,586 unique hashtags with 15,169 co-occurrence edges. Edge weight = number of videos
+              where both hashtags appear together.
+            </p>
+          </div>
+          <div className="bg-blue-950/30 border border-blue-800/50 rounded-xl p-4">
+            <h3 className="text-sm font-semibold text-blue-300 mb-2">Cross-Cutting Niche Discovery</h3>
+            <p className="text-xs text-blue-200/70">
+              25 new niches found by looking at hashtag communities that span multiple V1 embedding clusters.
+              These represent content that bridges traditional categories.
+            </p>
+          </div>
+          <div className="bg-yellow-950/30 border border-yellow-800/50 rounded-xl p-4">
+            <h3 className="text-sm font-semibold text-yellow-300 mb-2">Source Tagging</h3>
+            <p className="text-xs text-yellow-200/70">
+              Every niche is tagged with its source: "embedding_clustered" (V1) or "hashtag_discovered" (V2).
+              Prevents data pollution when combining approaches.
+            </p>
+          </div>
+          <div className="bg-purple-950/30 border border-purple-800/50 rounded-xl p-4">
+            <h3 className="text-sm font-semibold text-purple-300 mb-2">Multi-Resolution Analysis</h3>
+            <p className="text-xs text-purple-200/70">
+              Louvain runs at 3 resolutions (0.5, 1.0, 2.0) to capture hierarchy from broad categories
+              down to specific niches.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Why V2 Works / What Doesn't */}
+      <section>
+        <h2 className="text-lg font-semibold text-white mb-3">Why V2 Works & What Doesn't</h2>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-green-950/30 border border-green-800/50 rounded-xl p-4">
+            <h3 className="text-sm font-semibold text-green-300 mb-3">What V2 Achieved</h3>
+            <ul className="text-xs text-green-200/70 space-y-1.5">
+              <li className="flex items-start gap-2">
+                <span className="text-green-400 mt-0.5">+</span>
+                <span><strong className="text-green-300">Approach A implemented</strong> - Hashtag graph analysis working</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-green-400 mt-0.5">+</span>
+                <span><strong className="text-green-300">25 new niches</strong> - Cross-cutting content discovered</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-green-400 mt-0.5">+</span>
+                <span><strong className="text-green-300">73% hashtag coverage</strong> - Strong signal from tags</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-green-400 mt-0.5">+</span>
+                <span><strong className="text-green-300">Source tagging</strong> - Clear provenance tracking</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-green-400 mt-0.5">+</span>
+                <span><strong className="text-green-300">Fast pipeline</strong> - Only ~3 minutes to run</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-green-400 mt-0.5">+</span>
+                <span><strong className="text-green-300">Hybrid classifier</strong> - Embedding + hashtag matching</span>
+              </li>
+            </ul>
+          </div>
+          <div className="bg-red-950/30 border border-red-800/50 rounded-xl p-4">
+            <h3 className="text-sm font-semibold text-red-300 mb-3">What V2 Doesn't Solve</h3>
+            <ul className="text-xs text-red-200/70 space-y-1.5">
+              <li className="flex items-start gap-2">
+                <span className="text-red-400 mt-0.5">-</span>
+                <span><strong className="text-red-300">V1 validation = 0%</strong> - Missing video_ids in V1 taxonomy</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-red-400 mt-0.5">-</span>
+                <span><strong className="text-red-300">Balance degraded</strong> - Gini 0.38 → 0.66 (more imbalanced)</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-red-400 mt-0.5">-</span>
+                <span><strong className="text-red-300">Still 234 niches</strong> - Not at 500-1000 target yet</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-red-400 mt-0.5">-</span>
+                <span><strong className="text-red-300">Generic new niches</strong> - "Fitness Transformation Journeys" still broad</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      {/* V2 Evaluation Results */}
+      <section>
+        <h2 className="text-lg font-semibold text-white mb-3">V2 Evaluation Results</h2>
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+          <div className="grid grid-cols-6 gap-4 text-center">
+            <div>
+              <div className="text-2xl font-bold text-green-400">100%</div>
+              <div className="text-xs text-gray-500">Coverage</div>
+            </div>
+            <div>
+              <div className="text-2xl font-bold text-green-400">234</div>
+              <div className="text-xs text-gray-500">Niches</div>
+            </div>
+            <div>
+              <div className="text-2xl font-bold text-green-400">+25</div>
+              <div className="text-xs text-gray-500">New Niches</div>
+            </div>
+            <div>
+              <div className="text-2xl font-bold text-blue-400">73%</div>
+              <div className="text-xs text-gray-500">Hashtag Coverage</div>
+            </div>
+            <div>
+              <div className="text-2xl font-bold text-purple-400">1.6K</div>
+              <div className="text-xs text-gray-500">Hashtags</div>
+            </div>
+            <div>
+              <div className="text-2xl font-bold text-yellow-400">56.5</div>
+              <div className="text-xs text-gray-500">Overall Score</div>
+            </div>
+          </div>
+          <div className="mt-4 pt-4 border-t border-gray-800">
+            <div className="text-xs text-gray-500 mb-2">Score Breakdown</div>
+            <div className="grid grid-cols-4 gap-4">
+              <div className="flex items-center gap-2">
+                <div className="w-16 h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                  <div className="h-full bg-green-500 rounded-full" style={{ width: '100%' }} />
+                </div>
+                <span className="text-xs text-gray-400">Coverage: 100</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-16 h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                  <div className="h-full bg-yellow-500 rounded-full" style={{ width: '50%' }} />
+                </div>
+                <span className="text-xs text-gray-400">Balance: 50</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-16 h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                  <div className="h-full bg-red-500 rounded-full" style={{ width: '16%' }} />
+                </div>
+                <span className="text-xs text-gray-400">Validation: 16</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-16 h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                  <div className="h-full bg-blue-500 rounded-full" style={{ width: '60%' }} />
+                </div>
+                <span className="text-xs text-gray-400">Discovery: 60</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* V2 vs Hackathon Brief */}
+      <section>
+        <h2 className="text-lg font-semibold text-white mb-3">V2 vs Hackathon Brief</h2>
+        <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+          <table className="w-full text-xs">
+            <thead className="bg-gray-800">
+              <tr>
+                <th className="px-3 py-2.5 text-left text-gray-400 font-medium">Requirement</th>
+                <th className="px-3 py-2.5 text-left text-gray-400 font-medium">Brief Says</th>
+                <th className="px-3 py-2.5 text-left text-gray-400 font-medium">V2 Status</th>
+                <th className="px-3 py-2.5 text-center text-gray-400 font-medium w-20">Result</th>
+              </tr>
+            </thead>
+            <tbody className="text-gray-300">
+              <tr className="border-t border-gray-800">
+                <td className="px-3 py-2">Taxonomy file</td>
+                <td className="px-3 py-2 text-gray-500">JSON tree with name, description, keywords, creators</td>
+                <td className="px-3 py-2">234 niches, source-tagged, hashtag metadata</td>
+                <td className="px-3 py-2 text-center"><span className="text-green-400">PASS</span></td>
+              </tr>
+              <tr className="border-t border-gray-800">
+                <td className="px-3 py-2">Reproducible pipeline</td>
+                <td className="px-3 py-2 text-gray-500">One command, end-to-end</td>
+                <td className="px-3 py-2">bash pipeline/v2/run.sh</td>
+                <td className="px-3 py-2 text-center"><span className="text-green-400">PASS</span></td>
+              </tr>
+              <tr className="border-t border-gray-800">
+                <td className="px-3 py-2">Classifier</td>
+                <td className="px-3 py-2 text-gray-500">Return most likely niche(s) — plural</td>
+                <td className="px-3 py-2">V2 hybrid classifier (embedding + hashtag)</td>
+                <td className="px-3 py-2 text-center"><span className="text-green-400">PASS</span></td>
+              </tr>
+              <tr className="border-t border-gray-800">
+                <td className="px-3 py-2">Coverage</td>
+                <td className="px-3 py-2 text-gray-500">&gt;85% in specific niches</td>
+                <td className="px-3 py-2">100% coverage maintained</td>
+                <td className="px-3 py-2 text-center"><span className="text-green-400">PASS</span></td>
+              </tr>
+              <tr className="border-t border-gray-800">
+                <td className="px-3 py-2">Granularity</td>
+                <td className="px-3 py-2 text-gray-500">Power-law distribution</td>
+                <td className="px-3 py-2">Gini 0.66 (more imbalanced than V1)</td>
+                <td className="px-3 py-2 text-center"><span className="text-yellow-400">PARTIAL</span></td>
+              </tr>
+              <tr className="border-t border-gray-800">
+                <td className="px-3 py-2">Scale</td>
+                <td className="px-3 py-2 text-gray-500">"Hundreds or thousands" of niches</td>
+                <td className="px-3 py-2">234 niches (+12% from V1)</td>
+                <td className="px-3 py-2 text-center"><span className="text-yellow-400">PARTIAL</span></td>
+              </tr>
+              <tr className="border-t border-gray-800">
+                <td className="px-3 py-2">Approaches</td>
+                <td className="px-3 py-2 text-gray-500">"Mixing is encouraged"</td>
+                <td className="px-3 py-2">A + B (Hashtag + Embedding)</td>
+                <td className="px-3 py-2 text-center"><span className="text-green-400">PASS</span></td>
+              </tr>
+              <tr className="border-t border-gray-800 bg-gray-800/30">
+                <td className="px-3 py-2 font-medium" colSpan={2}>V2 New Capabilities</td>
+                <td className="px-3 py-2"></td>
+                <td className="px-3 py-2"></td>
+              </tr>
+              <tr className="border-t border-gray-800">
+                <td className="px-3 py-2">Hashtag graph</td>
+                <td className="px-3 py-2 text-gray-500">Co-occurrence analysis</td>
+                <td className="px-3 py-2">1,586 nodes, 15K edges, avg weight 3.98</td>
+                <td className="px-3 py-2 text-center"><span className="text-green-400">NEW</span></td>
+              </tr>
+              <tr className="border-t border-gray-800">
+                <td className="px-3 py-2">Community detection</td>
+                <td className="px-3 py-2 text-gray-500">Louvain/Leiden clustering</td>
+                <td className="px-3 py-2">3 resolutions: 16/22/29 communities</td>
+                <td className="px-3 py-2 text-center"><span className="text-green-400">NEW</span></td>
+              </tr>
+              <tr className="border-t border-gray-800">
+                <td className="px-3 py-2">Cross-validation</td>
+                <td className="px-3 py-2 text-gray-500">A + B signal fusion</td>
+                <td className="px-3 py-2">25 cross-cutting niches discovered</td>
+                <td className="px-3 py-2 text-center"><span className="text-green-400">NEW</span></td>
+              </tr>
+              <tr className="border-t border-gray-800">
+                <td className="px-3 py-2">Source tagging</td>
+                <td className="px-3 py-2 text-gray-500">Provenance tracking</td>
+                <td className="px-3 py-2">embedding_clustered / hashtag_discovered</td>
+                <td className="px-3 py-2 text-center"><span className="text-green-400">NEW</span></td>
+              </tr>
+              <tr className="border-t border-gray-800 bg-gray-800/30">
+                <td className="px-3 py-2 font-medium" colSpan={2}>Stretch Goals</td>
+                <td className="px-3 py-2"></td>
+                <td className="px-3 py-2"></td>
+              </tr>
+              <tr className="border-t border-gray-800">
+                <td className="px-3 py-2">Exemplar creators</td>
+                <td className="px-3 py-2 text-gray-500">Top 10 per niche</td>
+                <td className="px-3 py-2">Implemented (from V1)</td>
+                <td className="px-3 py-2 text-center"><span className="text-green-400">PASS</span></td>
+              </tr>
+              <tr className="border-t border-gray-800">
+                <td className="px-3 py-2">Cross-platform</td>
+                <td className="px-3 py-2 text-gray-500">TikTok, Reels, Shorts alignment</td>
+                <td className="px-3 py-2">YouTube only</td>
+                <td className="px-3 py-2 text-center"><span className="text-red-400">NO</span></td>
+              </tr>
+              <tr className="border-t border-gray-800">
+                <td className="px-3 py-2">Niche dynamics</td>
+                <td className="px-3 py-2 text-gray-500">Track growth/split over time</td>
+                <td className="px-3 py-2">Not implemented</td>
+                <td className="px-3 py-2 text-center"><span className="text-red-400">NO</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div className="mt-3 flex gap-4 text-xs">
+          <div className="flex items-center gap-1.5">
+            <span className="text-green-400 font-medium">PASS/NEW</span>
+            <span className="text-gray-500">= meets requirement / new capability</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="text-yellow-400 font-medium">PARTIAL</span>
+            <span className="text-gray-500">= needs improvement</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="text-red-400 font-medium">NO</span>
+            <span className="text-gray-500">= not implemented</span>
+          </div>
+        </div>
+      </section>
+
+      {/* Roadmap: V3 → V4 */}
+      <section>
+        <h2 className="text-lg font-semibold text-white mb-3">Roadmap: V3 → V4</h2>
+        <div className="space-y-4">
+          {/* V3 */}
+          <div className="bg-purple-950/30 border border-purple-800/50 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="bg-purple-600 text-white text-xs font-bold px-2 py-0.5 rounded">V3</span>
+              <span className="text-sm font-semibold text-purple-300">LLM-Driven Sub-Niche Discovery</span>
+              <span className="text-xs text-purple-400 ml-auto">Using existing data</span>
+            </div>
+            <p className="text-xs text-gray-400 mb-2">
+              Add <strong className="text-purple-200">Approach C</strong>: for each existing niche, ask the LLM to suggest
+              specific sub-niches (e.g., "Calisthenics for beginners over 40"). Validate against real video data.
+            </p>
+            <div className="bg-yellow-950/50 border border-yellow-800/30 rounded-lg p-2 mt-2">
+              <div className="text-xs text-yellow-300 font-medium">Data Pollution Prevention</div>
+              <div className="text-xs text-yellow-200/70 mt-1">
+                All LLM-generated niches tagged with <code className="bg-yellow-900/50 px-1 rounded">source: "llm_generated"</code> to
+                distinguish from data-driven clusters.
+              </div>
+            </div>
+            <div className="text-xs text-gray-500 mt-2">
+              <span className="text-gray-400">Expected:</span> 400-600 niches with specific sub-niches
+            </div>
+            <div className="mt-3 pt-2 border-t border-purple-800/30">
+              <div className="text-xs text-purple-300 font-medium mb-1">V3 Fixes for V2 Issues:</div>
+              <ul className="text-xs text-gray-400 space-y-1">
+                <li className="flex items-start gap-2">
+                  <span className="text-purple-400">•</span>
+                  <span>Store video_ids in V1 taxonomy for proper cross-validation</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-purple-400">•</span>
+                  <span>Improve balance (target Gini &lt; 0.5)</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          {/* V4 */}
+          <div className="bg-green-950/30 border border-green-800/50 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="bg-green-600 text-white text-xs font-bold px-2 py-0.5 rounded">V4</span>
+              <span className="text-sm font-semibold text-green-300">Scale with More Data</span>
+              <span className="text-xs text-green-400 ml-auto">Multi-day collection</span>
+            </div>
+            <p className="text-xs text-gray-400 mb-2">
+              Collect 20-30K videos over multiple days (YouTube quota is 10K/day). Fill gaps in Gaming, Travel, Tech.
+              Re-run full pipeline with hybrid approach (A + B + C).
+            </p>
+            <div className="text-xs text-gray-500">
+              <span className="text-gray-400">Expected:</span> 800-1200 niches, &gt;85% stability, full hackathon brief coverage
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Current Gaps (V2) */}
+      <section>
+        <h2 className="text-lg font-semibold text-white mb-3">Current Gaps (V2)</h2>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+            <h3 className="text-sm font-medium text-gray-300 mb-2">Scale</h3>
+            <ul className="text-xs text-gray-500 space-y-1">
+              <li>• 234 niches (target: 500-1000)</li>
+              <li>• Only +25 new from hashtags</li>
+              <li>• Need Approach C for more granularity</li>
+            </ul>
+          </div>
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+            <h3 className="text-sm font-medium text-gray-300 mb-2">Validation Issue</h3>
+            <ul className="text-xs text-gray-500 space-y-1">
+              <li>• V1 validation = 0% (data structure bug)</li>
+              <li>• V1 taxonomy missing video_ids</li>
+              <li>• Fix needed before V3</li>
+            </ul>
+          </div>
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+            <h3 className="text-sm font-medium text-gray-300 mb-2">Balance</h3>
+            <ul className="text-xs text-gray-500 space-y-1">
+              <li>• Gini coefficient: 0.66 (was 0.38 in V1)</li>
+              <li>• New niches are imbalanced in size</li>
+              <li>• Some hashtag niches have 700+ videos</li>
+            </ul>
+          </div>
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+            <h3 className="text-sm font-medium text-gray-300 mb-2">Classifier</h3>
+            <ul className="text-xs text-gray-500 space-y-1">
+              <li>• <span className="text-green-400">V2 classifier implemented</span></li>
+              <li>• Uses embedding + hashtag hybrid signals</li>
+              <li>• Knows about all 234 niches (209 + 25 new)</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+    </div>
+      )}
+    </div>
+    </>
+  )
+}
 
 // ============================================================================
 // Main App Component
@@ -2278,10 +4119,12 @@ function V1Process() {
 export default function Home() {
   const [taxonomy, setTaxonomy] = useState<Taxonomy | null>(null)
   const [taxError, setTaxError] = useState('')
-  const [version, setVersion] = useState<'v0' | 'v1'>('v0')
+  const [version, setVersion] = useState<'v0' | 'v1' | 'v2'>('v0')
   const [v0Page, setV0Page] = useState<'demo' | 'process'>('demo')
   const [v1Page, setV1Page] = useState<'demo' | 'process'>('demo')
+  const [v2Page, setV2Page] = useState<'demo' | 'process'>('demo')
   const [v1Taxonomy, setV1Taxonomy] = useState<V1TaxonomyData | null>(null)
+  const [v2Taxonomy, setV2Taxonomy] = useState<V2TaxonomyData | null>(null)
 
   useEffect(() => {
     fetch('/api/taxonomy')
@@ -2293,6 +4136,11 @@ export default function Home() {
       .then(r => r.json())
       .then(d => setV1Taxonomy(d))
       .catch(() => setV1Taxonomy(null))
+
+    fetch('/api/v2/taxonomy')
+      .then(r => r.json())
+      .then(d => setV2Taxonomy(d))
+      .catch(() => setV2Taxonomy(null))
   }, [])
 
   return (
@@ -2310,7 +4158,7 @@ export default function Home() {
           </div>
           {/* Version Tabs */}
           <nav className="flex gap-1 bg-gray-900 rounded-lg p-1">
-            {(['v0', 'v1'] as const).map(v => (
+            {(['v0', 'v1', 'v2'] as const).map(v => (
               <button
                 key={v}
                 onClick={() => setVersion(v)}
@@ -2373,6 +4221,30 @@ export default function Home() {
         </div>
       )}
 
+      {/* V2 Sub-navigation */}
+      {version === 'v2' && (
+        <div className="border-b border-gray-800/50 px-6 py-2 bg-gray-900/30">
+          <div className="max-w-5xl mx-auto flex gap-4">
+            {[
+              { key: 'demo' as const, label: 'Demo' },
+              { key: 'process' as const, label: 'Process & Flowchart' },
+            ].map(item => (
+              <button
+                key={item.key}
+                onClick={() => setV2Page(item.key)}
+                className={`text-sm py-1 border-b-2 transition-all ${
+                  v2Page === item.key
+                    ? 'text-indigo-400 border-indigo-500'
+                    : 'text-gray-500 border-transparent hover:text-gray-300'
+                }`}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       <main className="max-w-5xl mx-auto px-6 py-10">
         {/* V0 Content */}
         {version === 'v0' && (
@@ -2387,6 +4259,14 @@ export default function Home() {
           <>
             {v1Page === 'demo' && <V1Demo v1Taxonomy={v1Taxonomy} />}
             {v1Page === 'process' && <V1Process />}
+          </>
+        )}
+
+        {/* V2 Content */}
+        {version === 'v2' && (
+          <>
+            {v2Page === 'demo' && <V2Demo v2Taxonomy={v2Taxonomy} />}
+            {v2Page === 'process' && <V2Process />}
           </>
         )}
       </main>
