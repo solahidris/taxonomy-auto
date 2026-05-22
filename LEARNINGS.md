@@ -1267,6 +1267,193 @@ python3 pipeline/v2/5_evaluate.py              # ~5 sec
 
 ---
 
+## V3 Implementation Results
+
+V3 adds LLM-driven sub-niche discovery (Approach C) to the taxonomy pipeline.
+
+### V3 Pipeline Scripts
+
+| Script | Purpose |
+|--------|---------|
+| `pipeline/v3/1_analyze_niches.py` | Analyze V2 niches for breakdown candidates |
+| `pipeline/v3/2_llm_breakdown.py` | GPT-4o-mini generates 4 sub-niches per parent |
+| `pipeline/v3/3_validate_suggestions.py` | Validate suggestions against video data |
+| `pipeline/v3/4_merge_taxonomy.py` | Create V3 taxonomy with parent-child relationships |
+| `pipeline/v3/5_evaluate.py` | Compare V3 vs V2 |
+| `pipeline/v3/run.sh` | Full pipeline runner |
+
+### V3 Results Summary
+
+| Metric | V2 | V3 | Change |
+|--------|-----|-----|--------|
+| Total niches | 234 | 593 | +359 (+153.4%) |
+| Embedding niches | 209 | 209 | - |
+| Hashtag niches | 25 | 25 | - |
+| LLM sub-niches | - | 359 | +359 |
+| Validation rate | - | 89.8% | New |
+
+### LLM Suggestion Quality
+
+| Status | Count | Percentage |
+|--------|-------|------------|
+| Validated (≥5 videos) | 308 | 77.0% |
+| Partial (2-4 videos) | 51 | 12.8% |
+| Unvalidated (<2 videos) | 41 | 10.3% |
+| **Total suggestions** | 400 | 100% |
+
+**Validation rate:** 89.8% (validated + partial)
+
+### V3 Evaluation Score
+
+```
+Overall Quality Score: 90.2/100
+
+Breakdown:
+  Scale:           100.0/100 (593 niches, target 400)
+  Validation Rate:  89.8/100
+  Specificity:      71.2/100
+  Coverage:        100.0/100
+```
+
+### V3 Source Distribution
+
+| Source | Count | Percentage |
+|--------|-------|------------|
+| embedding_clustered | 209 | 35.2% |
+| hashtag_discovered | 25 | 4.2% |
+| llm_generated | 359 | 60.5% |
+
+### Success Criteria
+
+| Criterion | Result | Status |
+|-----------|--------|--------|
+| LLM breakdown implemented | Yes | **PASS** |
+| Sub-niches generated | 359 | **PASS** |
+| Validation working | 89.8% rate | **PASS** |
+| Source tagging maintained | Yes | **PASS** |
+| Scale improvement | 153% growth | **PASS** |
+
+### Example Sub-Niches Generated
+
+**Quick Cake Decorating Tips →**
+- Beginner-Friendly Cake Decorating Hacks (51 videos)
+- Cake Decorating Challenges for Kids (38 videos)
+- Seasonal Cake Decorating Ideas (39 videos)
+
+**Fitness Transformation Journeys →**
+- Postpartum Fitness Transformations (4 videos)
+- Fitness Challenges for Busy Professionals (13 videos)
+- Body Positivity Fitness Transformations (194 videos)
+
+**Quick Healthy Meals →**
+- 15-Minute Vegan Dinners (38 videos)
+- Healthy Meal Prep for Weight Loss (437 videos)
+- Quick Healthy Snacks for Kids (31 videos)
+
+### V3 Classifier
+
+The V3 classifier (`/api/v3/classify`) extends V2 with sub-niche matching:
+
+**New Features:**
+1. **Sub-niche recommendations**: Returns matching sub-niches within parent niches
+2. **Keyword matching**: Checks validation_keywords and expected_hashtags from LLM suggestions
+3. **Multi-level results**: Shows both parent niche match and recommended sub-niche
+
+**Scoring Formula:**
+```python
+# Base score from V2 (embedding + hashtag boost)
+base_score = embedding_similarity + hashtag_boost
+
+# Sub-niche keyword matching
+for keyword in sub_niche.validation_keywords:
+    if keyword in input_text:
+        matched_terms.append(keyword)
+        sub_niche_score += 0.15
+
+# Final score with sub-niche boost
+sub_niche_boost = 0.10 * min(best_sub_niche_score, 1.0)
+final_score = min(1.0, base_score + sub_niche_boost)
+```
+
+**API Response:**
+```json
+{
+  "primary_niche": {
+    "niche_name": "Quick Cake Decorating Tips",
+    "source": "embedding_clustered",
+    "has_sub_niches": true,
+    "recommended_sub_niche": {
+      "id": "v3_sub_niche_45_0",
+      "name": "Beginner-Friendly Cake Decorating Hacks",
+      "validation_status": "validated",
+      "matchedTerms": ["beginner", "cake decorating", "easy"]
+    }
+  },
+  "stats": {
+    "taxonomy_size": 593,
+    "llm_sub_niches": 359,
+    "matches_with_sub_niches": 2
+  }
+}
+```
+
+### V3 File Structure
+
+```
+data/v3/
+├── niche_analysis.json       # 121 breakdown candidates
+├── llm_suggestions.json      # 400 LLM-generated sub-niches
+├── validated_suggestions.json # Validation results
+├── taxonomy.json             # Final V3 taxonomy (593 niches)
+└── evaluation.json           # V3 vs V2 comparison
+
+pipeline/v3/
+├── 1_analyze_niches.py       # Candidate identification
+├── 2_llm_breakdown.py        # GPT-4o-mini sub-niche generation
+├── 3_validate_suggestions.py # Video data validation
+├── 4_merge_taxonomy.py       # Taxonomy merging
+├── 5_evaluate.py             # Evaluation metrics
+└── run.sh                    # Pipeline runner
+
+pages/api/v3/
+├── classify.ts               # Sub-niche aware classifier
+└── taxonomy.ts               # V3 taxonomy API endpoint
+```
+
+### How to Run V3
+
+```bash
+# Full pipeline
+cd pipeline/v3 && bash run.sh
+
+# Or individual steps
+python3 pipeline/v3/1_analyze_niches.py    # ~5 sec
+python3 pipeline/v3/2_llm_breakdown.py     # ~3-5 min (100 API calls)
+python3 pipeline/v3/3_validate_suggestions.py # ~10 sec
+python3 pipeline/v3/4_merge_taxonomy.py    # ~5 sec
+python3 pipeline/v3/5_evaluate.py          # ~5 sec
+```
+
+**Cost:** ~$0.15 for 100 GPT-4o-mini calls (4 sub-niches each)
+
+### V3 Learnings
+
+1. **LLM suggestions are high quality**: 89.8% validated against real video data
+2. **Keyword validation works**: Matching LLM-suggested keywords against video titles/tags is effective
+3. **Specificity improved**: From generic "Calisthenics Training" to specific "Calisthenics for Beginners Over 40"
+4. **Parent-child relationships valuable**: Users can browse from broad to specific
+5. **Cost-effective**: $0.15 for 359 new sub-niches vs collecting more data
+6. **Source tagging essential**: Distinguishing `llm_generated` from `embedding_clustered` prevents confusion
+
+### V3 Limitations
+
+1. **Limited to 100 niches processed**: Cost control measure, could expand
+2. **Validation is keyword-based**: May miss semantically similar content
+3. **No sub-niche centroids**: Sub-niches inherit parent centroid for classification
+4. **LLM hallucination risk**: Some suggestions may not reflect real content patterns
+
+---
+
 ## V2/V3/V4 Roadmap
 
 ### Gap Analysis Summary
@@ -1418,13 +1605,13 @@ pipeline/v4/
 
 ### Version Progression Summary
 
-| Version | Focus | Approach | Data | Expected Niches |
-|---------|-------|----------|------|-----------------|
+| Version | Focus | Approach | Data | Actual Niches |
+|---------|-------|----------|------|---------------|
 | V0 | Proof of concept | B (Embedding) | 3K videos | 109 |
 | V1 | Multi-label + hierarchy | B (Embedding) | 4K videos | 209 |
-| **V2** | **Hashtag graph** | **A + B hybrid** | 4K videos (existing) | 250-300 |
-| **V3** | **LLM sub-niches** | **A + B + C hybrid** | 4K videos (existing) | 400-600 |
-| **V4** | **Scale** | A + B + C | 20-30K videos | 800-1200 |
+| V2 | Hashtag graph | A + B hybrid | 4K videos (existing) | 234 |
+| **V3** | **LLM sub-niches** | **A + B + C hybrid** | 4K videos (existing) | **593** |
+| V4 | Scale | A + B + C | 20-30K videos | 800-1200 (target) |
 
 ---
 
@@ -1438,10 +1625,10 @@ pipeline/v4/
 - [ ] Cross-validation: ≥70% of V1 niches confirmed by hashtag communities (0% - blocked by missing video_ids)
 
 **V3 Success:**
-- [ ] LLM generates 3-5 sub-niches per existing niche
-- [ ] ≥50% of suggestions have video support (≥3 videos)
-- [ ] All LLM-generated niches clearly tagged
-- [ ] Total niches: 400-600
+- [x] LLM generates 3-5 sub-niches per existing niche (4 per niche, 400 total)
+- [x] ≥50% of suggestions have video support (89.8% validation rate)
+- [x] All LLM-generated niches clearly tagged (source: "llm_generated")
+- [x] Total niches: 400-600 (593 achieved)
 
 **V4 Success:**
 - [ ] 20-30K videos collected
@@ -1453,5 +1640,5 @@ pipeline/v4/
 ---
 
 *Document created: 2026-05-22*
-*Last updated: 2026-05-22 (V2 classifier added)*
-*Author: V0/V1/V2+ Pipeline Development*
+*Last updated: 2026-05-22 (V3 LLM sub-niche discovery added)*
+*Author: V0/V1/V2/V3 Pipeline Development*

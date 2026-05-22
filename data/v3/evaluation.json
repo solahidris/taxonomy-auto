@@ -1,0 +1,62 @@
+{
+  "v2_metrics": {
+    "name": "V2",
+    "total_niches": 234,
+    "total_categories": 21,
+    "approaches": [
+      "A (Hashtag)",
+      "B (Embedding)"
+    ]
+  },
+  "v3_metrics": {
+    "name": "V3",
+    "total_niches": 593,
+    "main_niches": 234,
+    "sub_niches": 359,
+    "total_categories": 21,
+    "approaches": [
+      "A (Hashtag)",
+      "B (Embedding)",
+      "C (LLM)"
+    ]
+  },
+  "comparison": {
+    "v2_niches": 234,
+    "v3_niches": 593,
+    "new_in_v3": 359,
+    "growth_pct": 153.4,
+    "niches_with_sub_niches": 100
+  },
+  "source_distribution": {
+    "embedding_clustered": 209,
+    "hashtag_discovered": 25,
+    "llm_generated": 359
+  },
+  "llm_quality": {
+    "total_suggestions": 400,
+    "validated": 308,
+    "partial": 51,
+    "unvalidated": 41,
+    "validation_rate": 89.8,
+    "strict_validation_rate": 77.0
+  },
+  "specificity": {
+    "specific_niches": 422,
+    "generic_niches": 171,
+    "specificity_rate": 71.2
+  },
+  "success_criteria": {
+    "LLM breakdown implemented": true,
+    "Sub-niches generated": true,
+    "Validation working": true,
+    "Source tagging maintained": true,
+    "Scale improvement": true
+  },
+  "overall_score": 90.2,
+  "score_breakdown": {
+    "scale": 100,
+    "validation_rate": 89.8,
+    "specificity": 71.2,
+    "coverage": 100
+  }
+}
