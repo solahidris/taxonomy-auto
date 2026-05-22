@@ -1577,34 +1577,51 @@ Return JSON with suggested sub-niches and which videos support each.
 
 ---
 
-### V4: Scale with More Data
+### V4: Full LLM Breakdown (All Niches)
 
-**Goal:** Collect 15-30K videos to support 500-1000+ niches.
+**Goal:** Remove the artificial 100-niche limit from V3 and process ALL 234 niches.
 
 **Why:**
-- V1 hit YouTube quota at ~4K videos
-- Can't discover 1000 micro-niches from 4K data points
-- More data = more confidence in cluster boundaries
+- V3 only processed 100 of 234 niches (cost control measure)
+- Processing all niches → potentially +500 more sub-niches
+- Cost is minimal (~$0.35 total)
+- No new data collection needed
+
+**V4 Pipeline:**
+```
+pipeline/v4/
+├── 1_analyze_niches.py        # Identify ALL breakdown candidates (no limit)
+├── 2_llm_breakdown.py         # GPT-4o-mini for all 234 niches
+├── 3_validate_suggestions.py  # Validate against video data
+├── 4_merge_taxonomy.py        # Create V4 taxonomy
+└── 5_evaluate.py              # Compare V4 vs V3
+```
+
+**Expected V4 Results:**
+
+| Metric | V3 | V4 Target |
+|--------|-----|-----------|
+| Niches processed by LLM | 100 | 234 |
+| Sub-niches generated | 400 | ~936 |
+| Validated sub-niches | 359 | ~800+ |
+| Total taxonomy size | 593 | ~1000+ |
+| Cost | ~$0.15 | ~$0.35 |
+| Time | 5 min | ~10 min |
 
 ---
 
-#### V4 Implementation Options (Evaluated)
+### V5: Cross-Platform Data (Future)
 
-**Option 1: Multi-Day YouTube Collection** ❌ REJECTED
-- Requires 3-4 days of collection
-- Not feasible for tight deadlines
+**Goal:** Collect 15-30K videos from multiple platforms to strengthen taxonomy.
 
-**Option 2: Multiple Google Cloud API Keys** ❌ REJECTED
-- Risk of collecting duplicate data across keys
-- Against ToS potentially
+**Why:**
+- YouTube quota limits data collection to ~4K videos
+- Cross-platform validation strengthens niche confidence
+- More data = better clustering and more micro-niches
 
-**Option 3: Expand LLM Breakdown (All Niches)** ✅ RECOMMENDED
-- V3 only processed 100 of 234 niches (cost control)
-- Process ALL 234 niches → potentially +500 more sub-niches
-- Cost: ~$0.35 total, Time: ~10 min
-- **Quick win, no new data needed, removes artificial limit**
+---
 
-**Option 4: Alternative Data APIs for Cross-Platform Data**
+#### V5 Data Source Options (Evaluated)
 
 | API | What it provides | Cost | Setup Time | Verdict |
 |-----|------------------|------|------------|---------|
@@ -1617,7 +1634,7 @@ Return JSON with suggested sub-niches and which videos support each.
 | **Google Trends** | Trend validation | Free | 1 hr | ❌ No video data |
 | **Twitter/X API** | Hashtag trends | $100/mo | 1 hr | ❌ No video data |
 
-**Why Apify is recommended:**
+**Why Apify is recommended for V5:**
 - Pre-built scrapers, no approval process
 - Instant access to TikTok/Instagram data
 - Same hashtag culture as YouTube Shorts
@@ -1632,48 +1649,40 @@ Return JSON with suggested sub-niches and which videos support each.
 
 ---
 
-#### Recommended V4 Pipeline
+#### V5 Pipeline (Future)
 
 ```
-pipeline/v4/
-├── 1_expand_llm_breakdown.py  # Process ALL 234 niches (no limit)
-├── 2_collect_tiktok.py        # Apify TikTok scraper (10K videos)
-├── 3_collect_instagram.py     # Apify Instagram scraper (10K Reels) [optional]
-├── 4_merge_crossplatform.py   # Combine YouTube + TikTok + Instagram
+pipeline/v5/
+├── 1_collect_tiktok.py        # Apify TikTok scraper (10K videos)
+├── 2_collect_instagram.py     # Apify Instagram scraper (10K Reels) [optional]
+├── 3_merge_crossplatform.py   # Combine YouTube + TikTok + Instagram
+├── 4_embed_new_data.py        # Embed cross-platform videos
 ├── 5_unified_taxonomy.py      # Re-cluster with cross-platform data
 └── 6_evaluate.py              # Final evaluation
 ```
 
-**Estimated V4 Results:**
+**Expected V5 Results:**
 
-| Metric | V3 | V4 Target |
+| Metric | V4 | V5 Target |
 |--------|-----|-----------|
 | Videos | 4K | 20-30K |
-| Niches | 593 | 900-1200 |
+| Niches | ~1000 | 1200-1500 |
 | Platforms | YouTube only | YouTube + TikTok (+ Instagram) |
-| Cost | ~$0.15 | ~$15-25 |
-| Time | 30 min | 3-4 hrs |
-
----
-
-#### V4 Decision Pending
-
-Options being considered:
-1. **Minimum V4**: Just expand LLM breakdown to all niches (~$0.35, 10 min)
-2. **Medium V4**: + Apify TikTok data (~$10, 1 hr)
-3. **Full V4**: + Apify Instagram + more YouTube via SerpAPI (~$50, 4 hrs)
+| Cost | ~$0.35 | ~$15-25 |
+| Time | 10 min | 3-4 hrs |
 
 ---
 
 ### Version Progression Summary
 
-| Version | Focus | Approach | Data | Actual Niches |
-|---------|-------|----------|------|---------------|
+| Version | Focus | Approach | Data | Niches |
+|---------|-------|----------|------|--------|
 | V0 | Proof of concept | B (Embedding) | 3K videos | 109 |
 | V1 | Multi-label + hierarchy | B (Embedding) | 4K videos | 209 |
-| V2 | Hashtag graph | A + B hybrid | 4K videos (existing) | 234 |
-| **V3** | **LLM sub-niches** | **A + B + C hybrid** | 4K videos (existing) | **593** |
-| V4 | Scale | A + B + C | 20-30K videos | 800-1200 (target) |
+| V2 | Hashtag graph | A + B hybrid | 4K videos | 234 |
+| V3 | LLM sub-niches (limited) | A + B + C | 4K videos | 593 |
+| **V4** | **Full LLM breakdown** | **A + B + C** | **4K videos** | **~1000 (target)** |
+| V5 | Cross-platform data | A + B + C | 20-30K videos | 1200-1500 (target) |
 
 ---
 
@@ -1693,8 +1702,14 @@ Options being considered:
 - [x] Total niches: 400-600 (593 achieved)
 
 **V4 Success:**
-- [ ] 20-30K videos collected
-- [ ] 800-1200 total niches
+- [ ] All 234 niches processed by LLM (no limit)
+- [ ] ~800-1000 total niches
+- [ ] Validation rate maintained (>85%)
+- [ ] Cost under $0.50
+
+**V5 Success:**
+- [ ] 20-30K videos collected (cross-platform)
+- [ ] 1200-1500 total niches
 - [ ] Stability: >85% ARI
 - [ ] Coverage: >90%
 - [ ] Long-tail micro-niches like "Hyrox prep for first-timers"
@@ -1702,5 +1717,5 @@ Options being considered:
 ---
 
 *Document created: 2026-05-22*
-*Last updated: 2026-05-22 (V4 planning options documented)*
-*Author: V0/V1/V2/V3 Pipeline Development*
+*Last updated: 2026-05-22 (V4/V5 version restructure)*
+*Author: V0/V1/V2/V3/V4/V5 Pipeline Development*
