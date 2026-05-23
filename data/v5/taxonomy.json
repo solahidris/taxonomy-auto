@@ -1,0 +1,738 @@
+{
+  "version": "5.0",
+  "generated_at": "2026-05-23",
+  "platforms": [
+    "youtube",
+    "tiktok",
+    "instagram"
+  ],
+  "approach": "A + B + C + cross-platform",
+  "stats": {
+    "v4_niches": 0,
+    "v5_new_niches": 25,
+    "cross_platform_validated": 0
+  },
+  "categories": [
+    {
+      "id": "v5_discovered",
+      "name": "Cross-Platform Discoveries",
+      "description": "Niches discovered through TikTok and Instagram data not present in YouTube-only taxonomy",
+      "source": "v5_cross_platform",
+      "children": [
+        {
+          "id": "v5_new_20",
+          "name": "Bodyweight Workout Mastery",
+          "description": "Content creators focused on bodyweight exercises and calisthenics for all fitness levels, emphasizing home workouts and strength training without equipment.",
+          "keywords": [
+            "bodyweight",
+            "calisthenics",
+            "home workout",
+            "strength training",
+            "fitness tips"
+          ],
+          "source": "v5_discovered",
+          "platforms": [
+            "instagram",
+            "tiktok"
+          ],
+          "video_count": 389,
+          "top_hashtags": [
+            "pregnancyworkout",
+            "strengthtraining",
+            "workoutfromhome",
+            "dumbbellworkout",
+            "homeworkout",
+            "liftingweights",
+            "gluteworkouts",
+            "workoutwithme",
+            "glutesworkout"
+          ]
+        },
+        {
+          "id": "v5_new_7",
+          "name": "Beginner Calisthenics Training",
+          "description": "This content is created by fitness enthusiasts and trainers focusing on introductory calisthenics workouts and routines for beginners at home.",
+          "keywords": [
+            "calisthenics",
+            "bodyweight",
+            "beginner",
+            "home workout",
+            "fitness"
+          ],
+          "source": "v5_discovered",
+          "platforms": [
+            "instagram",
+            "tiktok"
+          ],
+          "video_count": 207,
+          "top_hashtags": [
+            "calisthenics",
+            "handstand",
+            "fitness",
+            "calisthenicsworkout",
+            "pushups",
+            "streetworkout",
+            "gym",
+            "motivation",
+            "beginner",
+            "bodyweighttraining"
+          ]
+        },
+        {
+          "id": "v5_new_23",
+          "name": "Pull-Up Mastery",
+          "description": "Content creators focused on teaching and progressing pull-up techniques for all skill levels, from beginners to advanced athletes.",
+          "keywords": [
+            "pull-ups",
+            "calisthenics",
+            "strength training",
+            "bodyweight exercises",
+            "progression"
+          ],
+          "source": "v5_discovered",
+          "platforms": [
+            "instagram",
+            "tiktok"
+          ],
+          "video_count": 165,
+          "top_hashtags": [
+            "gym",
+            "homeworkout",
+            "athome",
+            "physique",
+            "fyp"
+          ]
+        },
+        {
+          "id": "v5_new_17",
+          "name": "Weight Loss Transformation Journeys",
+          "description": "Content creators share their personal weight loss journeys, effective workout routines, and motivational tips for beginners and those struggling with weight loss.",
+          "keywords": [
+            "weight loss",
+            "transformation",
+            "motivation",
+            "fitness",
+            "calorie deficit"
+          ],
+          "source": "v5_discovered",
+          "platforms": [
+            "tiktok"
+          ],
+          "video_count": 282,
+          "top_hashtags": [
+            "sadtosavage",
+            "sadtosavageprogram",
+            "shelbysaccohabittracker",
+            "workoutroutine",
+            "workoutprogramforwomen",
+            "weightlossjouney",
+            "weightlossmotivation",
+            "howtochangeyourlife",
+            "howtoglowup",
+            "healthyhabits"
+          ]
+        },
+        {
+          "id": "v5_new_19",
+          "name": "Handstand Mastery",
+          "description": "Content creators share tutorials and tips focused on mastering handstands and related bodyweight skills.",
+          "keywords": [
+            "handstand",
+            "tutorial",
+            "mobility",
+            "bodyweight",
+            "calisthenics"
+          ],
+          "source": "v5_discovered",
+          "platforms": [
+            "instagram"
+          ],
+          "video_count": 275,
+          "top_hashtags": []
+        },
+        {
+          "id": "v5_new_8",
+          "name": "Calisthenics Bodyweight Mastery",
+          "description": "Content creators focus on advanced bodyweight training techniques, motivational workouts, and transformation stories within the calisthenics community.",
+          "keywords": [
+            "calisthenics",
+            "bodyweight",
+            "workout",
+            "motivation",
+            "transformation"
+          ],
+          "source": "v5_discovered",
+          "platforms": [
+            "instagram"
+          ],
+          "video_count": 227,
+          "top_hashtags": []
+        },
+        {
+          "id": "v5_new_10",
+          "name": "Bodyweight Powerlifting Techniques",
+          "description": "Content creators share expert tips and techniques for mastering bodyweight exercises and powerlifting skills without equipment.",
+          "keywords": [
+            "powerlifting",
+            "bodyweight exercises",
+            "strength training",
+            "fitness tips",
+            "squat technique"
+          ],
+          "source": "v5_discovered",
+          "platforms": [
+            "instagram"
+          ],
+          "video_count": 185,
+          "top_hashtags": []
+        },
+        {
+          "id": "v5_new_12",
+          "name": "Home HIIT Workouts",
+          "description": "Content creators focus on high-intensity interval training routines that can be performed at home with little to no equipment.",
+          "keywords": [
+            "HIIT",
+            "home workout",
+            "fitness",
+            "calisthenics",
+            "abs"
+          ],
+          "source": "v5_discovered",
+          "platforms": [
+            "instagram",
+            "tiktok"
+          ],
+          "video_count": 245,
+          "top_hashtags": [
+            "homeworkout",
+            "fitness",
+            "hiit",
+            "workout",
+            "fyp",
+            "fullbodyworkout",
+            "fitnessmotivation",
+            "cardio",
+            "hiitworkout",
+            "absworkout"
+          ]
+        },
+        {
+          "id": "v5_new_0",
+          "name": "Holistic Morning Rituals",
+          "description": "Content creators share diverse morning routines focused on wellness, mindfulness, and fitness practices to enhance daily productivity and self-care.",
+          "keywords": [
+            "morning routine",
+            "wellness",
+            "yoga",
+            "self-care",
+            "ayurveda"
+          ],
+          "source": "v5_discovered",
+          "platforms": [
+            "tiktok"
+          ],
+          "video_count": 97,
+          "top_hashtags": [
+            "morningroutine",
+            "fyp",
+            "nightroutine",
+            "skincare",
+            "morningwithme",
+            "morningdiaries",
+            "lifestyle",
+            "workout",
+            "productivemorning",
+            "foryou"
+          ]
+        },
+        {
+          "id": "v5_new_1",
+          "name": "Gym Transformation Motivation",
+          "description": "Content creators share their personal fitness journeys, showcasing body transformations and workout routines to inspire others in their fitness goals.",
+          "keywords": [
+            "#gymtok",
+            "#transformation",
+            "#fitness",
+            "#motivation",
+            "#calisthenics"
+          ],
+          "source": "v5_discovered",
+          "platforms": [
+            "instagram",
+            "tiktok"
+          ],
+          "video_count": 303,
+          "top_hashtags": [
+            "gymtok",
+            "fyp",
+            "gym",
+            "fitness",
+            "gymmotivation",
+            "calisthenics",
+            "gymgirl",
+            "motivation",
+            "transformation",
+            "strengthtraining"
+          ]
+        },
+        {
+          "id": "v5_new_13",
+          "name": "Morning Yoga Rituals",
+          "description": "Content creators share daily yoga routines and practices designed to enhance morning energy and flexibility.",
+          "keywords": [
+            "yoga",
+            "morning routine",
+            "flexibility",
+            "pranayama",
+            "yogic habits",
+            "#yogaflow",
+            "#morningroutine",
+            "#yogateacher"
+          ],
+          "source": "v5_discovered",
+          "platforms": [
+            "instagram",
+            "tiktok"
+          ],
+          "video_count": 261,
+          "top_hashtags": [
+            "yogaflow",
+            "yoga",
+            "fyp",
+            "yogateacher",
+            "vinyasa",
+            "flow",
+            "yogagirl",
+            "yogapractice",
+            "yogatok",
+            "pilates"
+          ]
+        },
+        {
+          "id": "v5_new_16",
+          "name": "Calorie Deficit Meal Plans",
+          "description": "Content creators share their daily eating habits while in a calorie deficit, focusing on meal ideas and nutritional strategies for weight loss and body recomposition.",
+          "keywords": [
+            "calorie deficit",
+            "meal ideas",
+            "weight loss",
+            "high protein",
+            "body recomp"
+          ],
+          "source": "v5_discovered",
+          "platforms": [
+            "tiktok"
+          ],
+          "video_count": 161,
+          "top_hashtags": [
+            "whatieatinaday",
+            "wieiad",
+            "fyp",
+            "food",
+            "whatieatinadayrealistic",
+            "mealideas",
+            "highprotein",
+            "wholefoods",
+            "whatieat",
+            "healthy"
+          ]
+        },
+        {
+          "id": "v5_new_18",
+          "name": "Quick Kitchen Hacks",
+          "description": "Content creators share innovative and time-saving cooking tips, hacks, and techniques for everyday kitchen challenges.",
+          "keywords": [
+            "cooking",
+            "hacks",
+            "kitchen",
+            "tips",
+            "food"
+          ],
+          "source": "v5_discovered",
+          "platforms": [
+            "instagram"
+          ],
+          "video_count": 173,
+          "top_hashtags": [
+            "budgetbytes",
+            "chipotlepeppers",
+            "kitchenhack",
+            "foodsafety",
+            "cookingtips",
+            "kitchenmyths",
+            "chickenrecipes",
+            "deviledeggs",
+            "eggrecipes",
+            "kitchenhacks"
+          ]
+        },
+        {
+          "id": "v5_new_22",
+          "name": "Beginner Running Guidance",
+          "description": "Content created by experienced runners and coaches offering tips, routines, and advice for those new to running.",
+          "keywords": [
+            "beginner runners",
+            "running tips",
+            "training advice",
+            "running motivation",
+            "half marathon"
+          ],
+          "source": "v5_discovered",
+          "platforms": [
+            "instagram",
+            "tiktok"
+          ],
+          "video_count": 245,
+          "top_hashtags": [
+            "running",
+            "runningtips",
+            "runtok",
+            "run",
+            "runner",
+            "beginnerrunner",
+            "runningmotivation",
+            "fyp",
+            "marathontraining",
+            "fitness"
+          ]
+        },
+        {
+          "id": "v5_new_15",
+          "name": "Quick Healthy Meal Prep",
+          "description": "Content creators share quick and easy meal prep recipes focusing on low-calorie and high-protein options for busy individuals.",
+          "keywords": [
+            "meal prep",
+            "healthy recipes",
+            "high protein",
+            "easy meals",
+            "quick recipes"
+          ],
+          "source": "v5_discovered",
+          "platforms": [
+            "instagram",
+            "tiktok"
+          ],
+          "video_count": 275,
+          "top_hashtags": [
+            "mealprep",
+            "mealprepideas",
+            "highprotein",
+            "highproteinmeals",
+            "easymealprep",
+            "easyrecipes",
+            "mealpreponfleek",
+            "mealpreprecipes",
+            "recipes",
+            "healthyrecipes"
+          ]
+        },
+        {
+          "id": "v5_new_14",
+          "name": "Quick Vegan Meal Prep",
+          "description": "Content creators share easy and fast vegan recipes perfect for meal prepping on a budget.",
+          "keywords": [
+            "5",
+            "easy recipes",
+            "#vegan"
+          ],
+          "source": "v5_discovered",
+          "platforms": [
+            "instagram",
+            "tiktok"
+          ],
+          "video_count": 411,
+          "top_hashtags": [
+            "easyrecipes",
+            "budgetbytes",
+            "mediterraneanfood",
+            "salad",
+            "mealprep",
+            "greekfood",
+            "mealprepideas",
+            "easyrecipe",
+            "mealpreponfleek",
+            "healthyrecipes"
+          ]
+        },
+        {
+          "id": "v5_new_3",
+          "name": "Quick 15-Minute Meals",
+          "description": "Content creators share easy, budget-friendly recipes that can be prepared in 15 minutes or less, perfect for busy weeknights.",
+          "keywords": [
+            "quick meals",
+            "easy recipes",
+            "15-minute recipes",
+            "one-pan meals",
+            "budget-friendly"
+          ],
+          "source": "v5_discovered",
+          "platforms": [
+            "instagram",
+            "tiktok"
+          ],
+          "video_count": 296,
+          "top_hashtags": [
+            "easyrecipes",
+            "easyrecipe",
+            "mealprep",
+            "intuitiveeating",
+            "workweeklunch",
+            "onepanmeal",
+            "weeknightdinner",
+            "mediterraneanfood",
+            "dinner",
+            "healthyrecipes"
+          ]
+        },
+        {
+          "id": "v5_new_9",
+          "name": "Quick Meal Reviews & Mukbangs",
+          "description": "Content creators in this niche showcase quick meal recipes, restaurant reviews, and mukbang experiences featuring various cuisines and food challenges.",
+          "keywords": [
+            "meal prep",
+            "food review",
+            "mukbang",
+            "ASMR",
+            "foodie"
+          ],
+          "source": "v5_discovered",
+          "platforms": [
+            "instagram",
+            "tiktok"
+          ],
+          "video_count": 257,
+          "top_hashtags": [
+            "mukbang",
+            "foodie",
+            "foodreview",
+            "foodtok",
+            "fyp",
+            "asmr",
+            "asmrfood",
+            "food",
+            "bigbites",
+            "yummy"
+          ]
+        },
+        {
+          "id": "v5_new_4",
+          "name": "Quick Meal Hacks",
+          "description": "Content creators share fast and easy recipes, cooking tips, and meal prep ideas for busy individuals seeking delicious and time-efficient meals.",
+          "keywords": [
+            "quick recipes",
+            "easy cooking",
+            "meal prep",
+            "food hacks",
+            "viral recipes"
+          ],
+          "source": "v5_discovered",
+          "platforms": [
+            "instagram",
+            "tiktok"
+          ],
+          "video_count": 452,
+          "top_hashtags": [
+            "easyrecipe",
+            "dinnerideas",
+            "easyrecipes",
+            "healthyrecipes",
+            "foodtok",
+            "fyp",
+            "cooking",
+            "mealprep",
+            "recipe",
+            "recipes"
+          ]
+        },
+        {
+          "id": "v5_new_24",
+          "name": "Quick Keto Desserts",
+          "description": "Content creators share easy and delicious low-carb dessert recipes that can be made in 5 minutes or less.",
+          "keywords": [
+            "5",
+            "keto",
+            "desserts",
+            "snacks",
+            "quick",
+            "recipes",
+            "hashtags"
+          ],
+          "source": "v5_discovered",
+          "platforms": [
+            "instagram",
+            "tiktok"
+          ],
+          "video_count": 340,
+          "top_hashtags": [
+            "cinnamonrolls",
+            "healthyrecipes",
+            "budgetbytes",
+            "chocolatechipcookies",
+            "baking",
+            "bananabread",
+            "healthysnacks",
+            "muffins",
+            "cookies",
+            "brownbutter"
+          ]
+        },
+        {
+          "id": "v5_new_6",
+          "name": "Pregnancy & Lifestyle Vlogs",
+          "description": "Content creators share personal experiences and insights related to pregnancy, motherhood, and daily life through engaging short-form videos.",
+          "keywords": [
+            "pregnancy",
+            "motherhood",
+            "lifestyle",
+            "vlogs",
+            "influencers"
+          ],
+          "source": "v5_discovered",
+          "platforms": [
+            "instagram",
+            "tiktok"
+          ],
+          "video_count": 488,
+          "top_hashtags": [
+            "run",
+            "runwithryan",
+            "running",
+            "runner",
+            "ad",
+            "training",
+            "healthylifestyle",
+            "motivation",
+            "hudabeauty",
+            "zeelool"
+          ]
+        },
+        {
+          "id": "v5_new_2",
+          "name": "Beginner Makeup Mastery",
+          "description": "This content is created by beauty enthusiasts and professionals focusing on foundational makeup techniques and tutorials specifically designed for beginners.",
+          "keywords": [
+            "makeup tutorial",
+            "beginner makeup",
+            "beauty tips",
+            "soft glam",
+            "smokey eye"
+          ],
+          "source": "v5_discovered",
+          "platforms": [
+            "instagram",
+            "tiktok"
+          ],
+          "video_count": 327,
+          "top_hashtags": [
+            "makeuptutorial",
+            "makeup",
+            "fyp",
+            "grwm",
+            "beauty",
+            "beautyhacks",
+            "beginnermakeup",
+            "makeuptips",
+            "smokeyeye",
+            "softglam"
+          ]
+        },
+        {
+          "id": "v5_new_5",
+          "name": "Morning Skincare Essentials",
+          "description": "Content creators, including dermatologists and skincare enthusiasts, share effective morning skincare routines and product recommendations tailored for various age groups and skin types.",
+          "keywords": [
+            "morning routine",
+            "skincare",
+            "anti-aging",
+            "k-beauty",
+            "dermatologist"
+          ],
+          "source": "v5_discovered",
+          "platforms": [
+            "instagram",
+            "tiktok"
+          ],
+          "video_count": 346,
+          "top_hashtags": [
+            "skincareroutine",
+            "skincare",
+            "koreanskincare",
+            "kbeauty",
+            "skincaretips",
+            "glassskin",
+            "fyp",
+            "skintok",
+            "sunscreen",
+            "acne"
+          ]
+        },
+        {
+          "id": "v5_new_21",
+          "name": "Affordable Drugstore Makeup",
+          "description": "Content creators share tips, reviews, and routines focused on budget-friendly makeup products available at drugstores.",
+          "keywords": [
+            "#drugstoremakeup",
+            "#affordablemakeup",
+            "#makeup",
+            "#beauty",
+            "#makeuptips"
+          ],
+          "source": "v5_discovered",
+          "platforms": [
+            "instagram",
+            "tiktok"
+          ],
+          "video_count": 205,
+          "top_hashtags": [
+            "drugstoremakeup",
+            "affordablemakeup",
+            "makeup",
+            "makeuptutorial",
+            "makeuproutine",
+            "fyp",
+            "makeuptips",
+            "beauty",
+            "makeupchallenge",
+            "makeupreview"
+          ]
+        },
+        {
+          "id": "v5_new_11",
+          "name": "Asian Makeup Transformations",
+          "description": "Content creators showcase stunning makeup transformations with an Asian aesthetic, often incorporating trending styles and viral challenges.",
+          "keywords": [
+            "#makeup",
+            "#transformation",
+            "#beautytok",
+            "#viral",
+            "#fyp"
+          ],
+          "source": "v5_discovered",
+          "platforms": [
+            "instagram",
+            "tiktok"
+          ],
+          "video_count": 364,
+          "top_hashtags": [
+            "fyp",
+            "makeup",
+            "grwm",
+            "nailart",
+            "makeuptutorial",
+            "beautytok",
+            "nails",
+            "nailinspo",
+            "beauty",
+            "nailtutorial"
+          ]
+        }
+      ]
+    }
+  ],
+  "total_niches": 25,
+  "platform_distribution": {
+    "null": 3991,
+    "tiktok": 2034,
+    "instagram": 951
+  }
+}

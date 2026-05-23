@@ -1,0 +1,59 @@
+{
+  "v3_metrics": {
+    "name": "V3 (Limited LLM)",
+    "total_niches": 593,
+    "llm_sub_niches": 359,
+    "niches_processed": 100
+  },
+  "v4_metrics": {
+    "name": "V4 (Full LLM)",
+    "total_niches": 676,
+    "main_niches": 234,
+    "sub_niches": 442,
+    "total_categories": 21,
+    "approaches": [
+      "A (Hashtag)",
+      "B (Embedding)",
+      "C (LLM Full)"
+    ]
+  },
+  "comparison": {
+    "v3_niches": 593,
+    "v4_niches": 676,
+    "new_in_v4": 83,
+    "growth_pct": 14.0,
+    "niches_with_sub_niches": 121
+  },
+  "source_distribution": {
+    "embedding_clustered": 209,
+    "hashtag_discovered": 25,
+    "llm_generated": 442
+  },
+  "llm_quality": {
+    "total_suggestions": 484,
+    "validated": 389,
+    "partial": 53,
+    "unvalidated": 42,
+    "validation_rate": 91.3,
+    "strict_validation_rate": 80.4
+  },
+  "specificity": {
+    "specific_niches": 676,
+    "generic_niches": 0,
+    "specificity_rate": 100.0
+  },
+  "success_criteria": {
+    "all_niches_processed": true,
+    "validation_rate_above_85": true,
+    "total_niches_above_800": false,
+    "specificity_above_60": true,
+    "growth_vs_v3_positive": true
+  },
+  "overall_score": 87.7,
+  "score_breakdown": {
+    "scale": 67.6,
+    "validation": 91.3,
+    "specificity": 100.0,
+    "coverage": 100
+  }
+}

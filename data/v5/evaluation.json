@@ -1,0 +1,40 @@
+{
+  "version": "5.0",
+  "metrics": {
+    "scale": {
+      "v5_niches": 25,
+      "v4_niches": 0,
+      "growth_pct": 0,
+      "target": 1000,
+      "score": 2.5
+    },
+    "platforms": {
+      "covered": 17,
+      "target": 3,
+      "breakdown": {
+        "youtube_v1": 3991,
+        "tiktok": 2034,
+        "instagram": 951
+      },
+      "score": 100
+    },
+    "validation": {
+      "validated_niches": 0,
+      "multi_platform": 0,
+      "rate_pct": 0.0,
+      "score": 0.0
+    },
+    "discoveries": {
+      "new_niches": 25,
+      "score": 100
+    }
+  },
+  "overall_score": 50.625,
+  "success_criteria": {
+    "scale_1000": false,
+    "scale_800": false,
+    "multi_platform": true,
+    "validation_50pct": false,
+    "new_discoveries_10": true
+  }
+}

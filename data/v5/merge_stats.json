@@ -1,0 +1,12 @@
+{
+  "total_videos": 6976,
+  "platform_breakdown": {
+    "youtube_v1": 3991,
+    "tiktok": 2034,
+    "instagram": 951
+  },
+  "unique_hashtags": 4692,
+  "unique_authors": 1737,
+  "v1_existing": 3991,
+  "v5_new": 2985
+}
