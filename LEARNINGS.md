@@ -1883,6 +1883,214 @@ pipeline/v5/
 
 ---
 
+---
+
+## V6 Implementation Results
+
+V6 is a fresh re-clustering using ALL available data combined — YouTube V1, TikTok, Instagram, and new YouTube data targeting 15 previously underrepresented categories.
+
+### V6 Pipeline Scripts
+
+| Script | Purpose |
+|--------|---------|
+| `pipeline/v6/1_collect_youtube.py` | New YouTube collection (222 keywords, round-robin across 15 categories) |
+| `pipeline/v6/2_combine_datasets.py` | Merge V5 merged (6,976) + V6 new YouTube (3,389) → 10,365 total |
+| `pipeline/v6/3_embed.py` | OpenAI embeddings for 10,365 videos |
+| `pipeline/v6/4_cluster.py` | 4-level hierarchical clustering (K-Means + HDBSCAN) |
+| `pipeline/v6/5_name.py` | GPT-4o-mini naming for all clusters |
+| `pipeline/v6/6_evaluate.py` | Evaluation metrics |
+| `pipeline/v6/run.sh` | Full pipeline runner |
+
+### V6 Data Collection Strategy
+
+Key insight: V1 collected ~66 keywords before hitting quota (Fitness/Food/Beauty). V6 targeted the uncovered categories using **round-robin ordering** across 15 categories, ensuring each category gets representation even if quota runs out.
+
+**New categories targeted (not in V1):**
+- Gaming, Travel, Finance, Arts & Crafts, Music & Dance
+- Parenting, Automotive, Sports, Home & DIY
+- Career, Relationships, Spirituality, International Food, Comedy, Pets
+
+All 222 keywords completed — per-minute rate limiting caused some skips but the daily quota held. **3,389 new unique videos** collected.
+
+### V6 Dataset Composition
+
+| Source | Videos |
+|--------|--------|
+| YouTube V1 | 3,991 |
+| TikTok (V5) | 2,034 |
+| Instagram (V5) | 951 |
+| YouTube V6 (new) | 3,389 |
+| **Total** | **10,365** |
+
+- Unique hashtags: 28,031
+- Unique authors: 6,429
+- Embedding cost: ~$0.014
+
+### V6 Results Summary
+
+| Metric | V5 Target | V6 Actual | Status |
+|--------|-----------|-----------|--------|
+| Videos processed | 20-30K | 10,365 | Partial |
+| Categories | 20+ | 25 | **PASS** |
+| Subcategories | 50+ | 149 | **PASS** |
+| Leaf niches | 400-700 | 542 | **PASS** |
+| Coverage | >90% | 100% | **PASS** |
+| Gini coefficient | <0.7 | 0.383 | **PASS** |
+| Overall score | — | 85.6/100 | **PASS** |
+
+### V6 Categories Generated
+
+| Category | Niches |
+|----------|--------|
+| Home Fitness | 38 |
+| Quick Meal Solutions | 36 |
+| Strength & Conditioning | 33 |
+| Makeup & Beauty | 30 |
+| Food & Travel | 27 |
+| Fitness Motivation | 26 |
+| Yoga & Wellness | 25 |
+| Skill Mastery | 24 |
+| Lifestyle & Culture | 24 |
+| Quick Cooking | 24 |
+| Arts & Crafts | 20 |
+| Personal Finance | 19 |
+| Skincare & Beauty | 19 |
+| Home & DIY | 19 |
+| Running & Fitness | 19 |
+| Automotive DIY | 17 |
+| Fitness & Weight Loss | 17 |
+| Meal Prep & Nutrition | 20 |
+| Gaming Content | 14 |
+| Parenting & Development | 10 |
+| Music Education | 11 |
+| Pet Care | 13 |
+| Nutrition & Lifestyle | 12 |
+| Baking & Desserts | 24 |
+| Personal Development | 21 |
+
+### Sample V6 Niches (New Categories)
+
+**Gaming Content:**
+- Gamer Rage Reactions
+- GTA Online Money Glitches
+- Roblox Game Development Tutorials
+- Horror Game Reaction Rankings
+- Minecraft Building Techniques
+
+**Personal Finance:**
+- Beginner Stock Market Investing
+- Real Estate Investment Strategies
+- DIY Tax Filing Tips
+- Crypto DeFi Explained
+
+**Automotive DIY:**
+- DIY Car Oil Change Tutorials (52 videos)
+- DIY Car Detailing Hacks
+- DIY Car Maintenance Tips
+- Quick Car Repair Hacks
+
+**Pet Care:**
+- Dog Trick Training Tutorials
+- DIY Cat Enrichment Projects
+- Healthy Dog Food Recipes
+- Advanced Dog Trick Training
+
+**Music Education:**
+- Quick Guitar Chord Tutorials
+- Easy Ukulele Song Tutorials
+- Trap Melody Creation Tutorials
+- Beginner Guitar Chord Progressions
+
+**Parenting & Development:**
+- Positive Discipline Techniques for Parents
+- Newborn Sleep Strategies
+- Postpartum Fitness & Wellness
+
+### V6 Evaluation Score
+
+```
+Overall Quality Score: 85.6/100
+
+Breakdown:
+  Coverage: 100.0/100
+  Balance:   52.1/100 (Gini 0.383 — actually good, formula penalizes heavy cats)
+  Scale:    100.0/100
+```
+
+### V6 Learnings
+
+1. **Round-robin keyword ordering works**: Even with per-minute quota throttling, all 15 categories got representation
+2. **10K+ videos produces much richer niches**: Median niche size of 15 videos vs 3-5 in earlier versions
+3. **Cross-platform data helps**: TikTok/Instagram hashtag culture fills gaps YouTube content misses
+4. **New categories emerged naturally**: Gaming, Automotive, Pet Care, Music all have distinct clusters
+5. **Balance is stable at Gini=0.383**: Fitness still dominates (3+ years of seed keywords) but new categories are real
+6. **100% coverage**: 4-level hierarchy handles outliers better than 2-level
+
+### V6 Limitations
+
+1. **Still fitness-heavy**: YouTube V1 + V6 combined have ~5K fitness videos vs ~500 gaming videos
+2. **Some near-duplicate niches**: Real estate has 4 very similar niches — needs post-processing dedup
+3. **No LLM sub-niche breakdown**: Could apply V4-style LLM expansion to reach 1,000+ niches
+4. **28K hashtags but not structured**: Hashtag graph analysis (V2 approach) not re-applied to V6
+
+### V6 File Structure
+
+```
+data/v6/
+├── youtube_raw.jsonl      # 3,389 new YouTube videos
+├── raw_videos.jsonl       # 10,365 combined videos
+├── combine_stats.json     # Dataset composition stats
+├── embeddings.npy         # 10365 x 1536 float32
+├── metadata.json          # Video metadata
+├── clusters.json          # 542 cluster assignments
+├── taxonomy.json          # Final V6 taxonomy
+└── evaluation.json        # Quality metrics
+
+pipeline/v6/
+├── 1_collect_youtube.py   # Round-robin collection (15 categories)
+├── 2_combine_datasets.py  # Dataset merging
+├── 3_embed.py             # Embeddings
+├── 4_cluster.py           # 4-level clustering
+├── 5_name.py              # LLM naming
+├── 6_evaluate.py          # Evaluation
+└── run.sh                 # Full pipeline runner
+
+pages/api/v6/
+├── classify.ts            # V6 classifier (embedding + hashtag boost)
+└── taxonomy.ts            # V6 taxonomy API endpoint
+```
+
+### How to Run V6
+
+```bash
+# Full pipeline (~25-35 min)
+bash pipeline/v6/run.sh
+
+# Or individual steps
+python3 pipeline/v6/1_collect_youtube.py   # ~15-20 min (YouTube collection)
+python3 pipeline/v6/2_combine_datasets.py  # ~10 sec
+python3 pipeline/v6/3_embed.py             # ~2 min (~$0.014)
+python3 pipeline/v6/4_cluster.py           # ~2-3 min
+python3 pipeline/v6/5_name.py             # ~18-20 min (~$0.18)
+python3 pipeline/v6/6_evaluate.py          # ~5 sec
+```
+
+**Total cost:** ~$0.20 per full run
+
+### Version Progression Summary (Updated)
+
+| Version | Focus | Approach | Data | Niches |
+|---------|-------|----------|------|--------|
+| V0 | Proof of concept | B (Embedding) | 3K videos | 109 |
+| V1 | Multi-label + hierarchy | B (Embedding) | 4K videos | 209 |
+| V2 | Hashtag graph | A + B hybrid | 4K videos | 234 |
+| V3 | LLM sub-niches (limited) | A + B + C | 4K videos | 593 |
+| V4 | Full LLM breakdown | A + B + C | 4K videos | 676 |
+| V5 | Cross-platform data | A + B + C | 7K videos | taxonomy.json |
+| **V6** | **Combined all data + new YouTube** | **B** | **10K videos** | **542** |
+
+---
+
 *Document created: 2026-05-22*
-*Last updated: 2026-05-23 (V4 implementation complete)*
-*Author: V0/V1/V2/V3/V4/V5 Pipeline Development*
+*Last updated: 2026-05-23 (V6 implementation complete)*
+*Author: V0/V1/V2/V3/V4/V5/V6 Pipeline Development*
