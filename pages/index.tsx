@@ -1829,6 +1829,74 @@ type V5TaxonomyData = {
 }
 
 // ============================================================================
+// V6 Types
+// ============================================================================
+type V6ClassifyMatch = {
+  rank: number
+  niche_id: string
+  niche_name: string
+  category: string
+  subcategory: string
+  hierarchy: string
+  confidence: number
+  raw_similarity: number
+  embedding_similarity: number
+  hashtag_boost: number
+  matched_hashtags: string[]
+  video_count: number
+  top_hashtags: string[]
+  exemplar_creators: Array<{ author_id: string; author: string; video_count: number }>
+}
+
+type V6ClassifyResult = {
+  input_text: string
+  input_hashtags: string[]
+  classification_status: 'HIGH_CONFIDENCE' | 'MODERATE' | 'UNKNOWN'
+  status_message: string
+  is_unknown: boolean
+  is_multi_label: boolean
+  primary_niche: V6ClassifyMatch | null
+  secondary_niches: V6ClassifyMatch[]
+  all_matches: V6ClassifyMatch[]
+  stats: {
+    best_similarity: number
+    taxonomy_size: number
+    total_videos_indexed: number
+    num_close_matches: number
+  }
+}
+
+type V6TaxonomyData = {
+  ready: boolean
+  stats: {
+    total_niches: number
+    total_categories: number
+    total_subcategories: number
+    total_videos: number
+    approaches: string[]
+  }
+  sources: Record<string, string>
+  approach: string
+  generated_at: string
+  evaluation: {
+    overall_score: number
+    scores: { coverage: number; balance: number; scale: number; overall: number }
+    coverage: number
+    niche_sizes: { max: number; min: number; median: number; mean: number }
+    category_distribution: Record<string, number>
+  } | null
+  hierarchy: Record<string, {
+    name: string
+    description: string
+    subcategories: Record<string, {
+      name: string
+      niches: Array<{ id: string; name: string; video_count: number; top_hashtags: string[] }>
+    }>
+  }>
+  categories: Array<{ id: string; name: string; description: string; niche_count: number }>
+}
+
+// ============================================================================
 // V1 Demo Component
 // ============================================================================
 function V1Demo({ v1Taxonomy }: { v1Taxonomy: V1TaxonomyData | null }) {
@@ -8260,23 +8328,1128 @@ function V5Process() {
 }
 
 // ============================================================================
+// V6 Demo Component
+// ============================================================================
+function V6Demo({ v6Taxonomy }: { v6Taxonomy: V6TaxonomyData | null }) {
+  const [tab, setTab] = useState<'classify' | 'overview' | 'browse'>('classify')
+  const [text, setText] = useState('')
+  const [result, setResult] = useState<V6ClassifyResult | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [expandedCats, setExpandedCats] = useState<Set<string>>(new Set())
+  const [expandedSubcats, setExpandedSubcats] = useState<Set<string>>(new Set())
+
+  const classify = async () => {
+    if (!text.trim() || loading) return
+    setLoading(true)
+    setError('')
+    setResult(null)
+    try {
+      const r = await fetch('/api/v6/classify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      })
+      const d = await r.json()
+      if (d.error) setError(d.error)
+      else setResult(d)
+    } catch {
+      setError('Classification failed')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const toggleCat = (id: string) => {
+    setExpandedCats(prev => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
+  }
+
+  const toggleSubcat = (id: string) => {
+    setExpandedSubcats(prev => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
+  }
+
+  if (!v6Taxonomy?.ready) {
+    return (
+      <div className="max-w-2xl">
+        <div className="bg-yellow-950/30 border border-yellow-800/50 rounded-xl p-8 text-center">
+          <div className="text-3xl mb-3 opacity-70">🔧</div>
+          <h2 className="text-base font-semibold text-yellow-200 mb-2">V6 Pipeline Not Run Yet</h2>
+          <p className="text-sm text-yellow-200/70 mb-4">
+            Run the V6 combined-dataset pipeline:
+          </p>
+          <code className="bg-gray-900 text-green-400 px-4 py-2 rounded-lg text-sm font-mono">
+            cd pipeline/v6 && bash run.sh
+          </code>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div>
+      {/* Sub-tabs */}
+      <div className="flex gap-1 mb-6">
+        {(['classify', 'overview', 'browse'] as const).map(t => (
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all capitalize ${
+              tab === t ? 'bg-gray-700 text-white' : 'text-gray-400 hover:text-gray-200'
+            }`}
+          >
+            {t}
+          </button>
+        ))}
+      </div>
+
+      {/* Classify Tab */}
+      {tab === 'classify' && (
+        <div className="space-y-6">
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+            <h3 className="text-sm font-semibold text-white mb-3">Classify Creator Content</h3>
+            <p className="text-xs text-gray-500 mb-4">
+              Enter a creator bio, video caption, or hashtags to find matching niches in the V6 combined taxonomy.
+            </p>
+            <textarea
+              value={text}
+              onChange={e => setText(e.target.value)}
+              placeholder="e.g., Daily budget recipes under $5, meal prep for one person #mealprep #budgetcooking #easyrecipes"
+              className="w-full h-28 bg-gray-950 border border-gray-700 rounded-lg px-4 py-3 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-violet-600 resize-none"
+            />
+            <div className="flex items-center justify-between mt-3">
+              <span className="text-xs text-gray-600">
+                {v6Taxonomy.stats.total_niches} niches · {v6Taxonomy.stats.total_categories} categories · {v6Taxonomy.stats.total_videos.toLocaleString()} videos indexed
+              </span>
+              <button
+                onClick={classify}
+                disabled={loading || !text.trim()}
+                className={`px-5 py-2 rounded-lg text-sm font-medium transition-all ${
+                  loading || !text.trim()
+                    ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
+                    : 'bg-violet-600 text-white hover:bg-violet-500'
+                }`}
+              >
+                {loading ? 'Classifying...' : 'Classify'}
+              </button>
+            </div>
+          </div>
+
+          {error && (
+            <div className="bg-red-950/50 border border-red-800/50 rounded-xl p-4 text-sm text-red-200">
+              {error}
+            </div>
+          )}
+
+          {result && (
+            <div className="space-y-4">
+              {/* Status Banner */}
+              <div className={`rounded-xl p-4 ${
+                result.classification_status === 'HIGH_CONFIDENCE'
+                  ? 'bg-emerald-950/50 border border-emerald-800/50'
+                  : result.classification_status === 'MODERATE'
+                  ? 'bg-yellow-950/50 border border-yellow-800/50'
+                  : 'bg-orange-950/50 border border-orange-800/50'
+              }`}>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className={`text-xs font-bold px-2 py-0.5 rounded ${
+                    result.classification_status === 'HIGH_CONFIDENCE'
+                      ? 'bg-emerald-600 text-white'
+                      : result.classification_status === 'MODERATE'
+                      ? 'bg-yellow-600 text-black'
+                      : 'bg-orange-600 text-white'
+                  }`}>
+                    {result.classification_status}
+                  </span>
+                  {result.is_multi_label && (
+                    <span className="text-xs bg-blue-600 text-white px-2 py-0.5 rounded">MULTI-LABEL</span>
+                  )}
+                </div>
+                <p className="text-sm text-gray-300">{result.status_message}</p>
+                {result.input_hashtags.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {result.input_hashtags.map(tag => (
+                      <span key={tag} className="text-xs bg-gray-800 text-gray-400 rounded px-1.5 py-0.5">#{tag}</span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Primary Match */}
+              {result.primary_niche && (
+                <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+                  <h4 className="text-xs text-gray-500 uppercase tracking-wide mb-3">Primary Match</h4>
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <div className="font-medium text-white text-lg">{result.primary_niche.niche_name}</div>
+                      <div className="text-xs text-gray-500 mt-1">{result.primary_niche.hierarchy}</div>
+                      {result.primary_niche.matched_hashtags.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {result.primary_niche.matched_hashtags.map(tag => (
+                            <span key={tag} className="text-xs bg-green-900/50 text-green-300 rounded px-1.5 py-0.5">#{tag}</span>
+                          ))}
+                        </div>
+                      )}
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {result.primary_niche.top_hashtags.map(tag => (
+                          <span key={tag} className="text-xs bg-gray-800 text-gray-500 rounded px-1.5 py-0.5">#{tag}</span>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <div className="text-2xl font-bold text-violet-400">{result.primary_niche.confidence}%</div>
+                      <div className="text-xs text-gray-600">confidence</div>
+                      <div className="text-xs text-gray-600 mt-1">{result.primary_niche.video_count} videos</div>
+                    </div>
+                  </div>
+                  {result.primary_niche.exemplar_creators.length > 0 && (
+                    <div className="mt-3 pt-3 border-t border-gray-800">
+                      <div className="text-xs text-gray-500 mb-1">Exemplar creators:</div>
+                      <div className="flex flex-wrap gap-1">
+                        {result.primary_niche.exemplar_creators.slice(0, 5).map(c => (
+                          <span key={c.author_id} className="text-xs bg-gray-800 text-gray-300 rounded px-2 py-0.5">{c.author}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Secondary Matches */}
+              {result.secondary_niches.length > 0 && (
+                <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+                  <h4 className="text-xs text-gray-500 uppercase tracking-wide mb-3">Secondary Matches</h4>
+                  <div className="space-y-2">
+                    {result.secondary_niches.map(match => (
+                      <div key={match.niche_id} className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
+                        <div>
+                          <div className="font-medium text-gray-200 text-sm">{match.niche_name}</div>
+                          <div className="text-xs text-gray-500 mt-0.5">{match.hierarchy}</div>
+                        </div>
+                        <div className="text-sm font-medium text-violet-400">{match.confidence}%</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* All Matches */}
+              <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+                <h4 className="text-xs text-gray-500 uppercase tracking-wide mb-3">Top 5 Matches</h4>
+                <div className="space-y-2">
+                  {result.all_matches.map(match => (
+                    <div key={match.niche_id} className="flex items-center gap-3 text-sm">
+                      <span className="text-gray-600 font-mono text-xs w-4">#{match.rank}</span>
+                      <div className="flex-1">
+                        <span className="text-gray-300">{match.niche_name}</span>
+                        <span className="text-gray-600 text-xs ml-2">{match.category}</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-violet-400 font-medium">{match.confidence}%</span>
+                        {match.hashtag_boost > 0 && (
+                          <span className="text-green-500 text-xs ml-1">+{(match.hashtag_boost * 100).toFixed(0)}%</span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-3 pt-3 border-t border-gray-800 flex gap-4 text-xs text-gray-600">
+                  <span>Taxonomy: {result.stats.taxonomy_size} niches</span>
+                  <span>Indexed: {result.stats.total_videos_indexed.toLocaleString()} videos</span>
+                  <span>Close matches: {result.stats.num_close_matches}</span>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Overview Tab */}
+      {tab === 'overview' && (
+        <div className="space-y-6">
+          {/* Stats Cards */}
+          <div className="grid grid-cols-4 gap-3">
+            {[
+              { label: 'Total Niches', value: v6Taxonomy.stats.total_niches.toLocaleString(), color: 'text-violet-400' },
+              { label: 'Categories', value: v6Taxonomy.stats.total_categories.toLocaleString(), color: 'text-blue-400' },
+              { label: 'Subcategories', value: v6Taxonomy.stats.total_subcategories.toLocaleString(), color: 'text-cyan-400' },
+              { label: 'Videos Indexed', value: v6Taxonomy.stats.total_videos.toLocaleString(), color: 'text-emerald-400' },
+            ].map(s => (
+              <div key={s.label} className="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center">
+                <div className={`text-2xl font-bold ${s.color}`}>{s.value}</div>
+                <div className="text-xs text-gray-500 mt-1">{s.label}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Data Sources */}
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+            <h3 className="text-sm font-semibold text-white mb-3">Data Sources</h3>
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              {Object.entries(v6Taxonomy.sources).map(([key, desc]) => (
+                <div key={key} className="flex items-center gap-2 p-2 bg-gray-800/50 rounded-lg">
+                  <span className="text-xs font-mono text-violet-400 bg-violet-950/50 px-1.5 py-0.5 rounded">{key}</span>
+                  <span className="text-gray-400 text-xs">{desc}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Evaluation Scores */}
+          {v6Taxonomy.evaluation && (
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+              <h3 className="text-sm font-semibold text-white mb-3">Taxonomy Evaluation</h3>
+              <div className="grid grid-cols-4 gap-3 mb-4">
+                {[
+                  { label: 'Overall', value: v6Taxonomy.evaluation.scores.overall, color: 'text-violet-400' },
+                  { label: 'Coverage', value: v6Taxonomy.evaluation.scores.coverage, color: 'text-emerald-400' },
+                  { label: 'Balance', value: v6Taxonomy.evaluation.scores.balance, color: 'text-yellow-400' },
+                  { label: 'Scale', value: v6Taxonomy.evaluation.scores.scale, color: 'text-blue-400' },
+                ].map(s => (
+                  <div key={s.label} className="text-center">
+                    <div className={`text-xl font-bold ${s.color}`}>{s.value.toFixed(1)}</div>
+                    <div className="text-xs text-gray-500">{s.label}</div>
+                    <div className="mt-1 h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                      <div className="h-full bg-violet-600 rounded-full" style={{ width: `${s.value}%` }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="grid grid-cols-3 gap-3 text-xs text-gray-400 border-t border-gray-800 pt-3">
+                <div>Coverage: <span className="text-gray-200">{(v6Taxonomy.evaluation.coverage * 100).toFixed(1)}%</span></div>
+                <div>Niche size (median): <span className="text-gray-200">{v6Taxonomy.evaluation.niche_sizes.median}</span></div>
+                <div>Niche size (max): <span className="text-gray-200">{v6Taxonomy.evaluation.niche_sizes.max}</span></div>
+              </div>
+            </div>
+          )}
+
+          {/* Generated At */}
+          <div className="text-xs text-gray-600">
+            Generated: {new Date(v6Taxonomy.generated_at).toLocaleString()} · Approach: {v6Taxonomy.approach}
+          </div>
+        </div>
+      )}
+
+      {/* Browse Tab */}
+      {tab === 'browse' && (
+        <div className="space-y-2">
+          <div className="text-xs text-gray-500 mb-4">
+            {v6Taxonomy.stats.total_niches} niches across {Object.keys(v6Taxonomy.hierarchy).length} categories
+          </div>
+          {Object.entries(v6Taxonomy.hierarchy).map(([catId, catData]) => (
+            <div key={catId} className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+              <button
+                onClick={() => toggleCat(catId)}
+                className="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-800/50 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <span className={`text-gray-400 text-sm transition-transform ${expandedCats.has(catId) ? 'rotate-90' : ''}`}>▶</span>
+                  <span className="font-medium text-gray-200 text-sm">{catData.name}</span>
+                  {catData.description && (
+                    <span className="text-xs text-gray-600 hidden sm:block">{catData.description.slice(0, 60)}{catData.description.length > 60 ? '…' : ''}</span>
+                  )}
+                </div>
+                <span className="text-xs text-gray-600">
+                  {Object.values(catData.subcategories).reduce((sum, s) => sum + s.niches.length, 0)} niches
+                </span>
+              </button>
+              {expandedCats.has(catId) && (
+                <div className="border-t border-gray-800">
+                  {Object.entries(catData.subcategories).map(([subId, subData]) => (
+                    <div key={subId} className="border-b border-gray-800/50 last:border-0">
+                      <button
+                        onClick={() => toggleSubcat(`${catId}-${subId}`)}
+                        className="w-full flex items-center justify-between px-6 py-2.5 hover:bg-gray-800/30 transition-colors"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className={`text-gray-600 text-xs transition-transform ${expandedSubcats.has(`${catId}-${subId}`) ? 'rotate-90' : ''}`}>▶</span>
+                          <span className="text-gray-300 text-sm">{subData.name}</span>
+                        </div>
+                        <span className="text-xs text-gray-600">{subData.niches.length} niches</span>
+                      </button>
+                      {expandedSubcats.has(`${catId}-${subId}`) && (
+                        <div className="px-8 pb-3 grid grid-cols-1 gap-1">
+                          {subData.niches.map(niche => (
+                            <div key={niche.id} className="flex items-center justify-between py-1.5 px-3 bg-gray-800/30 rounded-lg">
+                              <div>
+                                <span className="text-gray-300 text-xs">{niche.name}</span>
+                                {niche.top_hashtags.length > 0 && (
+                                  <div className="flex flex-wrap gap-0.5 mt-0.5">
+                                    {niche.top_hashtags.slice(0, 3).map(tag => (
+                                      <span key={tag} className="text-[10px] text-gray-600">#{tag}</span>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                              <span className="text-xs text-gray-600 shrink-0 ml-2">{niche.video_count} videos</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ============================================================================
+// V6 Process Component
+// ============================================================================
+function V6ELI5Content() {
+  return (
+    <div className="max-w-3xl space-y-8">
+      <section className="bg-gradient-to-br from-violet-950/40 to-indigo-950/40 border border-violet-800/50 rounded-xl p-6">
+        <h2 className="text-lg font-semibold text-violet-200 mb-3">What&apos;s different in V6?</h2>
+        <p className="text-sm text-violet-100/80 leading-relaxed">
+          V5 found <strong className="text-violet-200">25 niches</strong> that exist across platforms.
+          V6 is like taking <strong className="text-violet-200">everything we ever collected</strong> — YouTube, TikTok, Instagram —
+          throwing it all in a giant bowl and sorting it into <strong className="text-violet-200">542 specific buckets</strong>!
+        </p>
+      </section>
+
+      <section className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+        <h2 className="text-lg font-semibold text-white mb-3">The Big Idea: One Giant Taxonomy</h2>
+        <div className="text-sm text-gray-400 leading-relaxed space-y-3">
+          <p>Imagine you have <strong className="text-white">four big boxes of LEGO bricks</strong> from different sets.</p>
+          <p>V6 dumps all four boxes together and sorts every single brick into <strong className="text-violet-300">542 specific piles</strong> based on what they look like.</p>
+          <p>The result? A much more detailed map of the creator world than any single box could give you!</p>
+        </div>
+      </section>
+
+      <section className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+        <h2 className="text-lg font-semibold text-white mb-3">The Four Data Boxes</h2>
+        <div className="grid grid-cols-2 gap-4">
+          {[
+            { color: 'red', name: 'YouTube V1', count: '3,991', desc: 'Original YouTube Shorts' },
+            { color: 'pink', name: 'TikTok', count: '2,034', desc: 'TikTok videos via Apify' },
+            { color: 'purple', name: 'Instagram', count: '951', desc: 'Instagram Reels via Apify' },
+            { color: 'orange', name: 'YouTube V6', count: '3,389', desc: 'New shorts (15 categories, round-robin)' },
+          ].map(s => (
+            <div key={s.name} className={`bg-${s.color}-950/30 border border-${s.color}-800/50 rounded-lg p-4`}>
+              <div className={`text-sm font-medium text-${s.color}-300 mb-1`}>{s.name}</div>
+              <div className={`text-2xl font-bold text-${s.color}-400`}>{s.count}</div>
+              <div className="text-xs text-gray-500 mt-1">{s.desc}</div>
+            </div>
+          ))}
+        </div>
+        <div className="mt-4 bg-blue-950/30 border border-blue-800/50 rounded-lg p-4 text-center">
+          <div className="text-3xl font-bold text-blue-400">10,365</div>
+          <div className="text-sm text-blue-300">Total videos combined</div>
+        </div>
+      </section>
+
+      <section className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+        <h2 className="text-lg font-semibold text-white mb-4">How V6 sorts the videos</h2>
+        <div className="space-y-4">
+          {[
+            { icon: '🧠', step: 'Step 1', color: 'emerald', title: 'Turn videos into numbers', desc: 'Each video\'s title + description gets converted to a list of 1536 numbers called an "embedding". Similar content gets similar numbers.' },
+            { icon: '📊', step: 'Step 2', color: 'yellow', title: '4-level sorting', desc: 'First split into 25 big groups, then each big group into smaller groups, then use HDBSCAN to find natural clusters, then split anything too big.' },
+            { icon: '🤖', step: 'Step 3', color: 'violet', title: 'Name each pile', desc: 'GPT-4o-mini looks at the videos in each pile and gives it a human-readable name like "Home Workout Routines" or "Budget Meal Prep".' },
+            { icon: '📈', step: 'Step 4', color: 'cyan', title: 'Grade the results', desc: 'We check how well we did: 100% coverage (no videos left out), Gini 0.383 (pretty balanced piles), 85.6/100 overall score.' },
+          ].map(s => (
+            <div key={s.step} className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-4 flex gap-4">
+              <div className="text-3xl">{s.icon}</div>
+              <div>
+                <div className={`text-sm font-medium text-${s.color}-300 mb-1`}>{s.step}: {s.title}</div>
+                <p className="text-xs text-gray-400 leading-relaxed">{s.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    </div>
+  )
+}
+
+function V6Process() {
+  const [selectedStep, setSelectedStep] = useState<number | null>(null)
+  const [eli5Mode, setEli5Mode] = useState(false)
+
+  const V6_STEP_DETAILS: Record<number, { title: string; description: string; details: string[]; code?: string }> = {
+    1: {
+      title: 'Collect YouTube Shorts',
+      description: 'Fetch new YouTube Shorts across 15 underrepresented categories using round-robin keyword ordering to ensure balanced coverage even if quota throttles midway.',
+      details: [
+        '15 categories × 15 keywords = 222 total keyword queries',
+        'Round-robin interleaving: keyword[0] from all 15 cats, then keyword[1], etc.',
+        'Deduplicates against V5 merged dataset by video ID',
+        'Handles per-minute quota with backoff; returns None on daily quota exceeded',
+        'Result: 3,389 new unique shorts collected',
+      ],
+      code: `# Round-robin so each category gets early coverage
+def interleave_round_robin(categories):
+    iters = [iter(kws) for kws in categories.values()]
+    while iters:
+        next_iters = []
+        for it in iters:
+            try:
+                yield next(it)
+                next_iters.append(it)
+            except StopIteration:
+                pass
+        iters = next_iters`,
+    },
+    2: {
+      title: 'Combine Datasets',
+      description: 'Merge V5 merged dataset (YouTube V1 + TikTok + Instagram) with new V6 YouTube collection into a single unified corpus.',
+      details: [
+        'V5 merged: 6,976 videos (YouTube V1 3,991 + TikTok 2,034 + Instagram 951)',
+        'V6 YouTube new: 3,389 videos',
+        'Combined total: 10,365 videos',
+        'normalize() handles both V1 format (tags field) and V5/V6 format (hashtags field)',
+        'Output: data/v6/raw_videos.jsonl + combine_stats.json',
+      ],
+    },
+    3: {
+      title: 'Generate Embeddings',
+      description: 'Convert each video\'s text content into a 1536-dimensional embedding vector using OpenAI text-embedding-3-small.',
+      details: [
+        'Text template: "{title}. {description[:300]}. {hashtags}"',
+        'Model: text-embedding-3-small (1536 dims, $0.02/1M tokens)',
+        'Batch size: 100 videos per API call',
+        'Total cost: ~$0.014 for all 10,365 videos',
+        'Output: embeddings.npy (10365, 1536) + metadata.json',
+      ],
+      code: `def make_text(video):
+    tags = " ".join(video.get("hashtags", [])[:20])
+    return f"{video['title']}. {video['description'][:300]}. {tags}"`,
+    },
+    4: {
+      title: '4-Level Clustering',
+      description: 'Apply a hierarchical clustering pipeline: normalize → PCA → K-Means(25) → K-Means(per category) → HDBSCAN → oversized split.',
+      details: [
+        'L1: Normalize embeddings, PCA to 100 dims, K-Means k=25 (top categories)',
+        'L2: Per category K-Means k=5-7 (subcategories)',
+        'L3: HDBSCAN(min_cluster_size=5) on each subcategory (niches)',
+        'L4: Split any niche with >60 videos into 2 sub-niches via K-Means',
+        'Result: 542 niches, 99.9% coverage (noise points assigned to nearest)',
+        'Centroids saved per niche for fast cosine-similarity classification',
+      ],
+    },
+    5: {
+      title: 'GPT-4o-mini Naming',
+      description: 'Use GPT-4o-mini with JSON mode to name every niche, subcategory, and category from sample video titles and hashtags.',
+      details: [
+        'Niche naming: 15 sample titles + top hashtags → name + description + keywords',
+        'Subcategory naming: list of niche names → subcategory name + description',
+        'Category naming: list of subcategory names → category name + description',
+        'get_exemplars() extracts top 10 creators by video count per niche',
+        'Total cost: ~$0.30 for 542 niches + 149 subcategories + 25 categories',
+      ],
+      code: `prompt = f"""Given these video titles from a content cluster:
+{sample_titles}
+
+Top hashtags: {hashtags}
+
+Return JSON:
+{{ "name": "...", "description": "...", "keywords": [...] }}"""`,
+    },
+    6: {
+      title: 'Evaluate Taxonomy',
+      description: 'Compute quantitative quality metrics: coverage, balance (Gini coefficient), and scale.',
+      details: [
+        'Coverage: % of videos assigned to a named niche (100%)',
+        'Gini coefficient: measures balance of niche sizes (0 = perfectly equal, 1 = one niche has everything)',
+        'Gini = 0.383 (moderate balance — some large niches but reasonable spread)',
+        'Scale score: 100/100 (542 niches far exceeds "hundreds" target)',
+        'Overall score: 85.6/100 (coverage 100, balance 52.1, scale 100)',
+      ],
+    },
+    7: {
+      title: 'V6 Taxonomy Output',
+      description: 'The final taxonomy JSON with 25 categories, 149 subcategories, and 542 niches, each with embedding centroid for classification.',
+      details: [
+        '25 top-level categories (fitness, food, beauty, tech, gaming, etc.)',
+        '149 subcategories with descriptions',
+        '542 niches with: name, description, keywords, top_hashtags, exemplar_creators, centroid',
+        'Centroid: mean embedding of all videos in the niche (used for cosine similarity)',
+        'Output: data/v6/taxonomy.json (~50MB including centroids)',
+      ],
+    },
+    8: {
+      title: 'V6 Classifier',
+      description: 'REST API endpoint that classifies any text input against all 542 niches using cosine similarity + hashtag boost.',
+      details: [
+        'Embed input text with text-embedding-3-small',
+        'Cosine similarity against all 542 niche centroids',
+        'Hashtag boost: up to +0.12 for matched hashtags (capped at 3 matches)',
+        'Returns top-5 matches with confidence, hierarchy, exemplar creators',
+        'Thresholds: UNKNOWN <0.35, MODERATE 0.35-0.55, HIGH_CONFIDENCE ≥0.55',
+      ],
+      code: `def hashtagBoost(inputTags, nicheTags):
+    matched = len(set(inputTags) & set(nicheTags))
+    return 0.12 * min(matched, 3) / 3 if matched > 0 else 0`,
+    },
+  }
+
+  const V6StepBox = ({
+    step, label, subtitle, bgClass, borderClass, textClass, subtitleClass,
+  }: {
+    step: number; label: string; subtitle: string
+    bgClass: string; borderClass: string; textClass: string; subtitleClass: string
+  }) => (
+    <button
+      onClick={() => setSelectedStep(step)}
+      className={`flex-1 ${bgClass} border ${borderClass} rounded-lg p-3 text-center cursor-pointer hover:opacity-80 transition-opacity`}
+    >
+      <div className={`${textClass} font-medium text-xs`}>{label}</div>
+      <div className={`text-[10px] ${subtitleClass} mt-1`}>{subtitle}</div>
+    </button>
+  )
+
+  return (
+    <>
+      {/* Step Detail Modal */}
+      {selectedStep && V6_STEP_DETAILS[selectedStep] && (
+        <div
+          className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4"
+          onClick={() => setSelectedStep(null)}
+        >
+          <div
+            className="bg-gray-900 border border-gray-700 rounded-xl max-w-lg w-full max-h-[80vh] overflow-y-auto"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="sticky top-0 bg-gray-900 border-b border-gray-800 px-5 py-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-gray-500 bg-gray-800 rounded px-2 py-0.5">Step {selectedStep}</span>
+                <h3 className="text-base font-semibold text-white">{V6_STEP_DETAILS[selectedStep].title}</h3>
+              </div>
+              <button onClick={() => setSelectedStep(null)} className="text-gray-500 hover:text-gray-300 text-lg">x</button>
+            </div>
+            <div className="p-5 space-y-4">
+              <p className="text-sm text-gray-300 leading-relaxed">{V6_STEP_DETAILS[selectedStep].description}</p>
+              <div>
+                <div className="text-xs text-gray-500 uppercase tracking-wider mb-2">Details</div>
+                <ul className="space-y-1.5">
+                  {V6_STEP_DETAILS[selectedStep].details.map((d, i) => (
+                    <li key={i} className="text-xs text-gray-400 flex items-start gap-2">
+                      <span className="text-gray-600 mt-0.5">-</span>
+                      <span>{d}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              {V6_STEP_DETAILS[selectedStep].code && (
+                <div>
+                  <div className="text-xs text-gray-500 uppercase tracking-wider mb-2">Example</div>
+                  <pre className="bg-gray-950 border border-gray-800 rounded-lg p-3 text-xs text-gray-400 overflow-x-auto">
+                    <code>{V6_STEP_DETAILS[selectedStep].code}</code>
+                  </pre>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+    <div className="space-y-6">
+      {/* ELI5 Toggle */}
+      <div className="flex items-center justify-between bg-gray-900 border border-gray-800 rounded-xl p-4">
+        <div>
+          <div className="text-sm font-medium text-gray-200">View Mode</div>
+          <div className="text-xs text-gray-500 mt-0.5">
+            {eli5Mode ? 'Simple explanation with analogies' : 'Technical details and data flow'}
+          </div>
+        </div>
+        <button
+          onClick={() => setEli5Mode(!eli5Mode)}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+            eli5Mode ? 'bg-violet-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+          }`}
+        >
+          {eli5Mode ? '🎓 Technical View' : '🧒 Explain Like I\'m 5'}
+        </button>
+      </div>
+
+      {eli5Mode ? (
+        <V6ELI5Content />
+      ) : (
+      <div className="max-w-4xl space-y-8">
+
+      {/* Overview */}
+      <section>
+        <h2 className="text-lg font-semibold text-white mb-3">V6 Pipeline Overview</h2>
+        <p className="text-sm text-gray-400 leading-relaxed">
+          V6 is the <span className="text-violet-400">largest combined taxonomy</span> yet — merging all prior datasets
+          (YouTube V1, TikTok, Instagram, and 3,389 new YouTube Shorts) into a single 10K+ video corpus, then running
+          a 4-level hierarchical clustering pipeline to produce 542 named niches across 25 categories.
+        </p>
+      </section>
+
+      {/* V5 vs V6 Comparison */}
+      <section>
+        <h2 className="text-lg font-semibold text-white mb-3">V5 vs V6 Improvements</h2>
+        <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-800">
+              <tr>
+                <th className="px-4 py-2.5 text-left text-gray-400 font-medium">Feature</th>
+                <th className="px-4 py-2.5 text-left text-gray-400 font-medium">V5</th>
+                <th className="px-4 py-2.5 text-left text-gray-400 font-medium">V6</th>
+              </tr>
+            </thead>
+            <tbody className="text-gray-300">
+              {[
+                ['Data sources', 'TikTok + Instagram + YouTube V1', 'All V5 + 3,389 new YouTube Shorts'],
+                ['Videos indexed', '~6,976', '10,365 (+49%)'],
+                ['New YouTube data', 'None (reused V1)', '3,389 new shorts, 15 categories'],
+                ['Collection strategy', 'Apify scrapers', 'Round-robin keyword ordering'],
+                ['Niches', '25 cross-platform', '542 hierarchical'],
+                ['Categories', 'N/A', '25 top-level'],
+                ['Subcategories', 'N/A', '149'],
+                ['Clustering', 'K-Means flat', '4-level: K-Means → K-Means → HDBSCAN → split'],
+                ['Coverage', 'N/A', '100% (99.9%)'],
+                ['Overall score', 'N/A', '85.6 / 100'],
+              ].map(([feature, v5, v6], i) => (
+                <tr key={i} className="border-t border-gray-800">
+                  <td className="px-4 py-2.5">{feature}</td>
+                  <td className="px-4 py-2.5 text-gray-500">{v5}</td>
+                  <td className="px-4 py-2.5 text-violet-400">{v6}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {/* How to Run */}
+      <section>
+        <h2 className="text-lg font-semibold text-white mb-3">How to Run the V6 Pipeline</h2>
+        <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+          <div className="bg-gray-950 px-4 py-3 border-b border-gray-800">
+            <div className="text-xs text-gray-500 mb-1">Run from project root:</div>
+            <code className="text-sm text-violet-400 font-mono">cd pipeline/v6 && bash run.sh</code>
+          </div>
+          <div className="p-4 space-y-3">
+            <div className="text-xs text-gray-500 uppercase tracking-wider mb-2">Pipeline Steps</div>
+            {[
+              { step: '1/6', desc: 'Collect YouTube Shorts (round-robin, 15 categories, 222 queries)', time: '~10 min', icon: '🎬', cost: 'Free (API)' },
+              { step: '2/6', desc: 'Combine V5 merged + V6 YouTube into 10,365-video corpus', time: '~5 sec', icon: '🔀', cost: 'Free' },
+              { step: '3/6', desc: 'Generate text-embedding-3-small embeddings for all videos', time: '~5 min', icon: '🧠', cost: '~$0.014' },
+              { step: '4/6', desc: '4-level hierarchical clustering (PCA + K-Means + HDBSCAN + split)', time: '~2 min', icon: '📊', cost: 'Free' },
+              { step: '5/6', desc: 'GPT-4o-mini names all niches, subcategories, categories', time: '~3 min', icon: '🤖', cost: '~$0.30' },
+              { step: '6/6', desc: 'Evaluate taxonomy (coverage, Gini, balance, scale)', time: '~5 sec', icon: '📈', cost: 'Free' },
+            ].map((s, i) => (
+              <div key={i} className="flex items-center gap-3 text-sm">
+                <span className="text-lg">{s.icon}</span>
+                <span className="text-gray-500 font-mono text-xs w-8">[{s.step}]</span>
+                <span className="text-gray-300 flex-1">{s.desc}</span>
+                <span className="text-gray-600 text-xs w-16">{s.time}</span>
+                <span className="text-gray-600 text-xs w-20 text-right">{s.cost}</span>
+              </div>
+            ))}
+          </div>
+          <div className="px-4 py-3 border-t border-gray-800 flex gap-6 text-xs">
+            <div><span className="text-gray-500">Total time:</span> <span className="text-gray-300">~20 minutes</span></div>
+            <div><span className="text-gray-500">YouTube API:</span> <span className="text-green-400">Free (10K daily quota)</span></div>
+            <div><span className="text-gray-500">OpenAI cost:</span> <span className="text-gray-300">~$0.31</span></div>
+          </div>
+        </div>
+      </section>
+
+      {/* Data Flow — clickable */}
+      <section>
+        <h2 className="text-lg font-semibold text-white mb-4">V6 Data Flow <span className="text-xs text-gray-500 font-normal">(click any step)</span></h2>
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+          {/* Row 1: Sources */}
+          <div className="flex items-center gap-2 text-xs mb-3">
+            <V6StepBox step={1} label="YouTube V6 New" subtitle="3,389 shorts" bgClass="bg-orange-950" borderClass="border-orange-800" textClass="text-orange-300" subtitleClass="text-orange-400" />
+            <span className="text-gray-500">+</span>
+            <V6StepBox step={2} label="V5 Merged Base" subtitle="6,976 videos" bgClass="bg-gray-800" borderClass="border-gray-700" textClass="text-gray-300" subtitleClass="text-gray-500" />
+            <span className="text-gray-500">→</span>
+            <V6StepBox step={2} label="Combined Corpus" subtitle="10,365 videos" bgClass="bg-blue-950" borderClass="border-blue-800" textClass="text-blue-300" subtitleClass="text-blue-400" />
+            <span className="text-gray-500">→</span>
+            <V6StepBox step={3} label="Embeddings" subtitle="1536-dim" bgClass="bg-emerald-950" borderClass="border-emerald-800" textClass="text-emerald-300" subtitleClass="text-emerald-400" />
+          </div>
+
+          {/* Arrow down */}
+          <div className="flex justify-end pr-[8%] mb-3">
+            <span className="text-gray-500 text-lg">↓</span>
+          </div>
+
+          {/* Row 2: Cluster → Name → Output */}
+          <div className="flex items-center gap-2 text-xs">
+            <V6StepBox step={8} label="V6 Classifier" subtitle="cosine + boost" bgClass="bg-cyan-950" borderClass="border-cyan-800" textClass="text-cyan-300" subtitleClass="text-cyan-400" />
+            <span className="text-gray-500">←</span>
+            <V6StepBox step={7} label="V6 Taxonomy" subtitle="542 niches" bgClass="bg-violet-950" borderClass="border-violet-800" textClass="text-violet-300" subtitleClass="text-violet-400" />
+            <span className="text-gray-500">←</span>
+            <V6StepBox step={5} label="GPT-4o-mini" subtitle="name niches" bgClass="bg-pink-950" borderClass="border-pink-800" textClass="text-pink-300" subtitleClass="text-pink-400" />
+            <span className="text-gray-500">←</span>
+            <V6StepBox step={4} label="4-Level Cluster" subtitle="25→sub→HDBSCAN→split" bgClass="bg-yellow-950" borderClass="border-yellow-800" textClass="text-yellow-300" subtitleClass="text-yellow-400" />
+          </div>
+
+          {/* Legend */}
+          <div className="flex flex-wrap gap-4 mt-4 pt-3 border-t border-gray-800 text-[10px] text-gray-500">
+            <div className="flex items-center gap-1.5"><span className="w-2 h-2 rounded bg-orange-800"></span> New YouTube Data</div>
+            <div className="flex items-center gap-1.5"><span className="w-2 h-2 rounded bg-blue-800"></span> Combined Corpus</div>
+            <div className="flex items-center gap-1.5"><span className="w-2 h-2 rounded bg-yellow-800"></span> Clustering</div>
+            <div className="flex items-center gap-1.5"><span className="w-2 h-2 rounded bg-violet-800"></span> Output</div>
+            <div className="flex items-center gap-1.5"><span className="w-2 h-2 rounded bg-cyan-800"></span> Classifier</div>
+          </div>
+        </div>
+      </section>
+
+      {/* 4-Level Clustering Detail */}
+      <section>
+        <h2 className="text-lg font-semibold text-white mb-3">4-Level Clustering Architecture</h2>
+        <div className="space-y-3">
+          <p className="text-sm text-gray-400">Each level refines the taxonomy from broad categories down to specific niches:</p>
+          <div className="grid grid-cols-4 gap-3">
+            {[
+              { level: 'L1', name: 'Category', algo: 'K-Means', k: 'k=25', count: '25', color: 'blue', desc: 'Top-level topic categories (fitness, food, gaming…)' },
+              { level: 'L2', name: 'Subcategory', algo: 'K-Means', k: 'k=5–7', count: '149', color: 'emerald', desc: 'Mid-level groupings within each category' },
+              { level: 'L3', name: 'Niche', algo: 'HDBSCAN', k: 'min=5', count: '~500', color: 'yellow', desc: 'Natural clusters within subcategories' },
+              { level: 'L4', name: 'Split', algo: 'K-Means', k: '>60 vids', count: '542', color: 'violet', desc: 'Oversized niches split into 2 smaller ones' },
+            ].map(l => (
+              <div key={l.level} className={`bg-${l.color}-950/30 border border-${l.color}-800/50 rounded-xl p-4`}>
+                <div className={`text-xs font-bold text-${l.color}-400 mb-1`}>{l.level}: {l.name}</div>
+                <div className={`text-lg font-bold text-${l.color}-300`}>{l.count}</div>
+                <div className="text-[10px] text-gray-500 mt-1">{l.algo} · {l.k}</div>
+                <div className="text-[10px] text-gray-600 mt-1">{l.desc}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Key Features */}
+      <section>
+        <h2 className="text-lg font-semibold text-white mb-3">V6 Key Features</h2>
+        {/* Featured: Round-Robin Collection */}
+        <div className="bg-orange-950/30 border border-orange-800/50 rounded-xl p-4 mb-4">
+          <div className="flex items-start gap-4">
+            <div className="flex-1">
+              <h3 className="text-sm font-semibold text-orange-300 mb-2">Round-Robin YouTube Collection (NEW)</h3>
+              <p className="text-xs text-orange-200/70 mb-2">
+                Previous versions exhausted quota on early categories (fitness, food) leaving later ones uncollected.
+                V6 interleaves keywords across all 15 categories so every category gets coverage even if quota cuts short.
+              </p>
+              <div className="flex flex-wrap gap-2 text-[10px]">
+                <span className="bg-orange-900/50 text-orange-300 px-2 py-0.5 rounded">15 categories</span>
+                <span className="bg-orange-900/50 text-orange-300 px-2 py-0.5 rounded">222 queries</span>
+                <span className="bg-orange-900/50 text-orange-300 px-2 py-0.5 rounded">3,389 new videos</span>
+                <span className="bg-orange-900/50 text-orange-300 px-2 py-0.5 rounded">quota-safe</span>
+              </div>
+            </div>
+            <div className="text-right shrink-0">
+              <code className="text-xs text-orange-400 bg-orange-950 px-2 py-1 rounded">1_collect_youtube.py</code>
+            </div>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-violet-950/30 border border-violet-800/50 rounded-xl p-4">
+            <h3 className="text-sm font-semibold text-violet-300 mb-2">Hierarchical Taxonomy</h3>
+            <p className="text-xs text-violet-200/70">
+              25 categories → 149 subcategories → 542 niches. Each level adds specificity.
+              Navigate from &quot;Fitness&quot; → &quot;Home Workouts&quot; → &quot;Bodyweight Beginner Routines&quot;.
+            </p>
+          </div>
+          <div className="bg-emerald-950/30 border border-emerald-800/50 rounded-xl p-4">
+            <h3 className="text-sm font-semibold text-emerald-300 mb-2">Centroid-Based Classifier</h3>
+            <p className="text-xs text-emerald-200/70">
+              Each niche stores a mean embedding centroid. Classification is O(n) cosine similarity
+              — no re-clustering needed. Hashtag boost adds up to +12% for matched tags.
+            </p>
+          </div>
+          <div className="bg-blue-950/30 border border-blue-800/50 rounded-xl p-4">
+            <h3 className="text-sm font-semibold text-blue-300 mb-2">Multi-Source Data Fusion</h3>
+            <p className="text-xs text-blue-200/70">
+              Merges YouTube V1 (3,991), TikTok (2,034), Instagram (951), and new YouTube V6 (3,389)
+              into one normalized corpus. normalize() handles both &quot;tags&quot; and &quot;hashtags&quot; field formats.
+            </p>
+          </div>
+          <div className="bg-yellow-950/30 border border-yellow-800/50 rounded-xl p-4">
+            <h3 className="text-sm font-semibold text-yellow-300 mb-2">HDBSCAN at L3</h3>
+            <p className="text-xs text-yellow-200/70">
+              Unlike fixed K-Means, HDBSCAN finds natural cluster boundaries within subcategories.
+              Noise points (0.1%) are reassigned to their nearest centroid — no data left out.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* What Works / What Doesn't */}
+      <section>
+        <h2 className="text-lg font-semibold text-white mb-3">What V6 Achieved & What It Doesn&apos;t Solve</h2>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-green-950/30 border border-green-800/50 rounded-xl p-4">
+            <h3 className="text-sm font-semibold text-green-300 mb-3">What V6 Achieved</h3>
+            <ul className="text-xs text-green-200/70 space-y-1.5">
+              {[
+                ['10,365 videos', 'Largest corpus yet — 49% more than V5'],
+                ['542 niches', 'Most granular taxonomy across all versions'],
+                ['100% coverage', 'Every video assigned to a named niche'],
+                ['25 categories', 'Clean top-level organization'],
+                ['$0.31 total cost', 'Cheap to reproduce anytime'],
+                ['Multi-source', 'YouTube + TikTok + Instagram unified'],
+              ].map(([bold, rest]) => (
+                <li key={bold} className="flex items-start gap-2">
+                  <span className="text-green-400 mt-0.5">+</span>
+                  <span><strong className="text-green-300">{bold}</strong> — {rest}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="bg-red-950/30 border border-red-800/50 rounded-xl p-4">
+            <h3 className="text-sm font-semibold text-red-300 mb-3">What V6 Doesn&apos;t Solve</h3>
+            <ul className="text-xs text-red-200/70 space-y-1.5">
+              {[
+                ['Balance score 52.1/100', 'Some niches much larger than others (Gini 0.383)'],
+                ['No trend tracking', 'Snapshot taxonomy, no temporal dynamics'],
+                ['Static centroids', 'Taxonomy doesn\'t update as new content appears'],
+                ['No creator graph', 'Videos not linked across creator accounts'],
+                ['Keyword quota limit', 'Per-minute YouTube API throttling slows collection'],
+              ].map(([bold, rest]) => (
+                <li key={bold} className="flex items-start gap-2">
+                  <span className="text-red-400 mt-0.5">-</span>
+                  <span><strong className="text-red-300">{bold}</strong> — {rest}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      {/* Evaluation Results */}
+      <section>
+        <h2 className="text-lg font-semibold text-white mb-3">V6 Evaluation Results</h2>
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+          <div className="grid grid-cols-6 gap-4 text-center">
+            {[
+              { val: '542', label: 'Total Niches', color: 'text-violet-400' },
+              { val: '25', label: 'Categories', color: 'text-blue-400' },
+              { val: '149', label: 'Subcategories', color: 'text-cyan-400' },
+              { val: '100%', label: 'Coverage', color: 'text-emerald-400' },
+              { val: '0.383', label: 'Gini Coeff.', color: 'text-yellow-400' },
+              { val: '85.6', label: 'Overall Score', color: 'text-violet-400' },
+            ].map(s => (
+              <div key={s.label}>
+                <div className={`text-2xl font-bold ${s.color}`}>{s.val}</div>
+                <div className="text-xs text-gray-500">{s.label}</div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 pt-4 border-t border-gray-800">
+            <div className="text-xs text-gray-500 mb-2">Score Breakdown</div>
+            <div className="grid grid-cols-4 gap-4">
+              {[
+                { label: 'Coverage: 100', pct: 100 },
+                { label: 'Scale: 100', pct: 100 },
+                { label: 'Overall: 85.6', pct: 85.6 },
+                { label: 'Balance: 52.1', pct: 52.1 },
+              ].map(s => (
+                <div key={s.label} className="flex items-center gap-2">
+                  <div className="w-16 h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                    <div className="h-full bg-violet-600 rounded-full" style={{ width: `${s.pct}%` }} />
+                  </div>
+                  <span className="text-xs text-gray-400">{s.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* V6 vs Brief */}
+      <section>
+        <h2 className="text-lg font-semibold text-white mb-3">V6 vs Hackathon Brief</h2>
+        <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+          <table className="w-full text-xs">
+            <thead className="bg-gray-800">
+              <tr>
+                <th className="px-3 py-2.5 text-left text-gray-400 font-medium">Requirement</th>
+                <th className="px-3 py-2.5 text-left text-gray-400 font-medium">Brief Says</th>
+                <th className="px-3 py-2.5 text-left text-gray-400 font-medium">V6 Status</th>
+                <th className="px-3 py-2.5 text-center text-gray-400 font-medium w-20">Result</th>
+              </tr>
+            </thead>
+            <tbody className="text-gray-300">
+              {[
+                ['Taxonomy file', 'JSON tree with name, description, keywords', '542 niches with centroids, hierarchy, exemplar creators', 'PASS'],
+                ['Reproducible pipeline', 'One command, end-to-end', 'bash pipeline/v6/run.sh', 'PASS'],
+                ['Classifier', 'Return most likely niche(s)', 'Cosine similarity + hashtag boost, top-5 ranked', 'PASS'],
+                ['Coverage', '>85% in specific niches', '100% coverage, 25 category hierarchy', 'PASS'],
+                ['Scale', '"Hundreds or thousands" of niches', '542 niches across 25 categories', 'PASS'],
+                ['Data volume', 'Large dataset', '10,365 videos from 4 sources', 'PASS'],
+              ].map(([req, brief, status, result]) => (
+                <tr key={req} className="border-t border-gray-800">
+                  <td className="px-3 py-2">{req}</td>
+                  <td className="px-3 py-2 text-gray-500">{brief}</td>
+                  <td className="px-3 py-2">{status}</td>
+                  <td className="px-3 py-2 text-center"><span className="text-green-400">{result}</span></td>
+                </tr>
+              ))}
+              <tr className="border-t border-gray-800 bg-violet-900/20">
+                <td className="px-3 py-2 font-medium" colSpan={2}>V6 New Capabilities</td>
+                <td className="px-3 py-2"></td>
+                <td className="px-3 py-2"></td>
+              </tr>
+              {[
+                ['Round-robin collection', 'Quota-safe across 15 categories', 'Even coverage even when per-minute limit hits', 'NEW'],
+                ['4-level hierarchy', 'Cat → Sub → Niche → Split', 'Most granular structure across all versions', 'NEW'],
+                ['Multi-source fusion', 'YouTube + TikTok + Instagram', 'Unified normalize() across all data formats', 'NEW'],
+                ['Centroid classifier', 'O(n) cosine similarity', 'No re-clustering needed for new inputs', 'NEW'],
+              ].map(([req, brief, status, result]) => (
+                <tr key={req} className="border-t border-gray-800">
+                  <td className="px-3 py-2">{req}</td>
+                  <td className="px-3 py-2 text-gray-500">{brief}</td>
+                  <td className="px-3 py-2">{status}</td>
+                  <td className="px-3 py-2 text-center"><span className="text-violet-400">{result}</span></td>
+                </tr>
+              ))}
+              <tr className="border-t border-gray-800 bg-gray-800/30">
+                <td className="px-3 py-2 font-medium" colSpan={2}>Stretch Goals</td>
+                <td className="px-3 py-2"></td>
+                <td className="px-3 py-2"></td>
+              </tr>
+              {[
+                ['Exemplar creators', 'Top 10 per niche', 'Implemented — top creators by video count', 'PASS'],
+                ['Cross-platform', 'TikTok, Reels, Shorts', 'All three platforms included in corpus', 'PASS'],
+                ['Niche dynamics', 'Track growth over time', 'Not implemented', 'NO'],
+              ].map(([req, brief, status, result]) => (
+                <tr key={req} className="border-t border-gray-800">
+                  <td className="px-3 py-2">{req}</td>
+                  <td className="px-3 py-2 text-gray-500">{brief}</td>
+                  <td className="px-3 py-2">{status}</td>
+                  <td className="px-3 py-2 text-center">
+                    <span className={result === 'PASS' ? 'text-green-400' : 'text-red-400'}>{result}</span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {/* Source Distribution */}
+      <section>
+        <h2 className="text-lg font-semibold text-white mb-3">V6 Data Source Distribution</h2>
+        <div className="grid grid-cols-4 gap-4">
+          {[
+            { count: '3,991', pct: '38.5%', label: 'YouTube V1', desc: 'Original Shorts (V1 pipeline)', color: 'red' },
+            { count: '2,034', pct: '19.6%', label: 'TikTok', desc: 'Via Apify scraper (V5)', color: 'pink' },
+            { count: '951', pct: '9.2%', label: 'Instagram', desc: 'Reels via Apify (V5)', color: 'purple' },
+            { count: '3,389', pct: '32.7%', label: 'YouTube V6', desc: 'New Shorts (round-robin)', color: 'orange' },
+          ].map(s => (
+            <div key={s.label} className={`bg-${s.color}-950/30 border border-${s.color}-800/50 rounded-xl p-4 text-center`}>
+              <div className={`text-3xl font-bold text-${s.color}-400`}>{s.count}</div>
+              <div className={`text-sm text-${s.color}-300 mt-1`}>{s.label}</div>
+              <div className={`text-xs text-${s.color}-400/60 mt-0.5`}>{s.pct} of corpus</div>
+              <div className="text-[10px] text-gray-600 mt-1">{s.desc}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Taxonomy Evolution */}
+      <section>
+        <h2 className="text-lg font-semibold text-white mb-3">Taxonomy Evolution: V0 → V6</h2>
+        <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-800">
+              <tr>
+                <th className="text-left px-4 py-2 text-gray-300">Version</th>
+                <th className="text-center px-4 py-2 text-gray-300">Approach</th>
+                <th className="text-center px-4 py-2 text-gray-300">Total Niches</th>
+                <th className="text-center px-4 py-2 text-gray-300">Videos</th>
+                <th className="text-center px-4 py-2 text-gray-300">Key Addition</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-800">
+              <tr>
+                <td className="px-4 py-2 text-gray-400">V0</td>
+                <td className="px-4 py-2 text-center text-gray-500">Manual</td>
+                <td className="px-4 py-2 text-center text-gray-400">153</td>
+                <td className="px-4 py-2 text-center text-gray-500">—</td>
+                <td className="px-4 py-2 text-center text-gray-500">GPT-4 manual curation</td>
+              </tr>
+              <tr>
+                <td className="px-4 py-2 text-gray-400">V1</td>
+                <td className="px-4 py-2 text-center text-blue-400">B (Embedding)</td>
+                <td className="px-4 py-2 text-center text-gray-400">209</td>
+                <td className="px-4 py-2 text-center text-gray-500">~4K</td>
+                <td className="px-4 py-2 text-center text-gray-500">Video embedding clusters</td>
+              </tr>
+              <tr>
+                <td className="px-4 py-2 text-gray-400">V2</td>
+                <td className="px-4 py-2 text-center text-green-400">A + B</td>
+                <td className="px-4 py-2 text-center text-gray-400">234</td>
+                <td className="px-4 py-2 text-center text-gray-500">~4K</td>
+                <td className="px-4 py-2 text-center text-gray-500">Hashtag co-occurrence</td>
+              </tr>
+              <tr>
+                <td className="px-4 py-2 text-gray-400">V3</td>
+                <td className="px-4 py-2 text-center text-purple-400">A + B + C</td>
+                <td className="px-4 py-2 text-center text-gray-400">593</td>
+                <td className="px-4 py-2 text-center text-gray-500">~4K</td>
+                <td className="px-4 py-2 text-center text-gray-500">LLM sub-niche breakdown</td>
+              </tr>
+              <tr>
+                <td className="px-4 py-2 text-gray-400">V4</td>
+                <td className="px-4 py-2 text-center text-yellow-400">Scale</td>
+                <td className="px-4 py-2 text-center text-gray-400">676</td>
+                <td className="px-4 py-2 text-center text-gray-500">~4K</td>
+                <td className="px-4 py-2 text-center text-gray-500">4-level hierarchy</td>
+              </tr>
+              <tr>
+                <td className="px-4 py-2 text-gray-400">V5</td>
+                <td className="px-4 py-2 text-center text-cyan-400">Cross-platform</td>
+                <td className="px-4 py-2 text-center text-gray-400">25</td>
+                <td className="px-4 py-2 text-center text-gray-500">~7K</td>
+                <td className="px-4 py-2 text-center text-gray-500">TikTok + Instagram fusion</td>
+              </tr>
+              <tr className="bg-violet-950/20">
+                <td className="px-4 py-2 font-medium text-white">V6</td>
+                <td className="px-4 py-2 text-center text-violet-400">Combined</td>
+                <td className="px-4 py-2 text-center font-bold text-white">542</td>
+                <td className="px-4 py-2 text-center text-violet-300">10,365</td>
+                <td className="px-4 py-2 text-center text-violet-300">All sources + 4-level cluster</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      </div>
+      )}
+    </div>
+    </>
+  )
+}
+
+// ============================================================================
 // Main App Component
 // ============================================================================
 export default function Home() {
   const [taxonomy, setTaxonomy] = useState<Taxonomy | null>(null)
   const [taxError, setTaxError] = useState('')
-  const [version, setVersion] = useState<'v0' | 'v1' | 'v2' | 'v3' | 'v4' | 'v5'>('v0')
+  const [version, setVersion] = useState<'v0' | 'v1' | 'v2' | 'v3' | 'v4' | 'v5' | 'v6'>('v0')
   const [v0Page, setV0Page] = useState<'demo' | 'process'>('demo')
   const [v1Page, setV1Page] = useState<'demo' | 'process'>('demo')
   const [v2Page, setV2Page] = useState<'demo' | 'process'>('demo')
   const [v3Page, setV3Page] = useState<'demo' | 'process'>('demo')
   const [v4Page, setV4Page] = useState<'demo' | 'process'>('demo')
   const [v5Page, setV5Page] = useState<'demo' | 'process'>('demo')
+  const [v6Page, setV6Page] = useState<'demo' | 'process'>('demo')
   const [v1Taxonomy, setV1Taxonomy] = useState<V1TaxonomyData | null>(null)
   const [v2Taxonomy, setV2Taxonomy] = useState<V2TaxonomyData | null>(null)
   const [v3Taxonomy, setV3Taxonomy] = useState<V3TaxonomyData | null>(null)
   const [v4Taxonomy, setV4Taxonomy] = useState<V4TaxonomyData | null>(null)
   const [v5Taxonomy, setV5Taxonomy] = useState<V5TaxonomyData | null>(null)
+  const [v6Taxonomy, setV6Taxonomy] = useState<V6TaxonomyData | null>(null)
 
   useEffect(() => {
     fetch('/api/taxonomy')
@@ -8308,6 +9481,11 @@ export default function Home() {
       .then(r => r.json())
       .then(d => setV5Taxonomy(d))
       .catch(() => setV5Taxonomy(null))
+
+    fetch('/api/v6/taxonomy')
+      .then(r => r.json())
+      .then(d => setV6Taxonomy(d))
+      .catch(() => setV6Taxonomy(null))
   }, [])
 
   return (
@@ -8325,7 +9503,7 @@ export default function Home() {
           </div>
           {/* Version Tabs */}
           <nav className="flex gap-1 bg-gray-900 rounded-lg p-1">
-            {(['v0', 'v1', 'v2', 'v3', 'v4', 'v5'] as const).map(v => (
+            {(['v0', 'v1', 'v2', 'v3', 'v4', 'v5', 'v6'] as const).map(v => (
               <button
                 key={v}
                 onClick={() => setVersion(v)}
@@ -8484,6 +9662,30 @@ export default function Home() {
         </div>
       )}
 
+      {/* V6 Sub-navigation */}
+      {version === 'v6' && (
+        <div className="border-b border-gray-800/50 px-6 py-2 bg-gray-900/30">
+          <div className="max-w-5xl mx-auto flex gap-4">
+            {[
+              { key: 'demo' as const, label: 'Demo' },
+              { key: 'process' as const, label: 'Process & Flowchart' },
+            ].map(item => (
+              <button
+                key={item.key}
+                onClick={() => setV6Page(item.key)}
+                className={`text-sm py-1 border-b-2 transition-all ${
+                  v6Page === item.key
+                    ? 'text-indigo-400 border-indigo-500'
+                    : 'text-gray-500 border-transparent hover:text-gray-300'
+                }`}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       <main className="max-w-5xl mx-auto px-6 py-10">
         {/* V0 Content */}
         {version === 'v0' && (
@@ -8530,6 +9732,14 @@ export default function Home() {
           <>
             {v5Page === 'demo' && <V5Demo v5Taxonomy={v5Taxonomy} />}
             {v5Page === 'process' && <V5Process />}
+          </>
+        )}
+
+        {/* V6 Content */}
+        {version === 'v6' && (
+          <>
+            {v6Page === 'demo' && <V6Demo v6Taxonomy={v6Taxonomy} />}
+            {v6Page === 'process' && <V6Process />}
           </>
         )}
       </main>
