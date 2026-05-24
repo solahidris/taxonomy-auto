@@ -8333,7 +8333,7 @@ function V5Process() {
 // V6 Demo Component
 // ============================================================================
 function V6Demo({ v6Taxonomy }: { v6Taxonomy: V6TaxonomyData | null }) {
-  const [tab, setTab] = useState<'classify' | 'lookup' | 'batch' | 'overview' | 'browse'>('classify')
+  const [tab, setTab] = useState<'classify' | 'lookup' | 'batch' | 'overview' | 'browse' | 'tree' | 'graph'>('classify')
   const [text, setText] = useState('')
   const [result, setResult] = useState<V6ClassifyResult | null>(null)
   const [loading, setLoading] = useState(false)
@@ -8507,6 +8507,8 @@ function V6Demo({ v6Taxonomy }: { v6Taxonomy: V6TaxonomyData | null }) {
           { key: 'batch', label: 'Batch CSV' },
           { key: 'overview', label: 'Overview' },
           { key: 'browse', label: 'Browse' },
+          { key: 'tree', label: 'Tree' },
+          { key: 'graph', label: 'Graph' },
         ] as const).map(t => (
           <button
             key={t.key}
@@ -8979,6 +8981,12 @@ function V6Demo({ v6Taxonomy }: { v6Taxonomy: V6TaxonomyData | null }) {
         </div>
       )}
 
+      {/* Tree Tab */}
+      {tab === 'tree' && <V6TreeView v6Taxonomy={v6Taxonomy} />}
+
+      {/* Graph Tab */}
+      {tab === 'graph' && <V6GraphView v6Taxonomy={v6Taxonomy} />}
+
       {/* Browse Tab */}
       {tab === 'browse' && (
         <div className="space-y-2">
@@ -9043,6 +9051,316 @@ function V6Demo({ v6Taxonomy }: { v6Taxonomy: V6TaxonomyData | null }) {
           ))}
         </div>
       )}
+    </div>
+  )
+}
+
+// ============================================================================
+// V6 Tree View Component
+// ============================================================================
+const V6_CAT_COLORS = [
+  '#7c3aed','#2563eb','#0891b2','#059669','#16a34a',
+  '#ca8a04','#ea580c','#dc2626','#db2777','#9333ea',
+  '#6366f1','#0d9488','#65a30d','#d97706','#e11d48',
+  '#8b5cf6','#3b82f6','#06b6d4','#10b981','#22c55e',
+  '#eab308','#f97316','#ef4444','#ec4899','#a855f7',
+]
+
+function V6TreeView({ v6Taxonomy }: { v6Taxonomy: V6TaxonomyData }) {
+  const [expandedCats, setExpandedCats] = useState<Set<string>>(new Set())
+  const [expandedSubs, setExpandedSubs] = useState<Set<string>>(new Set())
+
+  const toggleCat = (id: string) => setExpandedCats(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n })
+  const toggleSub = (id: string) => setExpandedSubs(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n })
+  const catEntries = Object.entries(v6Taxonomy.hierarchy)
+
+  return (
+    <div className="overflow-auto rounded-xl border border-gray-800 bg-gray-950" style={{ maxHeight: '75vh' }}>
+      <div className="p-4">
+        {/* Root */}
+        <div className="flex items-center gap-3 mb-3 pb-3 border-b border-gray-800">
+          <div className="w-8 h-8 rounded-full bg-violet-700 flex items-center justify-center text-white text-xs font-bold shrink-0">V6</div>
+          <div>
+            <div className="text-sm font-semibold text-white">Taxonomy Root</div>
+            <div className="text-xs text-gray-500">{v6Taxonomy.stats.total_niches} niches · {catEntries.length} categories · {v6Taxonomy.stats.total_subcategories} subcategories</div>
+          </div>
+          <button
+            onClick={() => { setExpandedCats(new Set(catEntries.map(([id]) => id))); setExpandedSubs(new Set()) }}
+            className="ml-auto text-xs text-gray-500 hover:text-gray-300 px-2 py-1 rounded bg-gray-800 hover:bg-gray-700"
+          >expand all</button>
+          <button
+            onClick={() => { setExpandedCats(new Set()); setExpandedSubs(new Set()) }}
+            className="text-xs text-gray-500 hover:text-gray-300 px-2 py-1 rounded bg-gray-800 hover:bg-gray-700"
+          >collapse all</button>
+        </div>
+
+        {/* Categories */}
+        <div className="pl-3 border-l-2 border-gray-800 space-y-0.5">
+          {catEntries.map(([catId, catData], catIdx) => {
+            const color = V6_CAT_COLORS[catIdx % V6_CAT_COLORS.length]
+            const isCatOpen = expandedCats.has(catId)
+            const nicheCount = Object.values(catData.subcategories).reduce((s, sub) => s + sub.niches.length, 0)
+            const subEntries = Object.entries(catData.subcategories)
+
+            return (
+              <div key={catId} className="relative">
+                <div className="absolute -left-3 top-4 w-3 border-b border-gray-700" />
+                <button
+                  onClick={() => toggleCat(catId)}
+                  className="group flex items-center gap-2 w-full py-1.5 px-2 rounded-lg text-left hover:bg-gray-800/40 transition-colors"
+                >
+                  <span className="text-xs text-gray-600 group-hover:text-gray-400 w-3 shrink-0">{isCatOpen ? '▼' : '▶'}</span>
+                  <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: color }} />
+                  <span className="text-sm font-medium text-gray-200">{catData.name}</span>
+                  <span className="text-xs text-gray-600 ml-1">({subEntries.length} subcats · {nicheCount} niches)</span>
+                </button>
+
+                {isCatOpen && (
+                  <div className="ml-5 pl-3 border-l space-y-0.5 mb-1" style={{ borderColor: color + '55' }}>
+                    {subEntries.map(([subId, subData]) => {
+                      const subKey = `${catId}-${subId}`
+                      const isSubOpen = expandedSubs.has(subKey)
+                      return (
+                        <div key={subId} className="relative">
+                          <div className="absolute -left-3 top-3 w-3 border-b border-gray-800" />
+                          <button
+                            onClick={() => toggleSub(subKey)}
+                            className="group flex items-center gap-2 w-full py-1 px-2 rounded text-left hover:bg-gray-800/30 transition-colors"
+                          >
+                            <span className="text-[10px] text-gray-700 group-hover:text-gray-500 w-3 shrink-0">{isSubOpen ? '▼' : '▶'}</span>
+                            <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: color + 'aa' }} />
+                            <span className="text-xs text-gray-300">{subData.name}</span>
+                            <span className="text-[10px] text-gray-600 ml-1">({subData.niches.length})</span>
+                          </button>
+
+                          {isSubOpen && (
+                            <div className="ml-5 pl-3 border-l border-gray-800/60 space-y-0.5 mb-1">
+                              {subData.niches.map(niche => (
+                                <div key={niche.id} className="relative flex items-center gap-2 py-0.5 px-2">
+                                  <div className="absolute -left-3 top-2.5 w-3 border-b border-gray-800" />
+                                  <span className="w-1 h-1 rounded-full bg-gray-700 shrink-0" />
+                                  <span className="text-[11px] text-gray-500">{niche.name}</span>
+                                  <span className="text-[10px] text-gray-700 ml-auto shrink-0">{niche.video_count}v</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// V6 Graph View Component
+// ============================================================================
+function V6GraphView({ v6Taxonomy }: { v6Taxonomy: V6TaxonomyData }) {
+  const [hoveredCat, setHoveredCat] = useState<string | null>(null)
+
+  const W = 900
+  const H = 900
+  const CX = W / 2
+  const CY = H / 2
+  const CAT_R = 205
+  const SUB_R = 375
+
+  const catEntries = Object.entries(v6Taxonomy.hierarchy)
+  const N = catEntries.length
+
+  const catNodes = catEntries.map(([catId, catData], i) => {
+    const angle = (i / N) * 2 * Math.PI - Math.PI / 2
+    const nicheCount = Object.values(catData.subcategories).reduce((s, sub) => s + sub.niches.length, 0)
+    return {
+      id: catId,
+      name: catData.name,
+      angle,
+      x: CX + CAT_R * Math.cos(angle),
+      y: CY + CAT_R * Math.sin(angle),
+      nicheCount,
+      subCount: Object.keys(catData.subcategories).length,
+      subs: Object.entries(catData.subcategories),
+      color: V6_CAT_COLORS[i % V6_CAT_COLORS.length],
+    }
+  })
+
+  const subNodes = catNodes.flatMap(cat => {
+    const nsubs = cat.subs.length
+    const arcWidth = Math.min((2 * Math.PI / N) * 0.88, nsubs * 0.22)
+    return cat.subs.map(([subId, subData], i) => {
+      const offset = nsubs > 1 ? (i / (nsubs - 1) - 0.5) * arcWidth : 0
+      const angle = cat.angle + offset
+      return {
+        id: subId, catId: cat.id,
+        name: subData.name,
+        angle,
+        x: CX + SUB_R * Math.cos(angle),
+        y: CY + SUB_R * Math.sin(angle),
+        parentX: cat.x, parentY: cat.y,
+        nicheCount: subData.niches.length,
+        color: cat.color,
+      }
+    })
+  })
+
+  const isActive = (id: string) => hoveredCat === null || hoveredCat === id
+
+  return (
+    <div>
+      <div className="text-xs text-gray-500 mb-2">
+        {N} categories · {subNodes.length} subcategories · hover a category to highlight its cluster
+      </div>
+      <div className="rounded-xl border border-gray-800 bg-gray-950 overflow-hidden">
+        <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} style={{ maxWidth: '100%', display: 'block', margin: '0 auto' }}>
+          <defs>
+            <radialGradient id="centerGlow" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#4c1d95" stopOpacity="0.6" />
+              <stop offset="100%" stopColor="#4c1d95" stopOpacity="0" />
+            </radialGradient>
+          </defs>
+
+          {/* Background glow rings */}
+          <circle cx={CX} cy={CY} r={CAT_R} fill="none" stroke="#1f2937" strokeWidth="1" strokeDasharray="4 8" />
+          <circle cx={CX} cy={CY} r={SUB_R} fill="none" stroke="#1f2937" strokeWidth="1" strokeDasharray="4 8" />
+          <circle cx={CX} cy={CY} r={80} fill="url(#centerGlow)" />
+
+          {/* Center → category spokes */}
+          {catNodes.map(cat => (
+            <line key={`spoke-${cat.id}`}
+              x1={CX} y1={CY} x2={cat.x} y2={cat.y}
+              stroke={cat.color}
+              strokeWidth={hoveredCat === cat.id ? 1.8 : 0.7}
+              strokeOpacity={isActive(cat.id) ? 0.45 : 0.06}
+            />
+          ))}
+
+          {/* Category → subcategory bezier curves */}
+          {subNodes.map(sub => {
+            const midR = (CAT_R + SUB_R) / 2
+            const cpx = CX + midR * Math.cos(sub.angle)
+            const cpy = CY + midR * Math.sin(sub.angle)
+            return (
+              <path key={`edge-${sub.id}`}
+                d={`M ${sub.parentX} ${sub.parentY} Q ${cpx} ${cpy} ${sub.x} ${sub.y}`}
+                fill="none"
+                stroke={sub.color}
+                strokeWidth={hoveredCat === sub.catId ? 1.2 : 0.5}
+                strokeOpacity={isActive(sub.catId) ? 0.55 : 0.04}
+              />
+            )
+          })}
+
+          {/* Subcategory nodes */}
+          {subNodes.map(sub => {
+            const r = Math.max(3, Math.min(7, 2.5 + sub.nicheCount / 3.5))
+            const active = isActive(sub.catId)
+            const labelSide = Math.cos(sub.angle) >= 0 ? 1 : -1
+            return (
+              <g key={`sub-${sub.id}`}>
+                <circle cx={sub.x} cy={sub.y} r={r}
+                  fill={sub.color} fillOpacity={active ? 0.85 : 0.08}
+                  stroke={sub.color} strokeWidth="0.5" strokeOpacity={active ? 0.4 : 0}
+                />
+                {hoveredCat === sub.catId && (
+                  <text
+                    x={sub.x + (r + 6) * labelSide} y={sub.y}
+                    textAnchor={labelSide > 0 ? 'start' : 'end'}
+                    dominantBaseline="middle"
+                    fontSize="7.5" fill={sub.color} fillOpacity="0.9"
+                  >{sub.name.length > 26 ? sub.name.slice(0, 25) + '…' : sub.name}</text>
+                )}
+              </g>
+            )
+          })}
+
+          {/* Category nodes + labels */}
+          {catNodes.map(cat => {
+            const r = Math.max(14, Math.min(22, 9 + cat.nicheCount / 14))
+            const active = isActive(cat.id)
+            const labelDist = r + 14
+            const lx = cat.x + labelDist * Math.cos(cat.angle)
+            const ly = cat.y + labelDist * Math.sin(cat.angle)
+            const anchor = Math.cos(cat.angle) > 0.1 ? 'start' : Math.cos(cat.angle) < -0.1 ? 'end' : 'middle'
+            return (
+              <g key={`cat-${cat.id}`}
+                onMouseEnter={() => setHoveredCat(cat.id)}
+                onMouseLeave={() => setHoveredCat(null)}
+                style={{ cursor: 'pointer' }}
+              >
+                {hoveredCat === cat.id && (
+                  <circle cx={cat.x} cy={cat.y} r={r + 7} fill={cat.color} fillOpacity="0.15" />
+                )}
+                <circle cx={cat.x} cy={cat.y} r={r}
+                  fill={cat.color} fillOpacity={active ? 0.92 : 0.22}
+                  stroke={cat.color} strokeWidth="1.5" strokeOpacity={active ? 0.6 : 0.1}
+                />
+                <text x={lx} y={ly - 4}
+                  textAnchor={anchor} dominantBaseline="middle"
+                  fontSize="9.5" fill={cat.color}
+                  fillOpacity={active ? 1 : 0.25} fontWeight="600"
+                >{cat.name}</text>
+                <text x={lx} y={ly + 7}
+                  textAnchor={anchor} dominantBaseline="middle"
+                  fontSize="7.5" fill={cat.color} fillOpacity={active ? 0.55 : 0.1}
+                >{cat.nicheCount} niches</text>
+              </g>
+            )
+          })}
+
+          {/* Hover info overlay in center */}
+          {hoveredCat && (() => {
+            const cat = catNodes.find(c => c.id === hoveredCat)!
+            return (
+              <g>
+                <rect x={CX - 52} y={CY - 26} width="104" height="52" rx="10"
+                  fill="#0f0f1a" stroke={cat.color} strokeWidth="1.5" strokeOpacity="0.6" />
+                <text x={CX} y={CY - 12} textAnchor="middle" fontSize="9" fill={cat.color} fontWeight="700">
+                  {cat.name.length > 18 ? cat.name.slice(0, 17) + '…' : cat.name}
+                </text>
+                <text x={CX} y={CY + 2} textAnchor="middle" fontSize="8" fill="#9ca3af">
+                  {cat.subCount} subcategories
+                </text>
+                <text x={CX} y={CY + 14} textAnchor="middle" fontSize="8" fill="#9ca3af">
+                  {cat.nicheCount} niches
+                </text>
+              </g>
+            )
+          })()}
+
+          {/* Center node */}
+          {!hoveredCat && (
+            <g>
+              <circle cx={CX} cy={CY} r={34} fill="#1e1b4b" stroke="#4f46e5" strokeWidth="2" />
+              <text x={CX} y={CY - 8} textAnchor="middle" fontSize="11" fill="white" fontWeight="bold">V6</text>
+              <text x={CX} y={CY + 6} textAnchor="middle" fontSize="8" fill="#a78bfa">542 niches</text>
+              <text x={CX} y={CY + 17} textAnchor="middle" fontSize="7" fill="#6d28d9">{N} categories</text>
+            </g>
+          )}
+        </svg>
+      </div>
+
+      {/* Category legend */}
+      <div className="mt-3 grid grid-cols-5 gap-1.5">
+        {catNodes.map(cat => (
+          <button key={cat.id}
+            onMouseEnter={() => setHoveredCat(cat.id)}
+            onMouseLeave={() => setHoveredCat(null)}
+            className={`flex items-center gap-1.5 px-2 py-1 rounded-lg text-left transition-colors ${
+              hoveredCat === cat.id ? 'bg-gray-800' : 'hover:bg-gray-800/50'
+            }`}
+          >
+            <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: cat.color }} />
+            <span className="text-[10px] text-gray-400 truncate">{cat.name}</span>
+            <span className="text-[9px] text-gray-600 ml-auto shrink-0">{cat.nicheCount}</span>
+          </button>
+        ))}
+      </div>
     </div>
   )
 }
