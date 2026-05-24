@@ -49,7 +49,7 @@ type V5Taxonomy = {
 
 let taxonomyCache: V5Taxonomy | null = null
 let allNiches: V5Niche[] = []
-let nicheEmbeddings: Map<string, number[]> = new Map()
+const nicheEmbeddings: Map<string, number[]> = new Map()
 
 function loadTaxonomy(): V5Taxonomy | null {
   if (taxonomyCache) return taxonomyCache

@@ -967,34 +967,30 @@ function ELI5Content() {
   )
 }
 
-// ============================================================================
-// V0 Process Component - Flowchart & Thought Process
-// ============================================================================
-function V0Process() {
-  const [selectedStep, setSelectedStep] = useState<number | null>(null)
-  const [eli5Mode, setEli5Mode] = useState(false)
-
-  const StepBox = ({
-    step,
-    label,
-    subtitle,
-    bgClass,
-    borderClass,
-    textClass,
-    subtitleClass,
-    numClass
-  }: {
-    step: number
-    label: string
-    subtitle: string
-    bgClass: string
-    borderClass: string
-    textClass: string
-    subtitleClass: string
-    numClass: string
-  }) => (
+function StepBox({
+  step,
+  label,
+  subtitle,
+  bgClass,
+  borderClass,
+  textClass,
+  subtitleClass,
+  numClass,
+  onSelect,
+}: {
+  step: number
+  label: string
+  subtitle: string
+  bgClass: string
+  borderClass: string
+  textClass: string
+  subtitleClass: string
+  numClass: string
+  onSelect: (step: number) => void
+}) {
+  return (
     <button
-      onClick={() => setSelectedStep(step)}
+      onClick={() => onSelect(step)}
       className={`flex-1 ${bgClass} border ${borderClass} rounded-lg px-3 py-2.5 text-center cursor-pointer hover:opacity-80 transition-opacity`}
     >
       <div className={`text-[10px] ${numClass} mb-0.5`}>{step}</div>
@@ -1002,6 +998,14 @@ function V0Process() {
       <div className={`text-[10px] ${subtitleClass} mt-0.5`}>{subtitle}</div>
     </button>
   )
+}
+
+// ============================================================================
+// V0 Process Component - Flowchart & Thought Process
+// ============================================================================
+function V0Process() {
+  const [selectedStep, setSelectedStep] = useState<number | null>(null)
+  const [eli5Mode, setEli5Mode] = useState(false)
 
   return (
     <>
@@ -1146,13 +1150,13 @@ function V0Process() {
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
           {/* Row 1 */}
           <div className="flex items-center gap-2 text-sm mb-3">
-            <StepBox step={1} label="YouTube API" subtitle="Data API v3" bgClass="bg-red-950" borderClass="border-red-800" textClass="text-red-300" subtitleClass="text-red-400" numClass="text-red-500" />
+            <StepBox step={1} label="YouTube API" subtitle="Data API v3" bgClass="bg-red-950" borderClass="border-red-800" textClass="text-red-300" subtitleClass="text-red-400" numClass="text-red-500" onSelect={setSelectedStep} />
             <span className="text-gray-600 text-xs">→</span>
-            <StepBox step={2} label="Raw Videos" subtitle="~3K shorts JSONL" bgClass="bg-gray-800" borderClass="border-gray-700" textClass="text-gray-300" subtitleClass="text-gray-500" numClass="text-gray-600" />
+            <StepBox step={2} label="Raw Videos" subtitle="~3K shorts JSONL" bgClass="bg-gray-800" borderClass="border-gray-700" textClass="text-gray-300" subtitleClass="text-gray-500" numClass="text-gray-600" onSelect={setSelectedStep} />
             <span className="text-gray-600 text-xs">→</span>
-            <StepBox step={3} label="Text Extraction" subtitle="title + desc + tags" bgClass="bg-gray-800" borderClass="border-gray-700" textClass="text-gray-300" subtitleClass="text-gray-500" numClass="text-gray-600" />
+            <StepBox step={3} label="Text Extraction" subtitle="title + desc + tags" bgClass="bg-gray-800" borderClass="border-gray-700" textClass="text-gray-300" subtitleClass="text-gray-500" numClass="text-gray-600" onSelect={setSelectedStep} />
             <span className="text-gray-600 text-xs">→</span>
-            <StepBox step={4} label="OpenAI Embed" subtitle="text-embedding-3-small" bgClass="bg-indigo-950" borderClass="border-indigo-800" textClass="text-indigo-300" subtitleClass="text-indigo-400" numClass="text-indigo-500" />
+            <StepBox step={4} label="OpenAI Embed" subtitle="text-embedding-3-small" bgClass="bg-indigo-950" borderClass="border-indigo-800" textClass="text-indigo-300" subtitleClass="text-indigo-400" numClass="text-indigo-500" onSelect={setSelectedStep} />
           </div>
           {/* Arrow down */}
           <div className="flex justify-end pr-[12%] mb-3">
@@ -1160,13 +1164,13 @@ function V0Process() {
           </div>
           {/* Row 2 - reversed order */}
           <div className="flex items-center gap-2 text-sm">
-            <StepBox step={8} label="Taxonomy" subtitle="hierarchical JSON" bgClass="bg-green-950" borderClass="border-green-800" textClass="text-green-300" subtitleClass="text-green-400" numClass="text-green-500" />
+            <StepBox step={8} label="Taxonomy" subtitle="hierarchical JSON" bgClass="bg-green-950" borderClass="border-green-800" textClass="text-green-300" subtitleClass="text-green-400" numClass="text-green-500" onSelect={setSelectedStep} />
             <span className="text-gray-600 text-xs">←</span>
-            <StepBox step={7} label="Centroids" subtitle="cluster centers" bgClass="bg-gray-800" borderClass="border-gray-700" textClass="text-gray-300" subtitleClass="text-gray-500" numClass="text-gray-600" />
+            <StepBox step={7} label="Centroids" subtitle="cluster centers" bgClass="bg-gray-800" borderClass="border-gray-700" textClass="text-gray-300" subtitleClass="text-gray-500" numClass="text-gray-600" onSelect={setSelectedStep} />
             <span className="text-gray-600 text-xs">←</span>
-            <StepBox step={6} label="GPT-4o Label" subtitle="name + desc + kw" bgClass="bg-indigo-950" borderClass="border-indigo-800" textClass="text-indigo-300" subtitleClass="text-indigo-400" numClass="text-indigo-500" />
+            <StepBox step={6} label="GPT-4o Label" subtitle="name + desc + kw" bgClass="bg-indigo-950" borderClass="border-indigo-800" textClass="text-indigo-300" subtitleClass="text-indigo-400" numClass="text-indigo-500" onSelect={setSelectedStep} />
             <span className="text-gray-600 text-xs">←</span>
-            <StepBox step={5} label="K-Means" subtitle="n=50 clusters" bgClass="bg-gray-800" borderClass="border-gray-700" textClass="text-gray-300" subtitleClass="text-gray-500" numClass="text-gray-600" />
+            <StepBox step={5} label="K-Means" subtitle="n=50 clusters" bgClass="bg-gray-800" borderClass="border-gray-700" textClass="text-gray-300" subtitleClass="text-gray-500" numClass="text-gray-600" onSelect={setSelectedStep} />
           </div>
           {/* Legend */}
           <div className="flex gap-4 mt-4 pt-3 border-t border-gray-800 text-[10px] text-gray-500">
@@ -2226,6 +2230,24 @@ function V1Demo({ v1Taxonomy }: { v1Taxonomy: V1TaxonomyData | null }) {
   )
 }
 
+function ProcessStepBox({
+  step, label, subtitle, bgClass, borderClass, textClass, subtitleClass, onSelect,
+}: {
+  step: number; label: string; subtitle: string
+  bgClass: string; borderClass: string; textClass: string; subtitleClass: string
+  onSelect: (step: number) => void
+}) {
+  return (
+    <button
+      onClick={() => onSelect(step)}
+      className={`flex-1 ${bgClass} border ${borderClass} rounded-lg p-3 text-center cursor-pointer hover:opacity-80 transition-opacity`}
+    >
+      <div className={`${textClass} font-medium text-xs`}>{label}</div>
+      <div className={`text-[10px] ${subtitleClass} mt-1`}>{subtitle}</div>
+    </button>
+  )
+}
+
 // ============================================================================
 // V1 Process Component
 // ============================================================================
@@ -2410,32 +2432,6 @@ function V1Process() {
   const [eli5Mode, setEli5Mode] = useState(false)
   const [selectedStep, setSelectedStep] = useState<number | null>(null)
 
-  const V1StepBox = ({
-    step,
-    label,
-    subtitle,
-    bgClass,
-    borderClass,
-    textClass,
-    subtitleClass,
-  }: {
-    step: number
-    label: string
-    subtitle: string
-    bgClass: string
-    borderClass: string
-    textClass: string
-    subtitleClass: string
-  }) => (
-    <button
-      onClick={() => setSelectedStep(step)}
-      className={`flex-1 ${bgClass} border ${borderClass} rounded-lg p-3 text-center cursor-pointer hover:opacity-80 transition-opacity`}
-    >
-      <div className={`${textClass} font-medium text-xs`}>{label}</div>
-      <div className={`text-[10px] ${subtitleClass} mt-1`}>{subtitle}</div>
-    </button>
-  )
-
   return (
     <>
       {/* Modal */}
@@ -2616,13 +2612,13 @@ function V1Process() {
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
           {/* Row 1: Collection & Embedding */}
           <div className="flex items-center gap-2 text-xs mb-3">
-            <V1StepBox step={1} label="YouTube API" subtitle="200+ keywords" bgClass="bg-red-950" borderClass="border-red-800" textClass="text-red-400" subtitleClass="text-red-500" />
+            <ProcessStepBox step={1} label="YouTube API" subtitle="200+ keywords" bgClass="bg-red-950" borderClass="border-red-800" textClass="text-red-400" subtitleClass="text-red-500" onSelect={setSelectedStep} />
             <span className="text-gray-500">→</span>
-            <V1StepBox step={2} label="Raw Videos" subtitle="~4K JSONL" bgClass="bg-gray-800" borderClass="border-gray-700" textClass="text-gray-300" subtitleClass="text-gray-500" />
+            <ProcessStepBox step={2} label="Raw Videos" subtitle="~4K JSONL" bgClass="bg-gray-800" borderClass="border-gray-700" textClass="text-gray-300" subtitleClass="text-gray-500" onSelect={setSelectedStep} />
             <span className="text-gray-500">→</span>
-            <V1StepBox step={3} label="Embeddings" subtitle="1536-dim vectors" bgClass="bg-indigo-950" borderClass="border-indigo-800" textClass="text-indigo-300" subtitleClass="text-indigo-400" />
+            <ProcessStepBox step={3} label="Embeddings" subtitle="1536-dim vectors" bgClass="bg-indigo-950" borderClass="border-indigo-800" textClass="text-indigo-300" subtitleClass="text-indigo-400" onSelect={setSelectedStep} />
             <span className="text-gray-500">→</span>
-            <V1StepBox step={4} label="Level 1" subtitle="K-Means k=20" bgClass="bg-blue-950" borderClass="border-blue-800" textClass="text-blue-300" subtitleClass="text-blue-400" />
+            <ProcessStepBox step={4} label="Level 1" subtitle="K-Means k=20" bgClass="bg-blue-950" borderClass="border-blue-800" textClass="text-blue-300" subtitleClass="text-blue-400" onSelect={setSelectedStep} />
           </div>
 
           {/* Arrow down - aligned to the right */}
@@ -2632,13 +2628,13 @@ function V1Process() {
 
           {/* Row 2: Clustering & Output (right to left flow, displayed left to right with ← arrows) */}
           <div className="flex items-center gap-2 text-xs">
-            <V1StepBox step={8} label="Taxonomy" subtitle="209 niches" bgClass="bg-green-950" borderClass="border-green-800" textClass="text-green-300" subtitleClass="text-green-400" />
+            <ProcessStepBox step={8} label="Taxonomy" subtitle="209 niches" bgClass="bg-green-950" borderClass="border-green-800" textClass="text-green-300" subtitleClass="text-green-400" onSelect={setSelectedStep} />
             <span className="text-gray-500">←</span>
-            <V1StepBox step={7} label="LLM Naming" subtitle="GPT-4o-mini" bgClass="bg-indigo-950" borderClass="border-indigo-800" textClass="text-indigo-300" subtitleClass="text-indigo-400" />
+            <ProcessStepBox step={7} label="LLM Naming" subtitle="GPT-4o-mini" bgClass="bg-indigo-950" borderClass="border-indigo-800" textClass="text-indigo-300" subtitleClass="text-indigo-400" onSelect={setSelectedStep} />
             <span className="text-gray-500">←</span>
-            <V1StepBox step={6} label="Level 3-4" subtitle="HDBSCAN + split" bgClass="bg-purple-950" borderClass="border-purple-800" textClass="text-purple-300" subtitleClass="text-purple-400" />
+            <ProcessStepBox step={6} label="Level 3-4" subtitle="HDBSCAN + split" bgClass="bg-purple-950" borderClass="border-purple-800" textClass="text-purple-300" subtitleClass="text-purple-400" onSelect={setSelectedStep} />
             <span className="text-gray-500">←</span>
-            <V1StepBox step={5} label="Level 2" subtitle="K-Means k=5-8" bgClass="bg-indigo-950" borderClass="border-indigo-800" textClass="text-indigo-300" subtitleClass="text-indigo-400" />
+            <ProcessStepBox step={5} label="Level 2" subtitle="K-Means k=5-8" bgClass="bg-indigo-950" borderClass="border-indigo-800" textClass="text-indigo-300" subtitleClass="text-indigo-400" onSelect={setSelectedStep} />
           </div>
 
           {/* Legend */}
@@ -3945,32 +3941,6 @@ function V2Process() {
   const [selectedStep, setSelectedStep] = useState<number | null>(null)
   const [eli5Mode, setEli5Mode] = useState(false)
 
-  const V2StepBox = ({
-    step,
-    label,
-    subtitle,
-    bgClass,
-    borderClass,
-    textClass,
-    subtitleClass,
-  }: {
-    step: number
-    label: string
-    subtitle: string
-    bgClass: string
-    borderClass: string
-    textClass: string
-    subtitleClass: string
-  }) => (
-    <button
-      onClick={() => setSelectedStep(step)}
-      className={`flex-1 ${bgClass} border ${borderClass} rounded-lg p-3 text-center cursor-pointer hover:opacity-80 transition-opacity`}
-    >
-      <div className={`${textClass} font-medium text-xs`}>{label}</div>
-      <div className={`text-[10px] ${subtitleClass} mt-1`}>{subtitle}</div>
-    </button>
-  )
-
   return (
     <>
       {/* Modal */}
@@ -4144,13 +4114,13 @@ function V2Process() {
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
           {/* Row 1: V1 Data + Hashtag Extraction */}
           <div className="flex items-center gap-2 text-xs mb-3">
-            <V2StepBox step={1} label="V1 Videos" subtitle="~4K videos" bgClass="bg-gray-800" borderClass="border-gray-700" textClass="text-gray-300" subtitleClass="text-gray-500" />
+            <ProcessStepBox step={1} label="V1 Videos" subtitle="~4K videos" bgClass="bg-gray-800" borderClass="border-gray-700" textClass="text-gray-300" subtitleClass="text-gray-500" onSelect={setSelectedStep} />
             <span className="text-gray-500">→</span>
-            <V2StepBox step={2} label="Extract Hashtags" subtitle="tags + title + desc" bgClass="bg-green-950" borderClass="border-green-800" textClass="text-green-300" subtitleClass="text-green-400" />
+            <ProcessStepBox step={2} label="Extract Hashtags" subtitle="tags + title + desc" bgClass="bg-green-950" borderClass="border-green-800" textClass="text-green-300" subtitleClass="text-green-400" onSelect={setSelectedStep} />
             <span className="text-gray-500">→</span>
-            <V2StepBox step={3} label="Hashtag Graph" subtitle="1,586 nodes" bgClass="bg-blue-950" borderClass="border-blue-800" textClass="text-blue-300" subtitleClass="text-blue-400" />
+            <ProcessStepBox step={3} label="Hashtag Graph" subtitle="1,586 nodes" bgClass="bg-blue-950" borderClass="border-blue-800" textClass="text-blue-300" subtitleClass="text-blue-400" onSelect={setSelectedStep} />
             <span className="text-gray-500">→</span>
-            <V2StepBox step={4} label="Louvain" subtitle="29 communities" bgClass="bg-purple-950" borderClass="border-purple-800" textClass="text-purple-300" subtitleClass="text-purple-400" />
+            <ProcessStepBox step={4} label="Louvain" subtitle="29 communities" bgClass="bg-purple-950" borderClass="border-purple-800" textClass="text-purple-300" subtitleClass="text-purple-400" onSelect={setSelectedStep} />
           </div>
 
           {/* Arrow down */}
@@ -4160,13 +4130,13 @@ function V2Process() {
 
           {/* Row 2: Merge and Output */}
           <div className="flex items-center gap-2 text-xs">
-            <V2StepBox step={8} label="V2 Taxonomy" subtitle="234 niches" bgClass="bg-indigo-950" borderClass="border-indigo-800" textClass="text-indigo-300" subtitleClass="text-indigo-400" />
+            <ProcessStepBox step={8} label="V2 Taxonomy" subtitle="234 niches" bgClass="bg-indigo-950" borderClass="border-indigo-800" textClass="text-indigo-300" subtitleClass="text-indigo-400" onSelect={setSelectedStep} />
             <span className="text-gray-500">←</span>
-            <V2StepBox step={7} label="LLM Naming" subtitle="25 new niches" bgClass="bg-yellow-950" borderClass="border-yellow-800" textClass="text-yellow-300" subtitleClass="text-yellow-400" />
+            <ProcessStepBox step={7} label="LLM Naming" subtitle="25 new niches" bgClass="bg-yellow-950" borderClass="border-yellow-800" textClass="text-yellow-300" subtitleClass="text-yellow-400" onSelect={setSelectedStep} />
             <span className="text-gray-500">←</span>
-            <V2StepBox step={6} label="Cross-Validate" subtitle="A + B merge" bgClass="bg-green-950" borderClass="border-green-800" textClass="text-green-300" subtitleClass="text-green-400" />
+            <ProcessStepBox step={6} label="Cross-Validate" subtitle="A + B merge" bgClass="bg-green-950" borderClass="border-green-800" textClass="text-green-300" subtitleClass="text-green-400" onSelect={setSelectedStep} />
             <span className="text-gray-500">←</span>
-            <V2StepBox step={5} label="V1 Taxonomy" subtitle="209 niches" bgClass="bg-gray-800" borderClass="border-gray-700" textClass="text-gray-300" subtitleClass="text-gray-500" />
+            <ProcessStepBox step={5} label="V1 Taxonomy" subtitle="209 niches" bgClass="bg-gray-800" borderClass="border-gray-700" textClass="text-gray-300" subtitleClass="text-gray-500" onSelect={setSelectedStep} />
           </div>
 
           {/* Arrow down */}
@@ -4176,7 +4146,7 @@ function V2Process() {
 
           {/* Row 3: Classifier */}
           <div className="flex items-center gap-2 text-xs">
-            <V2StepBox step={9} label="V2 Classifier" subtitle="hybrid matching" bgClass="bg-pink-950" borderClass="border-pink-800" textClass="text-pink-300" subtitleClass="text-pink-400" />
+            <ProcessStepBox step={9} label="V2 Classifier" subtitle="hybrid matching" bgClass="bg-pink-950" borderClass="border-pink-800" textClass="text-pink-300" subtitleClass="text-pink-400" onSelect={setSelectedStep} />
             <div className="flex-1 flex items-center gap-2 ml-2">
               <span className="text-[10px] text-gray-500 bg-gray-800 rounded px-2 py-1">embedding similarity + hashtag boost</span>
               <span className="text-gray-600">→</span>
@@ -5318,32 +5288,6 @@ function V3Process() {
   const [selectedStep, setSelectedStep] = useState<number | null>(null)
   const [eli5Mode, setEli5Mode] = useState(false)
 
-  const V3StepBox = ({
-    step,
-    label,
-    subtitle,
-    bgClass,
-    borderClass,
-    textClass,
-    subtitleClass,
-  }: {
-    step: number
-    label: string
-    subtitle: string
-    bgClass: string
-    borderClass: string
-    textClass: string
-    subtitleClass: string
-  }) => (
-    <button
-      onClick={() => setSelectedStep(step)}
-      className={`flex-1 ${bgClass} border ${borderClass} rounded-lg p-3 text-center cursor-pointer hover:opacity-80 transition-opacity`}
-    >
-      <div className={`${textClass} font-medium text-xs`}>{label}</div>
-      <div className={`text-[10px] ${subtitleClass} mt-1`}>{subtitle}</div>
-    </button>
-  )
-
   return (
     <>
       {/* Modal */}
@@ -5517,13 +5461,13 @@ function V3Process() {
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
           {/* Row 1: V2 Base + Analyze */}
           <div className="flex items-center gap-2 text-xs mb-3">
-            <V3StepBox step={1} label="V2 Taxonomy" subtitle="234 niches" bgClass="bg-gray-800" borderClass="border-gray-700" textClass="text-gray-300" subtitleClass="text-gray-500" />
+            <ProcessStepBox step={1} label="V2 Taxonomy" subtitle="234 niches" bgClass="bg-gray-800" borderClass="border-gray-700" textClass="text-gray-300" subtitleClass="text-gray-500" onSelect={setSelectedStep} />
             <span className="text-gray-500">→</span>
-            <V3StepBox step={2} label="Analyze Niches" subtitle="100 candidates" bgClass="bg-blue-950" borderClass="border-blue-800" textClass="text-blue-300" subtitleClass="text-blue-400" />
+            <ProcessStepBox step={2} label="Analyze Niches" subtitle="100 candidates" bgClass="bg-blue-950" borderClass="border-blue-800" textClass="text-blue-300" subtitleClass="text-blue-400" onSelect={setSelectedStep} />
             <span className="text-gray-500">→</span>
-            <V3StepBox step={3} label="LLM Breakdown" subtitle="400 suggestions" bgClass="bg-purple-950" borderClass="border-purple-800" textClass="text-purple-300" subtitleClass="text-purple-400" />
+            <ProcessStepBox step={3} label="LLM Breakdown" subtitle="400 suggestions" bgClass="bg-purple-950" borderClass="border-purple-800" textClass="text-purple-300" subtitleClass="text-purple-400" onSelect={setSelectedStep} />
             <span className="text-gray-500">→</span>
-            <V3StepBox step={4} label="Validate" subtitle="89.8% pass" bgClass="bg-green-950" borderClass="border-green-800" textClass="text-green-300" subtitleClass="text-green-400" />
+            <ProcessStepBox step={4} label="Validate" subtitle="89.8% pass" bgClass="bg-green-950" borderClass="border-green-800" textClass="text-green-300" subtitleClass="text-green-400" onSelect={setSelectedStep} />
           </div>
 
           {/* Arrow down */}
@@ -5533,13 +5477,13 @@ function V3Process() {
 
           {/* Row 2: Merge and Output */}
           <div className="flex items-center gap-2 text-xs">
-            <V3StepBox step={8} label="Evaluate" subtitle="90.2/100" bgClass="bg-yellow-950" borderClass="border-yellow-800" textClass="text-yellow-300" subtitleClass="text-yellow-400" />
+            <ProcessStepBox step={8} label="Evaluate" subtitle="90.2/100" bgClass="bg-yellow-950" borderClass="border-yellow-800" textClass="text-yellow-300" subtitleClass="text-yellow-400" onSelect={setSelectedStep} />
             <span className="text-gray-500">←</span>
-            <V3StepBox step={7} label="V3 Classifier" subtitle="+ sub-niche" bgClass="bg-pink-950" borderClass="border-pink-800" textClass="text-pink-300" subtitleClass="text-pink-400" />
+            <ProcessStepBox step={7} label="V3 Classifier" subtitle="+ sub-niche" bgClass="bg-pink-950" borderClass="border-pink-800" textClass="text-pink-300" subtitleClass="text-pink-400" onSelect={setSelectedStep} />
             <span className="text-gray-500">←</span>
-            <V3StepBox step={6} label="V3 Taxonomy" subtitle="593 niches" bgClass="bg-indigo-950" borderClass="border-indigo-800" textClass="text-indigo-300" subtitleClass="text-indigo-400" />
+            <ProcessStepBox step={6} label="V3 Taxonomy" subtitle="593 niches" bgClass="bg-indigo-950" borderClass="border-indigo-800" textClass="text-indigo-300" subtitleClass="text-indigo-400" onSelect={setSelectedStep} />
             <span className="text-gray-500">←</span>
-            <V3StepBox step={5} label="Merge" subtitle="234 + 359" bgClass="bg-green-950" borderClass="border-green-800" textClass="text-green-300" subtitleClass="text-green-400" />
+            <ProcessStepBox step={5} label="Merge" subtitle="234 + 359" bgClass="bg-green-950" borderClass="border-green-800" textClass="text-green-300" subtitleClass="text-green-400" onSelect={setSelectedStep} />
           </div>
 
           {/* Legend */}
@@ -6635,32 +6579,6 @@ function V4Process() {
     },
   }
 
-  const V4StepBox = ({
-    step,
-    label,
-    subtitle,
-    bgClass,
-    borderClass,
-    textClass,
-    subtitleClass,
-  }: {
-    step: number
-    label: string
-    subtitle: string
-    bgClass: string
-    borderClass: string
-    textClass: string
-    subtitleClass: string
-  }) => (
-    <button
-      onClick={() => setSelectedStep(step)}
-      className={`flex-1 ${bgClass} border ${borderClass} rounded-lg p-3 text-center cursor-pointer hover:opacity-80 transition-opacity`}
-    >
-      <div className={`${textClass} font-medium text-xs`}>{label}</div>
-      <div className={`text-[10px] ${subtitleClass} mt-1`}>{subtitle}</div>
-    </button>
-  )
-
   return (
     <>
       {/* Modal */}
@@ -6826,13 +6744,13 @@ function V4Process() {
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
           {/* Row 1: V3 Base + Analyze */}
           <div className="flex items-center gap-2 text-xs mb-3">
-            <V4StepBox step={1} label="V3 Taxonomy" subtitle="593 niches" bgClass="bg-gray-800" borderClass="border-gray-700" textClass="text-gray-300" subtitleClass="text-gray-500" />
+            <ProcessStepBox step={1} label="V3 Taxonomy" subtitle="593 niches" bgClass="bg-gray-800" borderClass="border-gray-700" textClass="text-gray-300" subtitleClass="text-gray-500" onSelect={setSelectedStep} />
             <span className="text-gray-500">→</span>
-            <V4StepBox step={2} label="Analyze ALL" subtitle="121 candidates" bgClass="bg-blue-950" borderClass="border-blue-800" textClass="text-blue-300" subtitleClass="text-blue-400" />
+            <ProcessStepBox step={2} label="Analyze ALL" subtitle="121 candidates" bgClass="bg-blue-950" borderClass="border-blue-800" textClass="text-blue-300" subtitleClass="text-blue-400" onSelect={setSelectedStep} />
             <span className="text-gray-500">→</span>
-            <V4StepBox step={3} label="Full LLM" subtitle="484 suggestions" bgClass="bg-emerald-950" borderClass="border-emerald-800" textClass="text-emerald-300" subtitleClass="text-emerald-400" />
+            <ProcessStepBox step={3} label="Full LLM" subtitle="484 suggestions" bgClass="bg-emerald-950" borderClass="border-emerald-800" textClass="text-emerald-300" subtitleClass="text-emerald-400" onSelect={setSelectedStep} />
             <span className="text-gray-500">→</span>
-            <V4StepBox step={4} label="Validate" subtitle="91.3% pass" bgClass="bg-green-950" borderClass="border-green-800" textClass="text-green-300" subtitleClass="text-green-400" />
+            <ProcessStepBox step={4} label="Validate" subtitle="91.3% pass" bgClass="bg-green-950" borderClass="border-green-800" textClass="text-green-300" subtitleClass="text-green-400" onSelect={setSelectedStep} />
           </div>
 
           {/* Arrow down */}
@@ -6842,13 +6760,13 @@ function V4Process() {
 
           {/* Row 2: Merge and Output */}
           <div className="flex items-center gap-2 text-xs">
-            <V4StepBox step={8} label="Evaluate" subtitle="87.7/100" bgClass="bg-yellow-950" borderClass="border-yellow-800" textClass="text-yellow-300" subtitleClass="text-yellow-400" />
+            <ProcessStepBox step={8} label="Evaluate" subtitle="87.7/100" bgClass="bg-yellow-950" borderClass="border-yellow-800" textClass="text-yellow-300" subtitleClass="text-yellow-400" onSelect={setSelectedStep} />
             <span className="text-gray-500">←</span>
-            <V4StepBox step={7} label="V4 Classifier" subtitle="+ sub-niche" bgClass="bg-pink-950" borderClass="border-pink-800" textClass="text-pink-300" subtitleClass="text-pink-400" />
+            <ProcessStepBox step={7} label="V4 Classifier" subtitle="+ sub-niche" bgClass="bg-pink-950" borderClass="border-pink-800" textClass="text-pink-300" subtitleClass="text-pink-400" onSelect={setSelectedStep} />
             <span className="text-gray-500">←</span>
-            <V4StepBox step={6} label="V4 Taxonomy" subtitle="676 niches" bgClass="bg-indigo-950" borderClass="border-indigo-800" textClass="text-indigo-300" subtitleClass="text-indigo-400" />
+            <ProcessStepBox step={6} label="V4 Taxonomy" subtitle="676 niches" bgClass="bg-indigo-950" borderClass="border-indigo-800" textClass="text-indigo-300" subtitleClass="text-indigo-400" onSelect={setSelectedStep} />
             <span className="text-gray-500">←</span>
-            <V4StepBox step={5} label="Merge" subtitle="234 + 442" bgClass="bg-green-950" borderClass="border-green-800" textClass="text-green-300" subtitleClass="text-green-400" />
+            <ProcessStepBox step={5} label="Merge" subtitle="234 + 442" bgClass="bg-green-950" borderClass="border-green-800" textClass="text-green-300" subtitleClass="text-green-400" onSelect={setSelectedStep} />
           </div>
 
           {/* Legend */}
@@ -9666,21 +9584,6 @@ Return JSON:
     },
   }
 
-  const V6StepBox = ({
-    step, label, subtitle, bgClass, borderClass, textClass, subtitleClass,
-  }: {
-    step: number; label: string; subtitle: string
-    bgClass: string; borderClass: string; textClass: string; subtitleClass: string
-  }) => (
-    <button
-      onClick={() => setSelectedStep(step)}
-      className={`flex-1 ${bgClass} border ${borderClass} rounded-lg p-3 text-center cursor-pointer hover:opacity-80 transition-opacity`}
-    >
-      <div className={`${textClass} font-medium text-xs`}>{label}</div>
-      <div className={`text-[10px] ${subtitleClass} mt-1`}>{subtitle}</div>
-    </button>
-  )
-
   return (
     <>
       {/* Step Detail Modal */}
@@ -9837,13 +9740,13 @@ Return JSON:
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
           {/* Row 1: Sources */}
           <div className="flex items-center gap-2 text-xs mb-3">
-            <V6StepBox step={1} label="YouTube V6 New" subtitle="3,389 shorts" bgClass="bg-orange-950" borderClass="border-orange-800" textClass="text-orange-300" subtitleClass="text-orange-400" />
+            <ProcessStepBox step={1} label="YouTube V6 New" subtitle="3,389 shorts" bgClass="bg-orange-950" borderClass="border-orange-800" textClass="text-orange-300" subtitleClass="text-orange-400" onSelect={setSelectedStep} />
             <span className="text-gray-500">+</span>
-            <V6StepBox step={2} label="V5 Merged Base" subtitle="6,976 videos" bgClass="bg-gray-800" borderClass="border-gray-700" textClass="text-gray-300" subtitleClass="text-gray-500" />
+            <ProcessStepBox step={2} label="V5 Merged Base" subtitle="6,976 videos" bgClass="bg-gray-800" borderClass="border-gray-700" textClass="text-gray-300" subtitleClass="text-gray-500" onSelect={setSelectedStep} />
             <span className="text-gray-500">→</span>
-            <V6StepBox step={2} label="Combined Corpus" subtitle="10,365 videos" bgClass="bg-blue-950" borderClass="border-blue-800" textClass="text-blue-300" subtitleClass="text-blue-400" />
+            <ProcessStepBox step={2} label="Combined Corpus" subtitle="10,365 videos" bgClass="bg-blue-950" borderClass="border-blue-800" textClass="text-blue-300" subtitleClass="text-blue-400" onSelect={setSelectedStep} />
             <span className="text-gray-500">→</span>
-            <V6StepBox step={3} label="Embeddings" subtitle="1536-dim" bgClass="bg-emerald-950" borderClass="border-emerald-800" textClass="text-emerald-300" subtitleClass="text-emerald-400" />
+            <ProcessStepBox step={3} label="Embeddings" subtitle="1536-dim" bgClass="bg-emerald-950" borderClass="border-emerald-800" textClass="text-emerald-300" subtitleClass="text-emerald-400" onSelect={setSelectedStep} />
           </div>
 
           {/* Arrow down */}
@@ -9853,13 +9756,13 @@ Return JSON:
 
           {/* Row 2: Cluster → Name → Output */}
           <div className="flex items-center gap-2 text-xs">
-            <V6StepBox step={8} label="V6 Classifier" subtitle="cosine + boost" bgClass="bg-cyan-950" borderClass="border-cyan-800" textClass="text-cyan-300" subtitleClass="text-cyan-400" />
+            <ProcessStepBox step={8} label="V6 Classifier" subtitle="cosine + boost" bgClass="bg-cyan-950" borderClass="border-cyan-800" textClass="text-cyan-300" subtitleClass="text-cyan-400" onSelect={setSelectedStep} />
             <span className="text-gray-500">←</span>
-            <V6StepBox step={7} label="V6 Taxonomy" subtitle="542 niches" bgClass="bg-violet-950" borderClass="border-violet-800" textClass="text-violet-300" subtitleClass="text-violet-400" />
+            <ProcessStepBox step={7} label="V6 Taxonomy" subtitle="542 niches" bgClass="bg-violet-950" borderClass="border-violet-800" textClass="text-violet-300" subtitleClass="text-violet-400" onSelect={setSelectedStep} />
             <span className="text-gray-500">←</span>
-            <V6StepBox step={5} label="GPT-4o-mini" subtitle="name niches" bgClass="bg-pink-950" borderClass="border-pink-800" textClass="text-pink-300" subtitleClass="text-pink-400" />
+            <ProcessStepBox step={5} label="GPT-4o-mini" subtitle="name niches" bgClass="bg-pink-950" borderClass="border-pink-800" textClass="text-pink-300" subtitleClass="text-pink-400" onSelect={setSelectedStep} />
             <span className="text-gray-500">←</span>
-            <V6StepBox step={4} label="4-Level Cluster" subtitle="25→sub→HDBSCAN→split" bgClass="bg-yellow-950" borderClass="border-yellow-800" textClass="text-yellow-300" subtitleClass="text-yellow-400" />
+            <ProcessStepBox step={4} label="4-Level Cluster" subtitle="25→sub→HDBSCAN→split" bgClass="bg-yellow-950" borderClass="border-yellow-800" textClass="text-yellow-300" subtitleClass="text-yellow-400" onSelect={setSelectedStep} />
           </div>
 
           {/* Legend */}
