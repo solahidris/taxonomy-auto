@@ -1,4 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/router'
 
 type Niche = {
   id: string
@@ -8331,13 +8333,115 @@ function V5Process() {
 // V6 Demo Component
 // ============================================================================
 function V6Demo({ v6Taxonomy }: { v6Taxonomy: V6TaxonomyData | null }) {
-  const [tab, setTab] = useState<'classify' | 'overview' | 'browse'>('classify')
+  const [tab, setTab] = useState<'classify' | 'lookup' | 'batch' | 'overview' | 'browse'>('classify')
   const [text, setText] = useState('')
   const [result, setResult] = useState<V6ClassifyResult | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [expandedCats, setExpandedCats] = useState<Set<string>>(new Set())
   const [expandedSubcats, setExpandedSubcats] = useState<Set<string>>(new Set())
+
+  // Creator lookup state
+  const [handle, setHandle] = useState('')
+  const [lookupResult, setLookupResult] = useState<{
+    creator: { handle: string; channel_title: string; channel_id: string; description: string; thumbnail: string; videos_analyzed: number }
+    classification: V6ClassifyResult
+  } | null>(null)
+  const [lookupLoading, setLookupLoading] = useState(false)
+  const [lookupError, setLookupError] = useState('')
+
+  // Batch state
+  const [batchText, setBatchText] = useState('')
+  const [batchResults, setBatchResults] = useState<Array<{
+    id: string; classification: V6ClassifyResult | null; error?: string
+  }> | null>(null)
+  const [batchLoading, setBatchLoading] = useState(false)
+  const [batchError, setBatchError] = useState('')
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const lookupCreator = async () => {
+    if (!handle.trim() || lookupLoading) return
+    setLookupLoading(true)
+    setLookupError('')
+    setLookupResult(null)
+    try {
+      const r = await fetch('/api/creator/lookup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ handle }),
+      })
+      const d = await r.json()
+      if (d.error) setLookupError(d.error)
+      else setLookupResult(d)
+    } catch {
+      setLookupError('Lookup failed')
+    } finally {
+      setLookupLoading(false)
+    }
+  }
+
+  const parseCsv = (csv: string): Array<{ id: string; text: string }> => {
+    const lines = csv.trim().split('\n')
+    if (!lines.length) return []
+    const header = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/"/g, ''))
+    const idIdx = header.findIndex(h => ['id', 'handle', 'name'].includes(h))
+    const textIdx = header.findIndex(h => ['text', 'bio', 'caption', 'description'].includes(h))
+    if (textIdx === -1) {
+      // No header — treat each line as text
+      return lines.map((l, i) => ({ id: String(i + 1), text: l.replace(/"/g, '').trim() }))
+    }
+    return lines.slice(1).filter(l => l.trim()).map((line, i) => {
+      const cols = line.split(',').map(c => c.trim().replace(/^"|"$/g, ''))
+      return {
+        id: idIdx >= 0 ? cols[idIdx] || String(i + 1) : String(i + 1),
+        text: cols[textIdx] || '',
+      }
+    })
+  }
+
+  const runBatch = async () => {
+    const rows = parseCsv(batchText)
+    if (!rows.length) { setBatchError('No valid rows found'); return }
+    if (rows.length > 200) { setBatchError('Maximum 200 rows'); return }
+    setBatchLoading(true)
+    setBatchError('')
+    setBatchResults(null)
+    try {
+      const r = await fetch('/api/v6/batch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rows }),
+      })
+      const d = await r.json()
+      if (d.error) setBatchError(d.error)
+      else setBatchResults(d.results)
+    } catch {
+      setBatchError('Batch classification failed')
+    } finally {
+      setBatchLoading(false)
+    }
+  }
+
+  const downloadBatchCsv = () => {
+    if (!batchResults) return
+    const lines = ['id,niche,category,subcategory,confidence,status']
+    for (const row of batchResults) {
+      const p = row.classification?.primary_niche
+      lines.push([
+        row.id,
+        p?.niche_name ?? '',
+        p?.category ?? '',
+        p?.subcategory ?? '',
+        p?.confidence ?? '',
+        row.classification?.classification_status ?? (row.error ? 'ERROR' : ''),
+      ].map(v => `"${v}"`).join(','))
+    }
+    const blob = new Blob([lines.join('\n')], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url; a.download = 'niche_classifications.csv'; a.click()
+    URL.revokeObjectURL(url)
+  }
 
   const classify = async () => {
     if (!text.trim() || loading) return
@@ -8397,15 +8501,21 @@ function V6Demo({ v6Taxonomy }: { v6Taxonomy: V6TaxonomyData | null }) {
     <div>
       {/* Sub-tabs */}
       <div className="flex gap-1 mb-6">
-        {(['classify', 'overview', 'browse'] as const).map(t => (
+        {([
+          { key: 'classify', label: 'Classify' },
+          { key: 'lookup', label: 'Creator Lookup' },
+          { key: 'batch', label: 'Batch CSV' },
+          { key: 'overview', label: 'Overview' },
+          { key: 'browse', label: 'Browse' },
+        ] as const).map(t => (
           <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all capitalize ${
-              tab === t ? 'bg-gray-700 text-white' : 'text-gray-400 hover:text-gray-200'
+            key={t.key}
+            onClick={() => setTab(t.key)}
+            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
+              tab === t.key ? 'bg-gray-700 text-white' : 'text-gray-400 hover:text-gray-200'
             }`}
           >
-            {t}
+            {t.label}
           </button>
         ))}
       </div>
@@ -8565,6 +8675,238 @@ function V6Demo({ v6Taxonomy }: { v6Taxonomy: V6TaxonomyData | null }) {
                   <span>Indexed: {result.stats.total_videos_indexed.toLocaleString()} videos</span>
                   <span>Close matches: {result.stats.num_close_matches}</span>
                 </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Creator Lookup Tab */}
+      {tab === 'lookup' && (
+        <div className="space-y-6">
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+            <h3 className="text-sm font-semibold text-white mb-1">Creator Lookup</h3>
+            <p className="text-xs text-gray-500 mb-4">
+              Enter a YouTube channel handle or name — we&apos;ll fetch their recent videos and classify them automatically.
+            </p>
+            <div className="flex gap-2">
+              <input
+                value={handle}
+                onChange={e => setHandle(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && lookupCreator()}
+                placeholder="e.g. @mkbhd or MrBeast or youtube.com/@veritasium"
+                className="flex-1 bg-gray-950 border border-gray-700 rounded-lg px-4 py-2.5 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-violet-600"
+              />
+              <button
+                onClick={lookupCreator}
+                disabled={lookupLoading || !handle.trim()}
+                className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all shrink-0 ${
+                  lookupLoading || !handle.trim()
+                    ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
+                    : 'bg-violet-600 text-white hover:bg-violet-500'
+                }`}
+              >
+                {lookupLoading ? 'Looking up…' : 'Look Up'}
+              </button>
+            </div>
+            {lookupLoading && (
+              <p className="text-xs text-gray-500 mt-3">Fetching recent videos and classifying… (~10 seconds)</p>
+            )}
+          </div>
+
+          {lookupError && (
+            <div className="bg-red-950/50 border border-red-800/50 rounded-xl p-4 text-sm text-red-200">{lookupError}</div>
+          )}
+
+          {lookupResult && (
+            <div className="space-y-4">
+              {/* Creator Info */}
+              <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 flex items-center gap-4">
+                {lookupResult.creator.thumbnail && (
+                  <img src={lookupResult.creator.thumbnail} alt="" className="w-14 h-14 rounded-full object-cover shrink-0" />
+                )}
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold text-white">{lookupResult.creator.channel_title}</div>
+                  <div className="text-xs text-gray-500 mt-0.5">@{lookupResult.creator.handle}</div>
+                  {lookupResult.creator.description && (
+                    <div className="text-xs text-gray-600 mt-1 truncate">{lookupResult.creator.description}</div>
+                  )}
+                </div>
+                <div className="text-right shrink-0">
+                  <div className="text-xs text-gray-500">Videos analyzed</div>
+                  <div className="text-lg font-bold text-violet-400">{lookupResult.creator.videos_analyzed}</div>
+                </div>
+              </div>
+
+              {/* Classification Result */}
+              <div className={`rounded-xl p-4 ${
+                lookupResult.classification.classification_status === 'HIGH_CONFIDENCE'
+                  ? 'bg-emerald-950/50 border border-emerald-800/50'
+                  : lookupResult.classification.classification_status === 'MODERATE'
+                  ? 'bg-yellow-950/50 border border-yellow-800/50'
+                  : 'bg-orange-950/50 border border-orange-800/50'
+              }`}>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className={`text-xs font-bold px-2 py-0.5 rounded ${
+                    lookupResult.classification.classification_status === 'HIGH_CONFIDENCE'
+                      ? 'bg-emerald-600 text-white'
+                      : lookupResult.classification.classification_status === 'MODERATE'
+                      ? 'bg-yellow-600 text-black'
+                      : 'bg-orange-600 text-white'
+                  }`}>{lookupResult.classification.classification_status}</span>
+                </div>
+                <p className="text-sm text-gray-300">{lookupResult.classification.status_message}</p>
+              </div>
+
+              {lookupResult.classification.primary_niche && (
+                <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+                  <div className="text-xs text-gray-500 uppercase tracking-wide mb-3">Primary Niche</div>
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <div className="font-semibold text-white text-lg">{lookupResult.classification.primary_niche.niche_name}</div>
+                      <div className="text-xs text-gray-500 mt-1">{lookupResult.classification.primary_niche.hierarchy}</div>
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {lookupResult.classification.primary_niche.top_hashtags.map(tag => (
+                          <span key={tag} className="text-xs bg-gray-800 text-gray-500 rounded px-1.5 py-0.5">#{tag}</span>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <div className="text-2xl font-bold text-violet-400">{lookupResult.classification.primary_niche.confidence}%</div>
+                      <div className="text-xs text-gray-600">confidence</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {lookupResult.classification.all_matches.length > 1 && (
+                <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+                  <div className="text-xs text-gray-500 uppercase tracking-wide mb-3">All Matches</div>
+                  <div className="space-y-2">
+                    {lookupResult.classification.all_matches.map(m => (
+                      <div key={m.niche_id} className="flex items-center gap-3 text-sm">
+                        <span className="text-gray-600 font-mono text-xs w-4">#{m.rank}</span>
+                        <div className="flex-1">
+                          <span className="text-gray-300">{m.niche_name}</span>
+                          <span className="text-gray-600 text-xs ml-2">{m.category}</span>
+                        </div>
+                        <span className="text-violet-400 font-medium">{m.confidence}%</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Batch CSV Tab */}
+      {tab === 'batch' && (
+        <div className="space-y-6">
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+            <h3 className="text-sm font-semibold text-white mb-1">Batch Classification</h3>
+            <p className="text-xs text-gray-500 mb-4">
+              Paste CSV content (max 200 rows). Columns: <code className="text-violet-400">id</code> (optional) and <code className="text-violet-400">text</code> or <code className="text-violet-400">bio</code>. Or paste one creator bio per line.
+            </p>
+            <textarea
+              value={batchText}
+              onChange={e => setBatchText(e.target.value)}
+              placeholder={`id,text\ncreator1,"Daily budget recipes under $5 #mealprep #budgetcooking"\ncreator2,"Gaming highlights and tutorials #gaming #fps"`}
+              className="w-full h-40 bg-gray-950 border border-gray-700 rounded-lg px-4 py-3 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-violet-600 resize-none font-mono text-xs"
+            />
+            <div className="flex items-center justify-between mt-3">
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="text-xs text-gray-400 hover:text-gray-200 px-3 py-1.5 bg-gray-800 rounded-lg transition-colors"
+                >
+                  Upload CSV
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".csv,.txt"
+                  className="hidden"
+                  onChange={e => {
+                    const file = e.target.files?.[0]
+                    if (!file) return
+                    const reader = new FileReader()
+                    reader.onload = ev => setBatchText(ev.target?.result as string)
+                    reader.readAsText(file)
+                  }}
+                />
+                <span className="text-xs text-gray-600">
+                  {batchText ? `${parseCsv(batchText).length} rows parsed` : 'No data'}
+                </span>
+              </div>
+              <button
+                onClick={runBatch}
+                disabled={batchLoading || !batchText.trim()}
+                className={`px-5 py-2 rounded-lg text-sm font-medium transition-all ${
+                  batchLoading || !batchText.trim()
+                    ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
+                    : 'bg-violet-600 text-white hover:bg-violet-500'
+                }`}
+              >
+                {batchLoading ? 'Classifying…' : 'Classify All'}
+              </button>
+            </div>
+          </div>
+
+          {batchError && (
+            <div className="bg-red-950/50 border border-red-800/50 rounded-xl p-4 text-sm text-red-200">{batchError}</div>
+          )}
+
+          {batchResults && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-gray-400">
+                  <span className="text-emerald-400 font-medium">{batchResults.filter(r => r.classification).length}</span> classified ·{' '}
+                  <span className="text-red-400 font-medium">{batchResults.filter(r => !r.classification).length}</span> failed
+                </div>
+                <button
+                  onClick={downloadBatchCsv}
+                  className="text-xs text-violet-400 hover:text-violet-300 px-3 py-1.5 bg-violet-950/30 border border-violet-800/50 rounded-lg transition-colors"
+                >
+                  Download CSV
+                </button>
+              </div>
+              <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+                <table className="w-full text-xs">
+                  <thead className="bg-gray-800">
+                    <tr>
+                      <th className="px-3 py-2 text-left text-gray-400">ID</th>
+                      <th className="px-3 py-2 text-left text-gray-400">Niche</th>
+                      <th className="px-3 py-2 text-left text-gray-400">Category</th>
+                      <th className="px-3 py-2 text-center text-gray-400 w-20">Confidence</th>
+                      <th className="px-3 py-2 text-center text-gray-400 w-24">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-800">
+                    {batchResults.map(row => {
+                      const p = row.classification?.primary_niche
+                      const s = row.classification?.classification_status
+                      return (
+                        <tr key={row.id}>
+                          <td className="px-3 py-2 text-gray-500 font-mono">{row.id}</td>
+                          <td className="px-3 py-2 text-gray-300">{p?.niche_name ?? <span className="text-red-400">{row.error ?? 'failed'}</span>}</td>
+                          <td className="px-3 py-2 text-gray-500">{p?.category ?? '—'}</td>
+                          <td className="px-3 py-2 text-center text-violet-400">{p ? `${p.confidence}%` : '—'}</td>
+                          <td className="px-3 py-2 text-center">
+                            {s && (
+                              <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                                s === 'HIGH_CONFIDENCE' ? 'bg-emerald-900/50 text-emerald-400' :
+                                s === 'MODERATE' ? 'bg-yellow-900/50 text-yellow-400' :
+                                'bg-orange-900/50 text-orange-400'
+                              }`}>{s === 'HIGH_CONFIDENCE' ? 'HIGH' : s === 'MODERATE' ? 'MED' : 'LOW'}</span>
+                            )}
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
               </div>
             </div>
           )}
@@ -9434,9 +9776,17 @@ Return JSON:
 // Main App Component
 // ============================================================================
 export default function Home() {
+  const router = useRouter()
   const [taxonomy, setTaxonomy] = useState<Taxonomy | null>(null)
   const [taxError, setTaxError] = useState('')
   const [version, setVersion] = useState<'v0' | 'v1' | 'v2' | 'v3' | 'v4' | 'v5' | 'v6'>('v0')
+
+  useEffect(() => {
+    const v = router.query.v
+    if (v && ['v0', 'v1', 'v2', 'v3', 'v4', 'v5', 'v6'].includes(v as string)) {
+      setVersion(v as 'v0' | 'v1' | 'v2' | 'v3' | 'v4' | 'v5' | 'v6')
+    }
+  }, [router.query.v])
   const [v0Page, setV0Page] = useState<'demo' | 'process'>('demo')
   const [v1Page, setV1Page] = useState<'demo' | 'process'>('demo')
   const [v2Page, setV2Page] = useState<'demo' | 'process'>('demo')
@@ -9501,20 +9851,29 @@ export default function Home() {
                 : 'Loading...'}
             </p>
           </div>
-          {/* Version Tabs */}
-          <nav className="flex gap-1 bg-gray-900 rounded-lg p-1">
-            {(['v0', 'v1', 'v2', 'v3', 'v4', 'v5', 'v6'] as const).map(v => (
-              <button
-                key={v}
-                onClick={() => setVersion(v)}
-                className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all uppercase ${
-                  version === v ? 'bg-indigo-600 text-white shadow' : 'text-gray-400 hover:text-gray-200'
-                }`}
-              >
-                {v}
-              </button>
-            ))}
-          </nav>
+          <div className="flex items-center gap-3">
+            {/* Version Tabs */}
+            <nav className="flex gap-1 bg-gray-900 rounded-lg p-1">
+              {(['v0', 'v1', 'v2', 'v3', 'v4', 'v5', 'v6'] as const).map(v => (
+                <button
+                  key={v}
+                  onClick={() => setVersion(v)}
+                  className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all uppercase ${
+                    version === v ? 'bg-indigo-600 text-white shadow' : 'text-gray-400 hover:text-gray-200'
+                  }`}
+                >
+                  {v}
+                </button>
+              ))}
+            </nav>
+            <Link
+              href="/setup"
+              className="px-3 py-1.5 rounded-md text-sm text-gray-400 hover:text-gray-200 hover:bg-gray-800 transition-all"
+              title="Setup & Pipeline Runner"
+            >
+              ⚙
+            </Link>
+          </div>
         </div>
       </header>
 

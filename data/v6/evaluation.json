@@ -1,0 +1,48 @@
+{
+  "version": "v6",
+  "total_niches": 542,
+  "total_categories": 25,
+  "total_subcategories": 149,
+  "total_videos": 10353,
+  "coverage": 1.0,
+  "gini_coefficient": 0.38342577137738926,
+  "niche_sizes": {
+    "max": 64,
+    "min": 5,
+    "median": 15,
+    "mean": 19.10147601476015
+  },
+  "category_distribution": {
+    "Home Fitness": 38,
+    "Strength & Conditioning": 33,
+    "Fitness Motivation": 26,
+    "Fitness & Weight Loss": 17,
+    "Skill Mastery": 24,
+    "Personal Development": 21,
+    "Yoga & Wellness": 25,
+    "Nutrition & Lifestyle": 12,
+    "Lifestyle & Culture": 24,
+    "Running & Fitness": 19,
+    "Automotive DIY": 17,
+    "Skincare & Beauty": 19,
+    "Meal Prep & Nutrition": 20,
+    "Quick Cooking": 24,
+    "Home & DIY": 19,
+    "Quick Meal Solutions": 36,
+    "Food & Travel": 27,
+    "Baking & Desserts": 24,
+    "Personal Finance": 19,
+    "Gaming Content": 14,
+    "Arts & Crafts": 20,
+    "Makeup & Beauty": 30,
+    "Pet Care": 13,
+    "Music Education": 11,
+    "Parenting & Development": 10
+  },
+  "scores": {
+    "coverage": 100,
+    "balance": 52.1,
+    "scale": 100,
+    "overall": 85.6
+  }
+}
