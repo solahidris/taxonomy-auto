@@ -55,8 +55,12 @@ def cluster_hdbscan(embeddings, indices, min_size=5):
     return {k: np.array(v) for k, v in result.items()}
 
 
-def make_cluster_data(indices, embeddings, metadata):
+def make_cluster_data(indices, embeddings, metadata, embeddings_raw=None):
     idxs = indices[:20]
+    # Store centroid in original embedding space (1536-dim) so the classify
+    # endpoint can compare directly against text-embedding-3-small query vectors.
+    # embeddings_raw is the pre-PCA array; fall back to embeddings if not provided.
+    centroid_source = embeddings_raw if embeddings_raw is not None else embeddings
     return {
         "indices": [int(i) for i in indices],
         "count": len(indices),
@@ -69,7 +73,7 @@ def make_cluster_data(indices, embeddings, metadata):
             metadata[i].get("author", "") for i in indices[:20]
             if i < len(metadata) and metadata[i].get("author")
         })[:10],
-        "centroid": embeddings[indices].mean(axis=0).tolist(),
+        "centroid": centroid_source[indices].mean(axis=0).tolist(),
     }
 
 
@@ -120,13 +124,13 @@ def main():
                     for split_id, split_indices in splits.items():
                         if len(split_indices) >= MIN_MICRO_SIZE:
                             niche_id = f"n{niche_counter}"
-                            clusters[niche_id] = make_cluster_data(split_indices, reduced, metadata)
+                            clusters[niche_id] = make_cluster_data(split_indices, reduced, metadata, embeddings_raw)
                             clusters[niche_id]["category_id"] = int(cat_id)
                             clusters[niche_id]["subcategory_id"] = int(subcat_id)
                             niche_counter += 1
                 else:
                     niche_id = f"n{niche_counter}"
-                    clusters[niche_id] = make_cluster_data(micro_indices, reduced, metadata)
+                    clusters[niche_id] = make_cluster_data(micro_indices, reduced, metadata, embeddings_raw)
                     clusters[niche_id]["category_id"] = int(cat_id)
                     clusters[niche_id]["subcategory_id"] = int(subcat_id)
                     niche_counter += 1
