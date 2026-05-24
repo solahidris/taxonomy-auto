@@ -32,23 +32,46 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const query = normalizeHandle(handle)
 
-  // Step 1: Find the channel
-  const channelSearch = await ytFetch('search', {
+  // Step 1: Resolve channel — try forHandle first (exact match), fall back to search
+  type ChannelSnippet = {
+    id: string
+    snippet: { title: string; description: string; thumbnails: { medium?: { url: string } } }
+  }
+
+  let channelId: string
+  let channelTitle: string
+  let channelDescription: string
+  let thumbnail: string
+
+  const handleResult = await ytFetch('channels', {
     part: 'snippet',
-    type: 'channel',
-    q: query,
+    forHandle: query,
     maxResults: '1',
   })
 
-  if (!channelSearch.items?.length) {
-    return res.status(404).json({ error: `No YouTube channel found for "${handle}"` })
+  if (handleResult.items?.length) {
+    const ch: ChannelSnippet = handleResult.items[0]
+    channelId = ch.id
+    channelTitle = ch.snippet.title
+    channelDescription = ch.snippet.description || ''
+    thumbnail = ch.snippet.thumbnails?.medium?.url || ''
+  } else {
+    // Fall back to text search (for channel names that aren't handles)
+    const searchResult = await ytFetch('search', {
+      part: 'snippet',
+      type: 'channel',
+      q: query,
+      maxResults: '1',
+    })
+    if (!searchResult.items?.length) {
+      return res.status(404).json({ error: `No YouTube channel found for "${handle}"` })
+    }
+    const ch = searchResult.items[0]
+    channelId = ch.snippet.channelId || ch.id?.channelId
+    channelTitle = ch.snippet.channelTitle
+    channelDescription = ch.snippet.description || ''
+    thumbnail = ch.snippet.thumbnails?.medium?.url || ''
   }
-
-  const channel = channelSearch.items[0]
-  const channelId: string = channel.snippet.channelId || channel.id?.channelId
-  const channelTitle: string = channel.snippet.channelTitle
-  const channelDescription: string = channel.snippet.description || ''
-  const thumbnail: string = channel.snippet.thumbnails?.medium?.url || ''
 
   // Step 2: Fetch recent videos
   const videoSearch = await ytFetch('search', {
