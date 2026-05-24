@@ -8333,7 +8333,7 @@ function V5Process() {
 // V6 Demo Component
 // ============================================================================
 function V6Demo({ v6Taxonomy }: { v6Taxonomy: V6TaxonomyData | null }) {
-  const [tab, setTab] = useState<'classify' | 'lookup' | 'batch' | 'overview' | 'browse' | 'tree' | 'graph'>('classify')
+  const [tab, setTab] = useState<'classify' | 'lookup' | 'batch' | 'overview' | 'browse' | 'tree' | 'graph' | 'reflect'>('classify')
   const [text, setText] = useState('')
   const [result, setResult] = useState<V6ClassifyResult | null>(null)
   const [loading, setLoading] = useState(false)
@@ -8509,6 +8509,7 @@ function V6Demo({ v6Taxonomy }: { v6Taxonomy: V6TaxonomyData | null }) {
           { key: 'browse', label: 'Browse' },
           { key: 'tree', label: 'Tree' },
           { key: 'graph', label: 'Graph' },
+          { key: 'reflect', label: '★ Reflect' },
         ] as const).map(t => (
           <button
             key={t.key}
@@ -8987,6 +8988,9 @@ function V6Demo({ v6Taxonomy }: { v6Taxonomy: V6TaxonomyData | null }) {
       {/* Graph Tab */}
       {tab === 'graph' && <V6GraphView v6Taxonomy={v6Taxonomy} />}
 
+      {/* Reflect Tab */}
+      {tab === 'reflect' && <V6ReflectView />}
+
       {/* Browse Tab */}
       {tab === 'browse' && (
         <div className="space-y-2">
@@ -9056,6 +9060,113 @@ function V6Demo({ v6Taxonomy }: { v6Taxonomy: V6TaxonomyData | null }) {
 }
 
 // ============================================================================
+// V6 Reflect View Component
+// ============================================================================
+function V6ReflectView() {
+  return (
+    <div className="max-w-3xl space-y-6">
+
+      {/* The question */}
+      <div className="bg-gradient-to-br from-violet-950/50 to-indigo-950/50 border border-violet-700/50 rounded-xl p-6">
+        <div className="text-xs text-violet-400 uppercase tracking-widest mb-3 font-medium">The core question</div>
+        <blockquote className="text-lg text-violet-100 leading-relaxed font-medium italic">
+          &ldquo;When in doubt, look at the output and ask: would this taxonomy actually help someone understand the creator landscape? If not, iterate.&rdquo;
+        </blockquote>
+      </div>
+
+      {/* Honest answer header */}
+      <div className="flex items-center gap-3">
+        <span className="text-2xl font-bold text-white">Honest answer:</span>
+        <span className="px-3 py-1 rounded-full text-sm font-semibold bg-yellow-900/40 border border-yellow-700/50 text-yellow-300">Partially — with a critical flaw</span>
+      </div>
+
+      {/* What works */}
+      <div className="bg-emerald-950/30 border border-emerald-800/40 rounded-xl p-5">
+        <h3 className="text-sm font-semibold text-emerald-300 mb-3 flex items-center gap-2">
+          <span className="text-emerald-400">✓</span> Where it works
+        </h3>
+        <p className="text-sm text-emerald-100/70 leading-relaxed">
+          For creators making content within the <strong className="text-emerald-200">15 categories we explicitly collected data from</strong> — gaming, travel, finance, cooking, fitness, parenting, automotive, sports, career, relationships, comedy, and others — the taxonomy surfaces real, specific niches. The hierarchy is clean, the pipeline reproduces at ~$0.31, and the classifier is fast.
+        </p>
+      </div>
+
+      {/* What breaks */}
+      <div className="bg-red-950/30 border border-red-800/40 rounded-xl p-5 space-y-3">
+        <h3 className="text-sm font-semibold text-red-300 mb-3 flex items-center gap-2">
+          <span className="text-red-400">✗</span> Where it breaks down
+        </h3>
+        <p className="text-sm text-red-100/70 leading-relaxed">
+          The taxonomy only reflects what we <em>searched for</em>, not what actually exists in the creator landscape. We chose 15 categories upfront, ran keyword queries, clustered the results, and called it a taxonomy.
+        </p>
+        <p className="text-sm text-red-100/70 leading-relaxed font-medium">
+          That is not bottom-up discovery — it is top-down confirmation.
+        </p>
+        <div className="bg-red-950/50 border border-red-800/30 rounded-lg p-4 mt-2">
+          <div className="text-xs text-red-400 font-mono mb-2">Real test — @solah (sneakers · streetwear · indie hacking)</div>
+          <div className="flex items-center gap-3 text-sm">
+            <span className="text-red-300">Got classified as:</span>
+            <span className="text-gray-400">&ldquo;Gamer Rage Reactions&rdquo;</span>
+            <span className="text-gray-600">·</span>
+            <span className="text-gray-400">&ldquo;Vegan Restaurant Reviews&rdquo;</span>
+            <span className="bg-red-900/50 text-red-400 px-2 py-0.5 rounded text-xs font-mono ml-auto">32% confidence</span>
+          </div>
+          <div className="text-xs text-red-400/60 mt-2">Wrong answers. With a confidence score. That&apos;s worse than &ldquo;no match found&rdquo; — it misleads.</div>
+        </div>
+      </div>
+
+      {/* The deeper problem */}
+      <div className="bg-orange-950/30 border border-orange-800/40 rounded-xl p-5">
+        <h3 className="text-sm font-semibold text-orange-300 mb-3">The deeper problem: sampling bias masquerading as discovery</h3>
+        <p className="text-sm text-orange-100/70 leading-relaxed">
+          A first-time user running creator lookup on almost anyone outside those 15 buckets gets garbage results — with no signal that anything is wrong. The system appears to work. The confidence scores look real. The niche names look plausible. But the taxonomy reflects <strong className="text-orange-200">our assumptions</strong>, not the data.
+        </p>
+      </div>
+
+      {/* What would actually answer yes */}
+      <div className="bg-gray-900 border border-gray-700 rounded-xl p-5">
+        <h3 className="text-sm font-semibold text-gray-200 mb-4">What would actually answer yes</h3>
+        <div className="space-y-3">
+          {[
+            { n: '1', title: 'Start from a random sample of creators', desc: 'Not category-specific keyword queries. Pull from trending, random, and long-tail channels so the data is representative of what actually exists.' },
+            { n: '2', title: 'Let the clusters tell you the categories', desc: 'Don\'t seed the search with categories you already assumed. Run clustering first, then name what you find. True bottom-up.' },
+            { n: '3', title: 'Validate against human judgement', desc: 'Hold out 10% of creators, have humans label their niche, check if the classifier agrees. Without this, you\'re grading your own homework.' },
+            { n: '4', title: 'Cover what\'s actually missing', desc: 'Fashion, beauty, tech/coding/startups, SEA-language content, news commentary, business/entrepreneurship — these are enormous creator categories that don\'t exist in V6.' },
+          ].map(item => (
+            <div key={item.n} className="flex gap-4">
+              <div className="w-6 h-6 rounded-full bg-violet-900/60 border border-violet-700/50 flex items-center justify-center text-xs text-violet-400 font-bold shrink-0 mt-0.5">{item.n}</div>
+              <div>
+                <div className="text-sm font-medium text-gray-200 mb-0.5">{item.title}</div>
+                <div className="text-xs text-gray-500 leading-relaxed">{item.desc}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Verdict */}
+      <div className="border border-gray-700 rounded-xl p-5">
+        <h3 className="text-sm font-semibold text-gray-300 mb-3">Verdict</h3>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-emerald-950/20 border border-emerald-800/30 rounded-lg p-3">
+            <div className="text-xs text-emerald-400 font-medium mb-1">As a pipeline demo</div>
+            <div className="text-2xl font-bold text-emerald-300">Yes ✓</div>
+            <div className="text-xs text-gray-500 mt-1">Reproducible, cheap, fast, clean UI, good architecture</div>
+          </div>
+          <div className="bg-red-950/20 border border-red-800/30 rounded-lg p-3">
+            <div className="text-xs text-red-400 font-medium mb-1">As a creator landscape tool</div>
+            <div className="text-2xl font-bold text-red-300">Not yet ✗</div>
+            <div className="text-xs text-gray-500 mt-1">Covers 15 assumed categories, fails silently outside them</div>
+          </div>
+        </div>
+        <p className="text-xs text-gray-600 mt-4 leading-relaxed italic">
+          It understands the 15 corners of the landscape we already knew existed before we started. To actually map the creator landscape, you have to let the creators tell you what the landscape is.
+        </p>
+      </div>
+
+    </div>
+  )
+}
+
 // V6 Tree View Component
 // ============================================================================
 const V6_CAT_COLORS = [

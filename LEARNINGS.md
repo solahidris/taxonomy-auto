@@ -2350,3 +2350,28 @@ To properly classify fashion/sneaker and tech-startup creators, step 1 of the pi
 Re-running steps 1→5 (skip step 2 if combining with existing data) would add ~1,500 new videos and produce ~60-80 new niches covering these content types.
 
 **Estimated cost to fix:** ~$0.02 more embeddings + ~$0.05 more naming = ~$0.07 additional
+
+---
+
+## Core Reflection: Does This Actually Solve the Problem?
+
+> *"When in doubt, look at the output and ask: would this taxonomy actually help someone understand the creator landscape? If not, iterate."*
+
+### Honest Answer: Partially — with a critical flaw
+
+**Where it works:**
+For creators making content within the 15 categories we explicitly collected data from (gaming, travel, finance, cooking, fitness, parenting, automotive, sports, home_diy, career, relationships, spirituality, food, comedy, pets), the taxonomy surfaces real, specific niches. The hierarchy is clean, the pipeline is reproducible at ~$0.31, and the classifier is fast.
+
+**Where it breaks down:**
+The taxonomy only reflects what we *searched for*, not what actually exists in the creator landscape. We chose 15 categories upfront, ran keyword queries, clustered the results, and called it a taxonomy. That is not bottom-up discovery — it is top-down confirmation. The `@solah` test proved this: a real creator making sneaker, streetwear, and indie-hacking content got classified as "Gamer Rage Reactions" and "Vegan Restaurant Reviews" at 32% confidence. The system returned wrong answers with no signal that anything was wrong.
+
+**The deeper problem — sampling bias masquerading as discovery:**
+A first-time user running creator lookup on almost anyone outside those 15 buckets gets garbage results. Garbage with a confidence score. That is arguably worse than "no match found" because it misleads.
+
+**What would actually answer yes:**
+- Start from a broad random sample of creators, not category-specific keyword queries
+- Let the embedding clusters tell you what categories exist, rather than seeding the search with categories you already assumed
+- Validate classifications against human judgement on a held-out set
+- Cover obvious missing gaps: fashion/sneakers, beauty, tech/coding/startup, SEA-language content, news commentary, business/entrepreneurship
+
+**Verdict:** As a *pipeline demo* — yes, it works. As a tool that genuinely helps someone understand the creator landscape — not yet. It understands the 15 corners of the landscape we already knew existed before we started. The taxonomy reflects our assumptions, not the data.
