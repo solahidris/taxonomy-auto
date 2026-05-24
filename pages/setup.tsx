@@ -115,7 +115,7 @@ export default function Setup() {
   const allKeysOk = status?.keys.youtube && status?.keys.openai
 
   return (
-    <div className="min-h-screen bg-gray-950 text-gray-100 font-sans">
+    <div className="min-h-screen bg-gray-950 text-gray-100 font-mono">
       {/* Header */}
       <header className="border-b border-gray-800 px-6 py-4">
         <div className="max-w-3xl mx-auto flex items-center justify-between">

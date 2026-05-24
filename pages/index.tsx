@@ -8980,9 +8980,178 @@ function V6Demo({ v6Taxonomy }: { v6Taxonomy: V6TaxonomyData | null }) {
 // ============================================================================
 // V6 Reflect View Component
 // ============================================================================
+const VERSION_HISTORY = [
+  {
+    v: 'V0',
+    color: 'gray',
+    tag: 'Proof of concept',
+    data: '3K videos',
+    niches: 109,
+    approach: 'Embedding (B)',
+    cost: '~$0.05',
+    score: null,
+    what: 'Two-stage clustering: K-Means (K=15) + HDBSCAN within each cluster. GPT-4o-mini for niche naming. Cosine similarity classifier. First working end-to-end pipeline.',
+    win: '95% coverage, fast, reproducible.',
+    miss: 'Fixed cluster count, single-label, 2-level hierarchy only.',
+  },
+  {
+    v: 'V1',
+    color: 'blue',
+    tag: 'Multi-label + hierarchy',
+    data: '4K videos',
+    niches: 209,
+    approach: 'Embedding (B)',
+    cost: '~$0.08',
+    score: '74.6/100',
+    what: '4-level recursive clustering. Multi-label classifier (returns all niches above threshold). Open-set detection (UNKNOWN flag). Exemplar creators (top 10 per niche). 200+ seed keywords but hit YouTube quota at ~4K.',
+    win: 'Multi-label, hierarchy depth, open-set — all hackathon requirements met.',
+    miss: 'Fitness/food/beauty heavy due to keyword ordering vs quota. 209 niches vs 500-1000 target.',
+  },
+  {
+    v: 'V2',
+    color: 'cyan',
+    tag: 'Hashtag co-occurrence graph',
+    data: '4K videos',
+    niches: 234,
+    approach: 'Hashtag (A) + Embedding (B)',
+    cost: '~$0.03',
+    score: '56.5/100',
+    what: 'Built a hashtag co-occurrence graph (1,586 unique hashtags, 15,169 edges). Louvain community detection at 3 resolutions. Found 25 new niches not visible via embeddings. Hybrid classifier: embedding similarity + hashtag match boost.',
+    win: 'Approach A implemented. 25 cross-cutting niches discovered. Hashtag boost in classifier.',
+    miss: 'V1 niches missing video_ids → 0% cross-validation rate. Balance score dropped (Gini 0.66).',
+  },
+  {
+    v: 'V3',
+    color: 'violet',
+    tag: 'LLM sub-niche discovery (limited)',
+    data: '4K videos',
+    niches: 593,
+    approach: 'A + B + LLM (C)',
+    cost: '~$0.15',
+    score: '90.2/100',
+    what: 'GPT-4o-mini generates 4 sub-niches per parent niche. Validated suggestions against actual video data (keyword + hashtag match). 89.8% validation rate. Limited to 100 niches (cost control).',
+    win: '+153% niche growth. High validation rate. LLM specificity boost (e.g. "Calisthenics for Beginners Over 40").',
+    miss: 'Only 100 of 234 niches processed. Sub-niches inherit parent centroid — no own embeddings.',
+  },
+  {
+    v: 'V4',
+    color: 'purple',
+    tag: 'Full LLM breakdown',
+    data: '4K videos',
+    niches: 676,
+    approach: 'A + B + LLM (C)',
+    cost: '~$0.18',
+    score: '87.7/100',
+    what: 'Removed the 100-niche limit from V3. Processed ALL 121 breakdown candidates. One line of code change → +83 more niches. 91.3% validation rate.',
+    win: 'Minimal change, meaningful gain. Validation rate improved to 91.3%.',
+    miss: '676 vs 800 target. Same 4K video base — hit ceiling of LLM expansion without more data.',
+  },
+  {
+    v: 'V5',
+    color: 'orange',
+    tag: 'Cross-platform data',
+    data: '7K videos',
+    niches: null,
+    approach: 'A + B + C',
+    cost: '~$15 (Apify)',
+    score: null,
+    what: 'Added TikTok (2,034 videos via Apify) and Instagram Reels (951 videos). Cross-platform hashtag culture fills gaps YouTube content misses. Data merged and passed to V6.',
+    win: 'Cross-platform validation. Diverse hashtag vocabulary.',
+    miss: 'Apify costs $. V5 taxonomy.json not shown in UI — data flows into V6.',
+  },
+  {
+    v: 'V6',
+    color: 'emerald',
+    tag: 'Combined data + new YouTube',
+    data: '10,365 videos',
+    niches: 542,
+    approach: 'Embedding (B) + LLM naming',
+    cost: '~$0.31',
+    score: '85.6/100',
+    what: 'Fresh re-clustering of ALL data: YouTube V1 + TikTok + Instagram + 3,389 new YouTube videos using round-robin keyword ordering across 15 new categories (Gaming, Travel, Finance, Automotive, Parenting…). 4-level hierarchy, 25 categories, 149 subcategories.',
+    win: '3× more data than V1. New categories emerge naturally. Gini 0.383 — good balance.',
+    miss: 'Fitness still over-represented. No stability test. Coverage measured on training data only.',
+  },
+  {
+    v: 'V7',
+    color: 'yellow',
+    tag: 'Real product layer',
+    data: '—',
+    niches: null,
+    approach: 'UI / product',
+    cost: '—',
+    score: null,
+    what: 'Setup wizard (API key check + pipeline trigger). Creator lookup by YouTube handle (not just raw text). Batch CSV classification. Pipeline runner with live log streaming. Niche search + deep browse. API docs page.',
+    win: 'Removes all friction for non-technical users. Turns pipeline into a usable tool.',
+    miss: 'Underlying taxonomy still has the sampling bias problem — V7 is UX, not data quality.',
+  },
+]
+
+const V_COLORS: Record<string, string> = {
+  gray: 'bg-gray-800 text-gray-300 border-gray-700',
+  blue: 'bg-blue-900/50 text-blue-300 border-blue-700/50',
+  cyan: 'bg-cyan-900/50 text-cyan-300 border-cyan-700/50',
+  violet: 'bg-violet-900/50 text-violet-300 border-violet-700/50',
+  purple: 'bg-purple-900/50 text-purple-300 border-purple-700/50',
+  orange: 'bg-orange-900/50 text-orange-300 border-orange-700/50',
+  emerald: 'bg-emerald-900/50 text-emerald-300 border-emerald-700/50',
+  yellow: 'bg-yellow-900/50 text-yellow-300 border-yellow-700/50',
+}
+
 function V6ReflectView() {
+  const [expanded, setExpanded] = useState<string | null>(null)
+
   return (
     <div className="max-w-3xl space-y-6">
+
+      {/* Version history */}
+      <div className="space-y-2">
+        <div className="text-xs text-gray-500 uppercase tracking-widest mb-4 font-medium">What happened in each version</div>
+        {VERSION_HISTORY.map(ver => {
+          const isOpen = expanded === ver.v
+          const colorClass = V_COLORS[ver.color] ?? V_COLORS.gray
+          return (
+            <div key={ver.v} className="border border-gray-800 rounded-xl overflow-hidden">
+              <button
+                onClick={() => setExpanded(isOpen ? null : ver.v)}
+                className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-900 transition-colors"
+              >
+                <span className={`text-xs font-bold px-2 py-0.5 rounded border ${colorClass} shrink-0 w-8 text-center`}>{ver.v}</span>
+                <span className="text-sm text-gray-200 font-medium flex-1">{ver.tag}</span>
+                <div className="flex items-center gap-3 text-xs text-gray-600 shrink-0">
+                  <span>{ver.data}</span>
+                  {ver.niches && <span className="text-gray-500">{ver.niches} niches</span>}
+                  {ver.score && <span className="text-gray-500">{ver.score}</span>}
+                  <span className="text-gray-700">{isOpen ? '▲' : '▼'}</span>
+                </div>
+              </button>
+              {isOpen && (
+                <div className="px-4 pb-4 pt-1 border-t border-gray-800 space-y-3 bg-gray-950/50">
+                  <div className="flex flex-wrap gap-4 text-xs text-gray-500 pt-1">
+                    <span><span className="text-gray-600">approach</span> {ver.approach}</span>
+                    <span><span className="text-gray-600">cost</span> {ver.cost}</span>
+                    {ver.score && <span><span className="text-gray-600">score</span> {ver.score}</span>}
+                  </div>
+                  <p className="text-sm text-gray-400 leading-relaxed">{ver.what}</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-emerald-950/30 border border-emerald-800/30 rounded-lg p-3">
+                      <div className="text-[10px] text-emerald-500 uppercase tracking-wider mb-1">Win</div>
+                      <div className="text-xs text-emerald-200/80 leading-relaxed">{ver.win}</div>
+                    </div>
+                    <div className="bg-red-950/30 border border-red-800/30 rounded-lg p-3">
+                      <div className="text-[10px] text-red-500 uppercase tracking-wider mb-1">Miss</div>
+                      <div className="text-xs text-red-200/80 leading-relaxed">{ver.miss}</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+
+      {/* divider */}
+      <div className="border-t border-gray-800" />
 
       {/* The question */}
       <div className="bg-gradient-to-br from-violet-950/50 to-indigo-950/50 border border-violet-700/50 rounded-xl p-6">
@@ -10357,7 +10526,7 @@ export default function Home() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-gray-950 text-gray-100 font-sans">
+    <div className="min-h-screen bg-gray-950 text-gray-100 font-mono">
       {/* Header */}
       <header className="border-b border-gray-800 px-6 py-4">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
