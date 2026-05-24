@@ -9765,6 +9765,192 @@ Return JSON:
         </div>
       </section>
 
+      {/* V7 App Layer */}
+      <section>
+        <div className="flex items-center gap-3 mb-3">
+          <h2 className="text-lg font-semibold text-white">V7: App Layer Built on V6</h2>
+          <span className="text-xs bg-emerald-900/50 text-emerald-400 border border-emerald-800/50 px-2 py-0.5 rounded">Shipped</span>
+        </div>
+        <p className="text-sm text-gray-400 leading-relaxed mb-4">
+          V7 turns the raw V6 pipeline into a usable product — anyone can clone the repo,
+          run the taxonomy in one click, and classify real YouTube channels without touching the terminal.
+        </p>
+        <div className="grid grid-cols-2 gap-4">
+          {[
+            {
+              color: 'emerald',
+              icon: '⚙',
+              title: 'Setup Wizard',
+              file: 'pages/setup.tsx',
+              desc: 'First-run page at /setup. Checks YouTube + OpenAI API keys, shows taxonomy status, and has a one-click "Run Full Pipeline" button that streams live log output directly in the browser.',
+            },
+            {
+              color: 'violet',
+              icon: '▶',
+              title: 'Pipeline Runner UI',
+              file: 'pages/api/pipeline/run.ts',
+              desc: 'SSE endpoint that spawns run.sh and streams stdout line-by-line to the browser via fetch + ReadableStream. Each step can also be run individually.',
+            },
+            {
+              color: 'blue',
+              icon: '🔍',
+              title: 'Creator Lookup',
+              file: 'pages/api/creator/lookup.ts',
+              desc: 'Enter a YouTube handle (@solah) or channel name → fetches 25 recent videos via YouTube Data API → aggregates text → classifies against V6 taxonomy. Uses channels.list?forHandle= for exact handle resolution.',
+            },
+            {
+              color: 'orange',
+              icon: '📋',
+              title: 'Batch Classification',
+              file: 'pages/api/v6/batch.ts',
+              desc: 'Upload a CSV with a text column → classify up to 200 rows at once → download results as CSV with niche, category, confidence, hierarchy columns. Client-side CSV parsing, no extra dependencies.',
+            },
+          ].map(f => (
+            <div key={f.title} className={`bg-${f.color}-950/30 border border-${f.color}-800/50 rounded-xl p-4`}>
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">{f.icon}</span>
+                  <h3 className={`text-sm font-semibold text-${f.color}-300`}>{f.title}</h3>
+                </div>
+                <code className={`text-[10px] text-${f.color}-400/70 bg-${f.color}-950 px-1.5 py-0.5 rounded shrink-0`}>{f.file}</code>
+              </div>
+              <p className={`text-xs text-${f.color}-200/60 leading-relaxed`}>{f.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* V7 Tech Architecture */}
+      <section>
+        <h2 className="text-lg font-semibold text-white mb-3">V7 Technical Architecture</h2>
+        <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+          <table className="w-full text-xs">
+            <thead className="bg-gray-800">
+              <tr>
+                <th className="px-3 py-2.5 text-left text-gray-400 font-medium">File</th>
+                <th className="px-3 py-2.5 text-left text-gray-400 font-medium">Purpose</th>
+                <th className="px-3 py-2.5 text-left text-gray-400 font-medium">Key technique</th>
+              </tr>
+            </thead>
+            <tbody className="text-gray-300">
+              {[
+                ['lib/v6classify.ts', 'Shared classify logic', 'loadTaxonomy() cached singleton + cosine similarity matrix'],
+                ['pages/setup.tsx', 'Setup wizard UI', 'Fetch + ReadableStream for SSE progress without EventSource'],
+                ['pages/api/setup/status.ts', 'API key + taxonomy health check', 'fs.existsSync(taxonomy.json) + env var presence check'],
+                ['pages/api/pipeline/run.ts', 'Stream pipeline progress', 'child_process.spawn + res.write SSE, req.on(close) kills process'],
+                ['pages/api/creator/lookup.ts', 'YouTube handle → classify', 'channels.list?forHandle= exact match, search.list fallback'],
+                ['pages/api/v6/classify.ts', 'Single text classify', 'Thin wrapper over lib/v6classify.ts classifyText()'],
+                ['pages/api/v6/batch.ts', 'Bulk classify up to 200 rows', 'Promise.all() with rate limiting, returns results array'],
+              ].map(([file, purpose, technique]) => (
+                <tr key={file} className="border-t border-gray-800">
+                  <td className="px-3 py-2 font-mono text-violet-400">{file}</td>
+                  <td className="px-3 py-2 text-gray-300">{purpose}</td>
+                  <td className="px-3 py-2 text-gray-500">{technique}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {/* Known Issues */}
+      <section>
+        <div className="flex items-center gap-3 mb-3">
+          <h2 className="text-lg font-semibold text-white">Known Issues Discovered During V7 Testing</h2>
+        </div>
+        <div className="space-y-4">
+
+          {/* Bug 1: Centroid mismatch */}
+          <div className="bg-red-950/20 border border-red-800/40 rounded-xl p-4">
+            <div className="flex items-start gap-3">
+              <span className="text-red-400 text-sm font-mono mt-0.5">[FIXED]</span>
+              <div>
+                <h3 className="text-sm font-semibold text-red-300 mb-1">Centroid Dimension Mismatch → All Classifications Returned UNKNOWN</h3>
+                <p className="text-xs text-red-200/60 leading-relaxed mb-2">
+                  The clustering step stored niche centroids in PCA-reduced 100-dim space but the classifier
+                  embedded query text in 1536-dim space (text-embedding-3-small). The cosine function returned{' '}
+                  <code className="bg-red-950 text-red-300 px-1 rounded">NaN</code> for dimensions 100–1535
+                  (JavaScript: <code className="bg-red-950 text-red-300 px-1 rounded">b[i] = undefined</code> →{' '}
+                  <code className="bg-red-950 text-red-300 px-1 rounded">NaN * a[i] = NaN</code>),
+                  then <code className="bg-red-950 text-red-300 px-1 rounded">NaN || 0 = 0</code> triggered the
+                  UNKNOWN threshold. React rendered <code className="bg-red-950 text-red-300 px-1 rounded">{'{NaN}%'}</code> as a blank &quot;%&quot;.
+                </p>
+                <div className="text-[10px] text-red-400/60">
+                  Fix: ran repair script to recompute all 542 centroids from original 1536-dim embeddings.npy using stored indices.
+                  Also fixed 4_cluster.py to pass embeddings_raw (pre-PCA) to make_cluster_data() for future runs.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Bug 2: Creator lookup wrong channel */}
+          <div className="bg-yellow-950/20 border border-yellow-800/40 rounded-xl p-4">
+            <div className="flex items-start gap-3">
+              <span className="text-yellow-400 text-sm font-mono mt-0.5">[FIXED]</span>
+              <div>
+                <h3 className="text-sm font-semibold text-yellow-300 mb-1">Creator Lookup Returned Wrong Channel</h3>
+                <p className="text-xs text-yellow-200/60 leading-relaxed mb-2">
+                  Initial implementation used <code className="bg-yellow-950 text-yellow-300 px-1 rounded">search.list?type=channel&amp;q=solah</code> (text search),
+                  which returned &quot;KANG SOLAH CHANNEL&quot; instead of &quot;Solah Idris&quot; (@solah).
+                  YouTube text search ranks by relevance/popularity, not handle match.
+                </p>
+                <div className="text-[10px] text-yellow-400/60">
+                  Fix: switched to <code className="bg-yellow-950 text-yellow-300 px-0.5 rounded">channels.list?forHandle=&lt;query&gt;</code> for exact handle resolution,
+                  with text search as a fallback for non-handle queries (channel names with spaces).
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Gap: Taxonomy coverage */}
+          <div className="bg-orange-950/20 border border-orange-800/40 rounded-xl p-4">
+            <div className="flex items-start gap-3">
+              <span className="text-orange-400 text-sm font-mono mt-0.5">[OPEN]</span>
+              <div>
+                <h3 className="text-sm font-semibold text-orange-300 mb-1">Taxonomy Coverage Gap — Sneakers, Streetwear, Tech Startups Not Represented</h3>
+                <p className="text-xs text-orange-200/60 leading-relaxed mb-2">
+                  V6 data was collected from exactly 15 categories:{' '}
+                  <span className="text-orange-300">gaming, travel, finance, arts_crafts, music_dance, parenting, automotive, sports, home_diy, career, relationships, spirituality, international_food, comedy, pets.</span>
+                  {' '}Channels that create sneaker/streetwear, indie hacking/SaaS building, or Malaysian lifestyle content
+                  have no matching niche. The classifier returns ~32% best similarity (correct — nothing matches)
+                  instead of finding a relevant niche.
+                </p>
+                <div className="text-[10px] text-orange-400/60 mb-2">
+                  Diagnostic signals: best_similarity &lt; 0.45, top-5 matches span unrelated categories (Gaming + Food + Dance),
+                  hashtag_boost = 0 across all matches.
+                </div>
+                <div className="text-[10px] text-orange-300/70 font-medium">
+                  To fix: add <code className="bg-orange-950 text-orange-300 px-1 rounded">fashion_sneakers</code> and{' '}
+                  <code className="bg-orange-950 text-orange-300 px-1 rounded">tech_startup</code> categories to
+                  1_collect_youtube.py and re-run steps 1–5 (~$0.07 additional cost).
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      {/* What V7 Does Not Have */}
+      <section>
+        <h2 className="text-lg font-semibold text-white mb-3">What&apos;s Not in V7 (Future Work)</h2>
+        <div className="grid grid-cols-3 gap-3">
+          {[
+            { title: 'Niche trend tracking', desc: 'Taxonomy is a snapshot. No temporal graph showing which niches are growing or declining.' },
+            { title: 'Creator graph', desc: 'Videos not linked across creators. No "find similar channels to this one" feature.' },
+            { title: 'Live taxonomy updates', desc: 'Centroids are static. New content doesn\'t update the taxonomy — requires a full re-run.' },
+            { title: 'Auth / multi-user', desc: 'Single-user local tool. No API keys, no rate limiting, no team access control.' },
+            { title: 'Held-out evaluation', desc: 'Classification accuracy tested on training data only. No blind test set for ground-truth validation.' },
+            { title: 'More data categories', desc: 'Missing fashion/sneakers, tech startups, SEA-specific content. Classifier fails on these creators.' },
+          ].map(f => (
+            <div key={f.title} className="bg-gray-900 border border-gray-800 rounded-xl p-3">
+              <div className="text-xs font-medium text-gray-300 mb-1">{f.title}</div>
+              <p className="text-[10px] text-gray-600 leading-relaxed">{f.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       </div>
       )}
     </div>

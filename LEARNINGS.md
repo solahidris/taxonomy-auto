@@ -2297,3 +2297,56 @@ Same Next.js app. Add:
 
 Everything else evolves the existing UI rather than replacing it.
 *Author: V0/V1/V2/V3/V4/V5/V6 Pipeline Development*
+
+---
+
+## V7 Post-Build: Known Issues & Gaps
+
+### Critical: Taxonomy Coverage Gap
+
+**Discovery date:** 2026-05-24  
+**Symptom:** Creator lookup for `@solah` returned "Career Development Insights" (64.8%) from the old stale cache, then "Black-Owned Business Spotlights" (32%) after server restart with corrected centroids. Neither is correct.
+
+**Root cause:** The V6 taxonomy was built from exactly 15 data collection categories:
+
+```
+gaming, travel, finance, arts_crafts, music_dance, parenting,
+automotive, sports, home_diy, career, relationships, spirituality,
+international_food, comedy, pets
+```
+
+The test channel (`@solah`) creates content about **sneakers, streetwear, NFTs, tech startups (building in public / indie hacking), and Malaysian lifestyle**. None of these map to any of the 15 source categories. Best cosine similarity was ~0.36 (36%) — well below the 0.5 threshold for a meaningful match.
+
+**Why the old result looked plausible:** The pre-fix server had 100-dim PCA centroids in memory. The cosine function returned NaN for dimensions 100–1535 (b[i] = undefined), but numerical drift and NaN handling produced spuriously non-zero scores. These were meaningless but happened to look like real matches (64.8% was noise, not signal).
+
+**Key insight:** A taxonomy is only as good as its source data. If a creator's content category was never collected during data ingestion, no amount of embedding quality or clustering sophistication will produce a correct classification. The classifier will always return the "closest wrong answer."
+
+**Signals that coverage is missing:**
+- Best similarity < 0.45 across all niches
+- Top 5 matches span wildly different categories (Gaming + Food + Dance = nothing in common)
+- Hashtag boost = 0 across all matches (no hashtag overlap at all)
+
+### Fix Needed: Add Missing Data Categories
+
+To properly classify fashion/sneaker and tech-startup creators, step 1 of the pipeline needs two new categories added to `1_collect_youtube.py`:
+
+```python
+"fashion_sneakers": [
+    "sneaker unboxing review", "nike air jordan collection", "streetwear outfit of the day",
+    "sneaker cop or drop", "hypebeast fashion haul", "limited edition shoe drop",
+    "adidas yeezy review", "sneaker resell guide", "streetwear brand review",
+    "shoe collection tour", "fashion week highlights", "sneaker convention vlog",
+    "sneaker cleaning tutorial", "thrift flip streetwear", "sneaker grail unboxing",
+],
+"tech_startup": [
+    "building saas in public", "indie hacker revenue update", "startup founder daily vlog",
+    "coding my startup solo", "mrr milestone update", "no code app build tutorial",
+    "product hunt launch tips", "solopreneur business model", "software side project launch",
+    "startup failure lessons", "building in public accountability", "bootstrapped startup growth",
+    "api integration tutorial", "developer productivity tools", "vibe coding startup",
+],
+```
+
+Re-running steps 1→5 (skip step 2 if combining with existing data) would add ~1,500 new videos and produce ~60-80 new niches covering these content types.
+
+**Estimated cost to fix:** ~$0.02 more embeddings + ~$0.05 more naming = ~$0.07 additional
