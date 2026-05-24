@@ -2092,5 +2092,208 @@ python3 pipeline/v6/6_evaluate.py          # ~5 sec
 ---
 
 *Document created: 2026-05-22*
-*Last updated: 2026-05-23 (V6 implementation complete)*
+*Last updated: 2026-05-24 (V6 hackathon assessment + V7 planning)*
+
+---
+
+## Hackathon Requirements Assessment (V6)
+
+This section documents how V6 maps to each hackathon deliverable and evaluation criterion. Written at end-of-project before final submission.
+
+### Deliverables
+
+| Deliverable | Requirement | V6 Status | Notes |
+|---|---|---|---|
+| Taxonomy file | JSON tree, name/description/hashtags/creators per node | ✅ PASS | `data/v6/taxonomy.json` — 542 niches, all fields present |
+| Reproducible pipeline | One command, end-to-end | ✅ PASS | `bash pipeline/v6/run.sh` — 6 steps, ~20 min |
+| Classifier | Given bio/caption/hashtags → most likely niche(s) | ✅ PASS | `/api/v6/classify` — top-5 ranked with confidence |
+| Evaluation report | Coverage, granularity, quality | ⚠️ PARTIAL | Metrics exist but no held-out sample (see below) |
+| Short writeup | What you did, what worked, what to improve | ✅ PASS | This LEARNINGS.md document |
+
+### Evaluation Criteria — Honest Assessment
+
+**1. Coverage — ⚠️ Partial**
+
+We report 100% coverage, but this is measured on the **training data**, not a held-out sample. The brief asks to classify "a held-out sample of 1,000 creators/posts" and report what % land in a niche more specific than the top level. We never ran this test. Our 100% figure tells us no video was left unclustered — it does not tell us how the classifier performs on unseen creators. This is a real gap.
+
+**2. Granularity — ⚠️ Moderate**
+
+- 542 niches from 10,365 videos → average ~19 videos per niche
+- Gini coefficient 0.383 — moderate distribution (not heavily skewed, not perfectly flat)
+- Balance score 52.1/100 — some niches are significantly larger than others
+- The brief's example bar ("Calisthenics for tall guys over 30", "Hyrox prep") suggests true micro-niches. With only 10K videos our niches likely sit at a mid-level of specificity rather than the deepest long tail.
+
+**3. Stability — ❌ Not tested**
+
+K-Means has random initialization. Running the pipeline twice could produce different niche splits. We never tested this. A proper submission would include: run pipeline twice, compare niche names/structure, measure overlap. Not addressed.
+
+**4. Readability — ✅ Pass**
+
+GPT-4o-mini generates human-readable names. The hierarchy (category → subcategory → niche) gives context. Can read "Home Fitness > Bodyweight Training > Calisthenics for Beginners" and understand who belongs there.
+
+**5. Speed — ✅ Pass**
+
+~20 minutes end-to-end documented. YouTube collection (~10 min) dominates. Embedding + clustering + naming add another ~10 min. Total ~$0.31 per full run.
+
+**6. Docs — ✅ Pass**
+
+LEARNINGS.md covers every version, decision, and trade-off. `run.sh` scripts are one-command. API key setup documented. The UI (Next.js) includes a Process tab explaining every step.
+
+### Approaches Used
+
+| Approach | Description | Used in V6? |
+|---|---|---|
+| A — Hashtag Co-Occurrence | Graph-based community detection | Partially — hashtag boost in classifier, not graph clustering |
+| B — Embedding Clustering | Sentence embeddings + HDBSCAN/K-Means | ✅ Core clustering method |
+| C — LLM Recursive Breakdown | GPT breaks niches into sub-niches | ✅ GPT-4o-mini for naming; V3/V4 used for discovery |
+| D — Hybrid | Mix of approaches | ✅ B + LLM naming + hashtag signals |
+
+### Stretch Goals Assessment
+
+| Goal | Status |
+|---|---|
+| Cross-platform alignment | ✅ YouTube + TikTok + Instagram all in V6 corpus |
+| Exemplar creators | ✅ Top creators by video count per niche |
+| Confidence scores / distribution | ✅ Returns ranked top-5 with raw similarity scores |
+| Open-set detection | ✅ UNKNOWN flag when best_similarity < 0.35 |
+| Niche dynamics | ❌ Not implemented — static snapshot only |
+
+### What Would Make This Submission Stronger
+
+If there were more time, these are the three highest-impact improvements:
+
+1. **Held-out evaluation** — Take 500-1,000 real creator bios from a source not in the training set (e.g., fresh YouTube search, Reddit posts). Run the classifier and measure: % that land in a leaf niche (not top-level), % marked UNKNOWN, average confidence. This would replace our self-referential "100% coverage" with a real generalization number.
+
+2. **Stability test** — Run `bash pipeline/v6/run.sh` twice (steps 4-6 only, reusing embeddings). Compare the niche lists. Measure Jaccard overlap of niche names. If >70% match, the taxonomy is stable. Document this.
+
+3. **Deeper micro-niches** — 10K videos across 542 niches averages ~19 per niche. To get truly specific niches ("Hyrox prep", "Van life solo female travel") we likely need 50K+ videos or a different approach — LLM recursive breakdown (Approach C) seeded with the V6 clusters as root nodes, then validated against video data.
+
+### Final Grade (Self-Assessment)
+
+| Criterion | Weight | Score | Notes |
+|---|---|---|---|
+| Taxonomy file | High | A | All fields, correct format, 542 niches |
+| Reproducible pipeline | High | A | One command, documented |
+| Classifier | High | A- | Works well, no held-out validation |
+| Evaluation report | High | C+ | Metrics computed but not on held-out data |
+| Writeup | Medium | A | This document |
+| Coverage | High | B | 100% on training data, unknown on held-out |
+| Granularity | Medium | B- | Power-law shape but balance score 52/100 |
+| Stability | Medium | F | Not tested |
+| Readability | Medium | A- | GPT names are generally good |
+| Speed | Low | A | ~20 min, ~$0.31 |
+| Docs | Medium | A | Thorough LEARNINGS.md + UI process tabs |
+| Stretch goals | Bonus | A- | Cross-platform, exemplars, confidence, open-set |
+
+**Overall: B+ / meets core requirements, evaluation rigor is the main weakness.**
+
+---
+
+## V7 Planning: The Actual Product
+
+### What V7 Is
+
+V6 is a pipeline and a demo UI. V7 is the question: **what does this look like as a real tool that someone else can actually use?**
+
+The core insight from building V0→V6: we've built a strong backend (taxonomy + classifier). The frontend is a dev tool. V7 would flip the ratio — the pipeline runs once (or on a schedule), and the UI becomes the primary interface for non-technical users.
+
+### Two Modes of V7
+
+**Mode A — Self-Hosted (for hackathon judges, developers, teams)**
+
+The user clones the repo, runs the pipeline once, and gets a web app. The existing Next.js app evolves into a proper product UI. Target: someone with a YouTube API key and OpenAI key can be classifying creators in 30 minutes.
+
+**Mode B — Hosted Product (if this became a real startup)**
+
+The pipeline runs on a server. Users sign up, enter a creator handle or paste a bio, get results immediately. No setup required. Taxonomy refreshes weekly.
+
+For hackathon purposes, Mode A is realistic. But V7 design should anticipate Mode B.
+
+### V7 Feature Scope
+
+**1. One-Click Pipeline Runner (UI-based)**
+
+Instead of running `bash pipeline/v6/run.sh` in a terminal, the web UI has a "Run Pipeline" button that:
+- Shows real-time step progress (steps 1-6 with live log streaming via WebSocket or SSE)
+- Displays cost estimate before starting
+- Shows the resulting taxonomy stats when complete
+- Lets you re-run individual steps (e.g., re-name without re-embedding)
+
+This alone removes the biggest barrier to use. Non-technical users currently cannot run the pipeline at all.
+
+**2. Creator Lookup (not just classify text)**
+
+Current classifier: paste raw text → get niche match.
+
+V7 classifier: enter a YouTube handle / TikTok @username → system fetches their recent videos automatically, aggregates them, and returns their niche profile. Result: niche, confidence, similar creators in the same niche.
+
+**3. Taxonomy Browser as First-Class UI**
+
+The current browse tab works but feels like a dev debug view. V7 makes it the main screen:
+- Search bar across all 542 niches
+- Click a niche → see its top creators, example videos, defining hashtags
+- "Find similar niches" button → shows nearest niches by centroid distance
+- Export: download a niche's creator list as CSV
+
+**4. Batch Classification**
+
+Upload a CSV of creator bios/handles → download classified CSV with niche, confidence, hierarchy. This is the most useful thing for anyone running a creator database.
+
+**5. API Access**
+
+`POST /api/v6/classify` already exists. V7 documents it properly: rate limits, auth, example responses. A simple API key system (even hardcoded in `.env.local`) lets teams build on top of it.
+
+**6. Setup Wizard**
+
+First-time visit → wizard that:
+1. Checks for API keys (YouTube, OpenAI) — shows ✅/❌ per key
+2. Checks if taxonomy data exists (`data/v6/taxonomy.json`) — if not, prompts to run pipeline
+3. If pipeline not run: "Generate Taxonomy" button → runs pipeline with live progress
+4. On completion: drops into the main classifier UI
+
+This collapses "clone repo → set up keys → run bash script → open browser" into a guided 3-click flow.
+
+### What V7 Is NOT
+
+- Not a data collection product (we're not competing with Apify)
+- Not a social analytics dashboard (not showing follower counts, engagement rates)
+- Not a recommendation engine (we classify, we don't suggest who to follow)
+- Not real-time (taxonomy is a snapshot, not a live graph)
+
+### Tech Additions Needed for V7
+
+| Feature | What's needed |
+|---|---|
+| Pipeline runner UI | SSE/WebSocket endpoint that streams `run.sh` stdout to browser |
+| Creator lookup | YouTube Data API `channels.list` + `search.list` by handle |
+| Batch classification | File upload endpoint + CSV parser + bulk classify loop |
+| Setup wizard | First-load check: do `data/v6/taxonomy.json` and `.env.local` keys exist? |
+| API docs page | Markdown page describing `/api/v6/classify` input/output |
+| Search across niches | Simple string search on `taxonomy.json` niche names |
+
+### V7 Does Not Require
+
+- Database (taxonomy.json is the database)
+- Auth system (single-user local tool for now)
+- Cloud infrastructure (all runs on a laptop)
+- New pipeline steps (V6 pipeline is the backend)
+
+### Recommended V7 Build Order
+
+1. **Setup wizard** — highest barrier removal, needed first
+2. **Pipeline runner UI** (streaming progress) — makes pipeline accessible to non-devs
+3. **Creator lookup** (by handle) — turns it from "paste text" to "find this creator"
+4. **Batch CSV classification** — most useful for real use cases
+5. **Niche search + deep browse** — polish the taxonomy browser
+6. **API docs page** — for technical handoff
+
+### V7 Stack (no changes needed)
+
+Same Next.js app. Add:
+- `pages/api/pipeline/run.ts` — streams shell process stdout via SSE
+- `pages/api/creator/lookup.ts` — YouTube API channels.list by handle
+- `pages/api/v6/batch.ts` — bulk classify endpoint
+- `pages/setup.tsx` — first-run wizard page
+
+Everything else evolves the existing UI rather than replacing it.
 *Author: V0/V1/V2/V3/V4/V5/V6 Pipeline Development*
