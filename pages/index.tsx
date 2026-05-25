@@ -12732,12 +12732,6 @@ export default function Home() {
   const [taxError, setTaxError] = useState('')
   const [version, setVersion] = useState<'v0' | 'v1' | 'v2' | 'v3' | 'v4' | 'v5' | 'v6' | 'v7'>('v0')
 
-  useEffect(() => {
-    const v = router.query.v
-    if (v && ['v0', 'v1', 'v2', 'v3', 'v4', 'v5', 'v6', 'v7'].includes(v as string)) {
-      setVersion(v as 'v0' | 'v1' | 'v2' | 'v3' | 'v4' | 'v5' | 'v6' | 'v7')
-    }
-  }, [router.query.v])
   const [v0Page, setV0Page] = useState<'demo' | 'process'>('demo')
   const [v1Page, setV1Page] = useState<'demo' | 'process'>('demo')
   const [v2Page, setV2Page] = useState<'demo' | 'process'>('demo')
@@ -12746,6 +12740,41 @@ export default function Home() {
   const [v5Page, setV5Page] = useState<'demo' | 'process'>('demo')
   const [v6Page, setV6Page] = useState<'demo' | 'process'>('demo')
   const [v7Page, setV7Page] = useState<'demo' | 'process'>('demo')
+
+  // Sync URL query params with version and tab state
+  useEffect(() => {
+    const v = router.query.v
+    const tab = router.query.tab
+
+    if (v && ['v0', 'v1', 'v2', 'v3', 'v4', 'v5', 'v6', 'v7'].includes(v as string)) {
+      setVersion(v as 'v0' | 'v1' | 'v2' | 'v3' | 'v4' | 'v5' | 'v6' | 'v7')
+    }
+
+    if (tab && ['demo', 'process'].includes(tab as string)) {
+      const tabValue = tab as 'demo' | 'process'
+      setV0Page(tabValue)
+      setV1Page(tabValue)
+      setV2Page(tabValue)
+      setV3Page(tabValue)
+      setV4Page(tabValue)
+      setV5Page(tabValue)
+      setV6Page(tabValue)
+      setV7Page(tabValue)
+    }
+  }, [router.query.v, router.query.tab])
+
+  // Update URL when version changes
+  const handleVersionChange = (v: 'v0' | 'v1' | 'v2' | 'v3' | 'v4' | 'v5' | 'v6' | 'v7') => {
+    setVersion(v)
+    const currentTab = router.query.tab || 'demo'
+    router.push({ query: { v, tab: currentTab } }, undefined, { shallow: true })
+  }
+
+  // Update URL when tab changes
+  const handleTabChange = (tab: 'demo' | 'process', setTabFn: (t: 'demo' | 'process') => void) => {
+    setTabFn(tab)
+    router.push({ query: { v: version, tab } }, undefined, { shallow: true })
+  }
   const [v1Taxonomy, setV1Taxonomy] = useState<V1TaxonomyData | null>(null)
   const [v2Taxonomy, setV2Taxonomy] = useState<V2TaxonomyData | null>(null)
   const [v3Taxonomy, setV3Taxonomy] = useState<V3TaxonomyData | null>(null)
@@ -12809,7 +12838,7 @@ export default function Home() {
               {(['v0', 'v1', 'v2', 'v3', 'v4', 'v5', 'v6', 'v7'] as const).map(v => (
                 <button
                   key={v}
-                  onClick={() => setVersion(v)}
+                  onClick={() => handleVersionChange(v)}
                   className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all uppercase ${
                     version === v ? 'bg-indigo-600 text-white shadow' : 'text-gray-400 hover:text-gray-200'
                   }`}
@@ -12839,7 +12868,7 @@ export default function Home() {
             ].map(item => (
               <button
                 key={item.key}
-                onClick={() => setV0Page(item.key)}
+                onClick={() => handleTabChange(item.key, setV0Page)}
                 className={`text-sm py-1 border-b-2 transition-all ${
                   v0Page === item.key
                     ? 'text-indigo-400 border-indigo-500'
@@ -12863,7 +12892,7 @@ export default function Home() {
             ].map(item => (
               <button
                 key={item.key}
-                onClick={() => setV1Page(item.key)}
+                onClick={() => handleTabChange(item.key, setV1Page)}
                 className={`text-sm py-1 border-b-2 transition-all ${
                   v1Page === item.key
                     ? 'text-indigo-400 border-indigo-500'
@@ -12887,7 +12916,7 @@ export default function Home() {
             ].map(item => (
               <button
                 key={item.key}
-                onClick={() => setV2Page(item.key)}
+                onClick={() => handleTabChange(item.key, setV2Page)}
                 className={`text-sm py-1 border-b-2 transition-all ${
                   v2Page === item.key
                     ? 'text-indigo-400 border-indigo-500'
@@ -12911,7 +12940,7 @@ export default function Home() {
             ].map(item => (
               <button
                 key={item.key}
-                onClick={() => setV3Page(item.key)}
+                onClick={() => handleTabChange(item.key, setV3Page)}
                 className={`text-sm py-1 border-b-2 transition-all ${
                   v3Page === item.key
                     ? 'text-indigo-400 border-indigo-500'
@@ -12935,7 +12964,7 @@ export default function Home() {
             ].map(item => (
               <button
                 key={item.key}
-                onClick={() => setV4Page(item.key)}
+                onClick={() => handleTabChange(item.key, setV4Page)}
                 className={`text-sm py-1 border-b-2 transition-all ${
                   v4Page === item.key
                     ? 'text-indigo-400 border-indigo-500'
@@ -12959,7 +12988,7 @@ export default function Home() {
             ].map(item => (
               <button
                 key={item.key}
-                onClick={() => setV5Page(item.key)}
+                onClick={() => handleTabChange(item.key, setV5Page)}
                 className={`text-sm py-1 border-b-2 transition-all ${
                   v5Page === item.key
                     ? 'text-indigo-400 border-indigo-500'
@@ -12983,7 +13012,7 @@ export default function Home() {
             ].map(item => (
               <button
                 key={item.key}
-                onClick={() => setV6Page(item.key)}
+                onClick={() => handleTabChange(item.key, setV6Page)}
                 className={`text-sm py-1 border-b-2 transition-all ${
                   v6Page === item.key
                     ? 'text-indigo-400 border-indigo-500'
@@ -13007,7 +13036,7 @@ export default function Home() {
             ].map(item => (
               <button
                 key={item.key}
-                onClick={() => setV7Page(item.key)}
+                onClick={() => handleTabChange(item.key, setV7Page)}
                 className={`text-sm py-1 border-b-2 transition-all ${
                   v7Page === item.key
                     ? 'text-indigo-400 border-indigo-500'
