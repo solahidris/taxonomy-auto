@@ -1,0 +1,239 @@
+================================================================================
+                    TAXONOMY PIPELINE ARCHITECTURE
+================================================================================
+
+COMPLETE 6-STEP PIPELINE (V1 Reference Architecture)
+================================================================================
+
+     STEP 1: COLLECT             STEP 2: EMBED              STEP 3: CLUSTER
+     ─────────────────          ────────────────           ──────────────────
+     YouTube API               OpenAI text-               Hierarchical
+     (200+ keywords)           embedding-3-small          K-Means + HDBSCAN
+
+         │                           │                          │
+         ├─> Seed Keywords           │                          │
+         │   ├─ Fitness (40+)        │                          │
+         │   ├─ Cooking (35+)        │                          │
+         │   ├─ Tech (30+)           │                          │
+         │   └─ Business (30+)       │                          │
+         │                           │                          │
+         └─> Raw Videos             │                          │
+             ├─ ID                   │                          │
+             ├─ Title            ────┼──> Text Extraction      │
+             ├─ Description      ────┼──> Combined Text       │
+             ├─ Tags            ────┼──> "title desc tags"     │
+             ├─ Channel Info         │                          │
+             └─ Metadata             │                          │
+                (20-30K)             └──> Embeddings (npy)      │
+                                         Shape: (N, 1536)       │
+                                                               │
+                                                     Level 1 ──┤
+                                              K-Means (k=20)   │
+                                              20 Categories   │
+                                                               │
+                                     ┌─────────────────────────┤
+                                     │
+                              Level 2 ┼─ K-Means (k=5-8)
+                                  for each category
+                                  ~150 Subcategories
+                                     │
+                              Level 3 ┼─ HDBSCAN
+                                  for each subcategory
+                                  ~500 Micro-niches
+                                     │
+                              Level 4 ┼─ Split large niches
+                              (optional)   (~500-1000 final)
+                                     │
+                                     └──> clusters.json
+                                         With centroids & samples
+
+
+     STEP 4: NAME               STEP 5: CLASSIFY            STEP 6: EVALUATE
+     ─────────────────         ──────────────────          ──────────────────
+     GPT-4o-mini               Embedding-based             Quality Metrics
+     Cluster Naming            Similarity Search            Performance Analysis
+
+         │                           │                          │
+         ├─> Per-cluster samples     │                          │
+         │   ├─ Top 15 video titles  │                          │
+         │   ├─ Common hashtags      │                          │
+         │   ├─ Channel info         │                          │
+         │   └─ Centroid coords      │                          │
+         │                           │                          │
+         └─> Prompt: "Name this"    │                          │
+             "Extract top creators"  │                          │
+                                    │                          │
+              ┌──────────────────────┤                          │
+              │                      │                          │
+              └─> taxonomy.json      │                          │
+                  ├─ categories[]    │                          │
+                  ├─ niches{}        │                          │
+                  │  ├─ id           │                          │
+                  │  ├─ name         │                          │
+                  │  ├─ category     │                          │
+                  │  ├─ subcategory  │                          │
+                  │  ├─ centroid[]   │                          │
+                  │  ├─ video_count  │                          │
+                  │  └─ exemplars[]  │                          │
+                  └─ stats{}         │                          │
+                     ├─ total_niches    │                      │
+                     ├─ total_categories┤                      │
+                     └─ coverage        │                      │
+                                    └──────────────────────────┤
+                                        User Query                  │
+                                        "I make cooking           │
+                                         videos..."              │
+                                        │                        │
+                                        ├─> Embed query         │
+                                        ├─> Compute              │
+                                        │   cosine similarity    │
+                                        │   to centroids         │
+                                        │                        │
+                                        └──> Top-5 matches      │
+                                            with confidence    │
+                                            scores             │
+                                                                │
+                                                    ┌───────────┤
+                                                    │           │
+                                            Stability │      Coverage
+                                            Test      │       Metrics
+                                            (re-seed) │       ├─ %videos
+                                            │         │       │  assigned
+                                            │         │       ├─ Balance
+                                            │         │       │  (Gini,
+                                            │         │       │   entropy)
+                                            │         │       ├─ Hierarchy
+                                            │         │       │  depth
+                                            │         │       ├─ Clustering
+                                            │         │       │  quality
+                                            │         │       └─ Report
+                                            │         │
+                                            └─────────┴──> evaluation.json
+                                                        Success metrics
+
+
+================================================================================
+V7 CURRENT STATE (INCOMPLETE)
+================================================================================
+
+WHAT V7 HAS:
+────────────
+
+    sample_data/fitness_*.jsonl
+    (TikTok fitness videos: 62 total)
+              │
+              │
+    ┌─────────┴─────────────────────┐
+    │                               │
+    STEP 2A:                    STEP 2B:
+    Fetch Subtitles            Classify 3R
+    (3/62 success)             (all 62 videos)
+    │                          │
+    └─> WebVTT text           └─> 3R Scores
+        videos_with_               ├─ Reproducible (1-5)
+        subtitles.jsonl            ├─ Relatable (1-5)
+                                   ├─ Repeatable (1-5)
+                               └─> 3r_classification.json
+
+    ALSO:
+    ────
+    Seasonal Classification
+    └─> EVERGREEN/TREND/CALENDAR/MOMENT
+
+
+WHAT V7 IS MISSING:
+───────────────────
+
+    STEP 1 - EMBED
+    ├─ Load raw fitness videos
+    └─> embeddings.npy (62 videos × 1536 dims)
+
+    STEP 3 - CLUSTER
+    ├─ K-Means (k=5-8) for fitness categories
+    └─> fitness_clusters.json
+
+    STEP 4 - TAXONOMY NAMING
+    ├─ Name each cluster
+    └─> fitness_taxonomy.json
+
+    STEP 5 - CLASSIFICATION API
+    ├─ Serve taxonomy
+    └─> /api/v7/taxonomy endpoint
+
+    STEP 6 - EVALUATION
+    ├─ Compute metrics
+    └─> evaluation report
+
+
+================================================================================
+FILE LOCATIONS SUMMARY
+================================================================================
+
+V1 PIPELINE FILES (Reference/Complete)
+┌─ /pipeline/v1/
+│  ├─ 1_collect.py          ✓ Input collection
+│  ├─ 2_embed.py            ✓ Text embedding
+│  ├─ 3_cluster.py          ✓ Hierarchical clustering
+│  ├─ 4_name.py             ✓ LLM cluster naming
+│  ├─ 5_classify.py         ✓ Runtime classification
+│  ├─ 6_evaluate.py         ✓ Quality evaluation
+│  └─ run.sh                ✓ Full pipeline runner
+│
+└─ /data/v1/
+   ├─ raw_videos.jsonl      ✓ Step 1 output
+   ├─ embeddings.npy        ✓ Step 2 output
+   ├─ metadata.json         ✓ Step 2 output
+   ├─ clusters.json         ✓ Step 3 output
+   ├─ taxonomy.json         ✓ Steps 4-5 output
+   └─ evaluation.json       ✓ Step 6 output
+
+
+V7 PIPELINE FILES (Partial/Incomplete)
+┌─ /pipeline/v7/
+│  ├─ 1_classify_seasonal.py ✓ Feature classification
+│  ├─ 2_fetch_subtitles.py   ✓ Data enrichment
+│  ├─ 3_classify_3r.py       ✓ 3R framework
+│  ├─ 4_classify_seasonal.py × Duplicate
+│  └─ PROGRESS.md            ✓ Documentation
+│
+├─ /sample_data/
+│  ├─ fitness_short_all.jsonl        ✓ Input (25 videos)
+│  └─ fitness_super_short_all.jsonl  ✓ Input (37 videos)
+│
+└─ /data/v7/
+   ├─ seasonal_classification.json   ✓ Step 1 output
+   ├─ videos_with_subtitles.jsonl    ✓ Step 2 output
+   └─ 3r_classification.json         ✓ Step 3 output
+       (MISSING: embeddings, clusters, taxonomy)
+
+
+API ENDPOINTS
+┌─ /pages/api/v1/
+│  └─ classify.ts            ✓ Multi-label classifier
+│
+└─ /pages/api/v7/
+   ├─ 3r.ts                  ✓ 3R score endpoint
+   └─ (taxonomy.ts)          × Not created yet
+
+
+================================================================================
+NEXT STEPS ANALYSIS
+================================================================================
+
+TO COMPLETE V7 TAXONOMY GENERATION:
+───────────────────────────────────
+
+Priority Order      Effort      Cost      New Files Needed
+─────────────────   ──────      ──────    ──────────────────────────
+1. Embed videos     5 min       $0.01     5_embed_fitness.py
+2. Cluster          10 min      Free      6_cluster_fitness.py
+3. Name clusters    10 min      $0.10     7_name_fitness_taxonomy.py
+4. API endpoint     15 min      Free      pages/api/v7/taxonomy.ts
+5. Evaluation       10 min      Free      8_evaluate_fitness.py
+                    ──────      ──────
+                    50 min      $0.11     TOTAL
+
+OR use V1 pipeline as-is on larger fitness dataset (10K+ videos)
+
+
+================================================================================

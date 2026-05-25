@@ -10460,18 +10460,2282 @@ Return JSON:
 }
 
 // ============================================================================
+// V7 Types
+// ============================================================================
+// V7 focuses on post-ingest data analysis (before embeddings)
+
+type V7Video = {
+  id: string
+  title: string
+  hashtags: Array<{ name: string } | string>
+  author: string
+  views: number
+  likes: number
+  seed_keyword: string
+  classification: 'EVERGREEN' | 'TREND' | 'CALENDAR' | 'MOMENT' | 'UNKNOWN'
+  reason: string
+}
+
+type V7SeasonalData = {
+  metadata: {
+    total_videos: number
+    min_views_threshold: number
+    evergreen_count: number
+    trend_count: number
+    calendar_count: number
+    moment_count: number
+    unknown_count: number
+    evergreen_pct: number
+    trend_pct: number
+    calendar_pct: number
+    moment_pct: number
+  }
+  by_keyword: Record<string, { evergreen: number; trend: number; calendar: number; moment: number; unknown: number }>
+  videos: V7Video[]
+}
+
+// 3R Framework Types
+type ThreeRScore = 1 | 2 | 3 | 4 | 5
+type ThreeRClassification = {
+  reproducible: {
+    score: ThreeRScore
+    production_complexity: 'LOW' | 'MEDIUM' | 'HIGH'
+    requires_special_access: boolean
+    format_type: string
+    reason: string
+  }
+  relatable: {
+    score: ThreeRScore
+    core_topic: string
+    appeal_type: 'PERSONALITY_DRIVEN' | 'TOPIC_DRIVEN'
+    target_industries: string[]
+    reason: string
+  }
+  repeatable: {
+    score: ThreeRScore
+    format_is_common: boolean
+    trend_dependent: boolean
+    series_potential: string
+    reason: string
+  }
+}
+
+type V7Seasonal = {
+  seasonal_type: 'EVERGREEN' | 'SEASONAL' | 'TREND'
+  confidence: number
+  reason: string
+  time_relevance: 'always' | 'specific_season' | 'short_window'
+}
+
+type V7ThreeRVideo = {
+  video_id: string
+  url: string
+  bucket: 'short' | 'super_short'
+  duration_seconds: number
+  title: string
+  hashtags: string[]
+  author: string
+  engagement: {
+    views: number
+    likes: number
+    comments: number
+    shares: number
+  }
+  subtitle: {
+    available: boolean
+    language: string
+    transcript: string | null
+  }
+  classification_3r: ThreeRClassification | null
+  seasonal: V7Seasonal | null
+}
+
+type V7ThreeRData = {
+  metadata: {
+    total_videos: number
+    classified: number
+    errors: number
+    avg_scores: {
+      reproducible: number
+      relatable: number
+      repeatable: number
+    }
+    by_bucket: {
+      short: { count: number; avg_r1: number; avg_r2: number; avg_r3: number }
+      super_short: { count: number; avg_r1: number; avg_r2: number; avg_r3: number }
+    }
+  }
+  distributions: {
+    format_types: Record<string, number>
+    production_complexity: Record<string, number>
+    appeal_types: Record<string, number>
+    scores: {
+      reproducible: Record<number, number>
+      relatable: Record<number, number>
+      repeatable: Record<number, number>
+    }
+  }
+  videos: V7ThreeRVideo[]
+}
+
+// ============================================================================
+// V7 Analytics Types
+// ============================================================================
+type V7AnalyticsData = {
+  total_videos: number
+  outlier_count: number
+  correlation: number
+  ratio_stats: {
+    min: number
+    max: number
+    mean: number
+    median: number
+    p25: number
+    p75: number
+    upper_fence: number
+  }
+  follower_stats: {
+    min: number
+    max: number
+    avg: number
+  }
+  view_stats: {
+    min: number
+    max: number
+    avg: number
+  }
+  outliers: Array<{
+    author: string
+    video_id: string
+    views: number
+    followers: number
+    ratio: number
+    multiplier: number
+    transcript_preview: string
+  }>
+  normal_videos: Array<{
+    author: string
+    video_id: string
+    views: number
+    followers: number
+    ratio: number
+    multiplier: number
+  }>
+  scatter_data: Array<{
+    author: string
+    video_id: string
+    followers: number
+    views: number
+    ratio: number
+    is_outlier: boolean
+    multiplier: number
+  }>
+}
+
+// ============================================================================
+// V7 Taxonomy Types
+// ============================================================================
+type V7TaxonomyNiche = {
+  name: string
+  description: string
+  target_audience: string
+  category_id: string
+  category_name: string
+  video_count: number
+  total_views: number
+  outlier_count: number
+  avg_3r_scores: {
+    reproducible: number
+    relatable: number
+    repeatable: number
+  }
+  exemplar_creators: Array<{
+    author: string
+    video_count: number
+    total_views: number
+    outlier_count: number
+  }>
+  top_videos: Array<{
+    video_id: string
+    title: string
+    author: string
+    views: number
+    is_outlier: boolean
+    r1_score: number
+    r2_score: number
+    r3_score: number
+    total_3r: number
+    format_type: string
+    core_topic: string
+  }>
+  sample_titles: string[]
+  sample_hashtags: string[]
+  format_types: string[]
+}
+
+type V7TaxonomyData = {
+  categories: Record<string, {
+    name: string
+    cluster_count: number
+    video_count: number
+  }>
+  niches: Record<string, V7TaxonomyNiche>
+  stats: {
+    total_categories: number
+    total_niches: number
+    total_videos: number
+    total_views: number
+    total_outliers: number
+  }
+}
+
+// ============================================================================
+// V7 Analytics Section Component
+// ============================================================================
+function V7AnalyticsSection() {
+  const [data, setData] = useState<V7AnalyticsData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [showAllOutliers, setShowAllOutliers] = useState(false)
+
+  useEffect(() => {
+    fetch('/api/v7/analytics')
+      .then(res => res.json())
+      .then(d => {
+        if (d.error) setError(d.error)
+        else setData(d)
+        setLoading(false)
+      })
+      .catch(() => {
+        setError('Failed to load analytics')
+        setLoading(false)
+      })
+  }, [])
+
+  if (loading) {
+    return (
+      <section>
+        <h3 className="text-sm font-medium text-gray-300 mb-4">View-Follower Analytics</h3>
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 text-center text-gray-500">
+          Loading analytics...
+        </div>
+      </section>
+    )
+  }
+
+  if (error || !data) {
+    return (
+      <section>
+        <h3 className="text-sm font-medium text-gray-300 mb-4">View-Follower Analytics</h3>
+        <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4 text-center">
+          <p className="text-yellow-400 text-sm">{error || 'No analytics data'}</p>
+          <p className="text-gray-500 text-xs mt-1">Run the subtitle fetch pipeline first</p>
+        </div>
+      </section>
+    )
+  }
+
+  const displayedOutliers = showAllOutliers ? data.outliers : data.outliers.slice(0, 5)
+
+  return (
+    <section>
+      <h3 className="text-sm font-medium text-gray-300 mb-4">View-Follower Analytics (Outlier Detection)</h3>
+      <p className="text-xs text-gray-500 mb-4">
+        Videos that performed significantly better than expected based on creator follower count.
+        These are potential viral content ideas worth replicating.
+      </p>
+
+      {/* Summary Stats */}
+      <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 mb-4">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div className="text-center">
+            <div className="text-2xl font-bold text-white">{data.total_videos}</div>
+            <div className="text-xs text-gray-500">Total Videos</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-green-400">{data.outlier_count}</div>
+            <div className="text-xs text-gray-500">Viral Outliers</div>
+            <div className="text-[10px] text-green-400/60">{Math.round(data.outlier_count / data.total_videos * 100)}% of videos</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-blue-400">{data.ratio_stats.median}x</div>
+            <div className="text-xs text-gray-500">Median Ratio</div>
+            <div className="text-[10px] text-blue-400/60">views / followers</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-purple-400">{data.ratio_stats.upper_fence}x</div>
+            <div className="text-xs text-gray-500">Outlier Threshold</div>
+            <div className="text-[10px] text-purple-400/60">IQR method</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-orange-400">{data.correlation}</div>
+            <div className="text-xs text-gray-500">Correlation</div>
+            <div className="text-[10px] text-orange-400/60">weak positive</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Interpretation */}
+      <div className="bg-indigo-500/10 border border-indigo-500/30 rounded-xl p-4 mb-4">
+        <div className="text-sm text-indigo-300 font-medium mb-2">Key Insight</div>
+        <p className="text-xs text-gray-400">
+          On average, a video gets <span className="text-white font-medium">{data.ratio_stats.median}x</span> the creator{"'"}s follower count in views.
+          Videos with {">"}{data.ratio_stats.upper_fence}x ratio are considered <span className="text-green-400 font-medium">viral outliers</span> —
+          they performed way better than expected, suggesting the content itself (not the creator{"'"}s audience) drove the views.
+        </p>
+      </div>
+
+      {/* Viral Outliers Table */}
+      <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden mb-4">
+        <div className="px-4 py-3 border-b border-gray-800 flex items-center justify-between">
+          <div>
+            <h4 className="text-sm font-medium text-white">Viral Outliers</h4>
+            <p className="text-[10px] text-gray-500">Videos that massively outperformed their creator{"'"}s typical reach</p>
+          </div>
+          <span className="text-xs text-green-400 bg-green-500/10 px-2 py-1 rounded">{data.outlier_count} found</span>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-800 text-left">
+                <th className="px-4 py-2 text-gray-400 font-medium">Creator</th>
+                <th className="px-4 py-2 text-gray-400 font-medium text-right">Followers</th>
+                <th className="px-4 py-2 text-gray-400 font-medium text-right">Views</th>
+                <th className="px-4 py-2 text-gray-400 font-medium text-right">Ratio</th>
+                <th className="px-4 py-2 text-gray-400 font-medium text-right">vs Median</th>
+                <th className="px-4 py-2 text-gray-400 font-medium">Content Preview</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-800/50">
+              {displayedOutliers.map((v, i) => (
+                <tr key={v.video_id} className="hover:bg-gray-800/30">
+                  <td className="px-4 py-2">
+                    <a
+                      href={`https://www.tiktok.com/@${v.author}/video/${v.video_id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-indigo-400 hover:text-indigo-300"
+                    >
+                      @{v.author}
+                    </a>
+                  </td>
+                  <td className="px-4 py-2 text-right text-gray-400">{v.followers.toLocaleString()}</td>
+                  <td className="px-4 py-2 text-right text-white font-medium">{v.views.toLocaleString()}</td>
+                  <td className="px-4 py-2 text-right text-green-400">{v.ratio}x</td>
+                  <td className="px-4 py-2 text-right">
+                    <span className="text-yellow-400">{v.multiplier}x</span>
+                    <span className="text-gray-600 text-xs ml-1">median</span>
+                  </td>
+                  <td className="px-4 py-2 text-gray-500 text-xs max-w-xs truncate" title={v.transcript_preview}>
+                    {v.transcript_preview || '—'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {data.outliers.length > 5 && (
+          <div className="px-4 py-2 border-t border-gray-800">
+            <button
+              onClick={() => setShowAllOutliers(!showAllOutliers)}
+              className="text-xs text-indigo-400 hover:text-indigo-300"
+            >
+              {showAllOutliers ? 'Show less' : `Show all ${data.outliers.length} outliers`}
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Scatter Plot Placeholder */}
+      <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+        <h4 className="text-sm font-medium text-white mb-3">Distribution Overview</h4>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+          <div className="bg-gray-800/50 rounded-lg p-3">
+            <div className="text-gray-500 mb-1">Follower Range</div>
+            <div className="text-white">{data.follower_stats.min.toLocaleString()} - {data.follower_stats.max.toLocaleString()}</div>
+          </div>
+          <div className="bg-gray-800/50 rounded-lg p-3">
+            <div className="text-gray-500 mb-1">Avg Followers</div>
+            <div className="text-white">{data.follower_stats.avg.toLocaleString()}</div>
+          </div>
+          <div className="bg-gray-800/50 rounded-lg p-3">
+            <div className="text-gray-500 mb-1">View Range</div>
+            <div className="text-white">{data.view_stats.min.toLocaleString()} - {data.view_stats.max.toLocaleString()}</div>
+          </div>
+          <div className="bg-gray-800/50 rounded-lg p-3">
+            <div className="text-gray-500 mb-1">Avg Views</div>
+            <div className="text-white">{data.view_stats.avg.toLocaleString()}</div>
+          </div>
+        </div>
+        <div className="mt-3 pt-3 border-t border-gray-800 text-[10px] text-gray-600">
+          Ratio percentiles: P25={data.ratio_stats.p25}x, Median={data.ratio_stats.median}x, P75={data.ratio_stats.p75}x
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// ============================================================================
+// V7 Demo Component
+// ============================================================================
+function V7Demo() {
+  const [data, setData] = useState<V7SeasonalData | null>(null)
+  const [threeRData, setThreeRData] = useState<V7ThreeRData | null>(null)
+  const [analyticsData, setAnalyticsData] = useState<V7AnalyticsData | null>(null)
+  const [taxonomyData, setTaxonomyData] = useState<V7TaxonomyData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [filter, setFilter] = useState<'ALL' | 'EVERGREEN' | 'TREND' | 'CALENDAR' | 'MOMENT'>('ALL')
+  const [selectedKeyword, setSelectedKeyword] = useState<string>('')
+  const [bucketFilter, setBucketFilter] = useState<'ALL' | 'short' | 'super_short'>('ALL')
+  const [minR1, setMinR1] = useState<number>(1)
+  const [minR2, setMinR2] = useState<number>(1)
+  const [minR3, setMinR3] = useState<number>(1)
+  const [expandedCategory, setExpandedCategory] = useState<string | null>(null)
+
+  useEffect(() => {
+    // Fetch analytics, seasonal, 3R, and taxonomy data
+    Promise.all([
+      fetch('/api/v7/analytics').then(res => res.json()),
+      fetch('/api/v7/seasonal').then(res => res.json()),
+      fetch('/api/v7/3r').then(res => res.json()),
+      fetch('/api/v7/taxonomy').then(res => res.json()),
+    ])
+      .then(([analytics, seasonalData, threeR, taxonomy]) => {
+        if (!analytics.error) {
+          setAnalyticsData(analytics)
+        }
+        if (!seasonalData.error) {
+          setData(seasonalData)
+        }
+        if (!threeR.error) {
+          setThreeRData(threeR)
+        }
+        if (!taxonomy.error) {
+          setTaxonomyData(taxonomy)
+        }
+        setLoading(false)
+      })
+      .catch(() => {
+        setError('Failed to load data')
+        setLoading(false)
+      })
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="text-gray-500">Loading classification data...</div>
+      </div>
+    )
+  }
+
+  if (error || !analyticsData) {
+    return (
+      <div className="space-y-8">
+        <section>
+          <h2 className="text-xl font-semibold text-white mb-2">V7: Post-Ingest Data Analysis</h2>
+          <p className="text-sm text-gray-400 mb-6">
+            Analyze raw TikTok data <span className="text-indigo-400 font-medium">before</span> embedding generation.
+          </p>
+          <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-6 text-center">
+            <p className="text-yellow-400 text-sm mb-2">Video data not found</p>
+            <p className="text-gray-500 text-xs">Run: <code className="bg-gray-800 px-2 py-1 rounded">python3 pipeline/v7/2_fetch_subtitles.py --apify</code></p>
+          </div>
+        </section>
+      </div>
+    )
+  }
+
+  const filteredVideos = data?.videos?.filter(v => {
+    if (filter !== 'ALL' && v.classification !== filter) return false
+    if (selectedKeyword && v.seed_keyword !== selectedKeyword) return false
+    return true
+  }).slice(0, 50) || []
+
+  const keywords = data ? Object.keys(data.by_keyword).sort() : []
+
+  return (
+    <div className="space-y-8">
+      <section>
+        <h2 className="text-xl font-semibold text-white mb-2">V7: Content Classification for Business Pitches</h2>
+        <p className="text-sm text-gray-400 mb-6">
+          Analyzing {analyticsData.total_videos} TikTok fitness videos with subtitles and follower data.
+        </p>
+      </section>
+
+      {/* Data Ingest Summary */}
+      <section>
+        <h3 className="text-sm font-medium text-gray-300 mb-4">Data Ingest: How We Got This Data</h3>
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+          {/* Pipeline Flow */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-4 border-b border-gray-800">
+            {[
+              { label: 'Apify Scrape', value: '20,687', sub: 'raw videos' },
+              { label: 'Dedupe', value: '17,427', sub: 'unique' },
+              { label: 'Filters', value: '12,542', sub: 'passed' },
+              { label: 'Buckets', value: '8,975 + 3,567', sub: 'super_short + short' },
+              { label: 'Demo Sample', value: '240', sub: 'with follower data' },
+            ].map((step, i) => (
+              <div key={step.label} className="flex items-center">
+                <div className="px-3 py-2 bg-gray-800 rounded-lg text-center min-w-[100px]">
+                  <div className="text-xs font-medium text-white">{step.value}</div>
+                  <div className="text-[10px] text-gray-500">{step.sub}</div>
+                  <div className="text-[9px] text-gray-600 mt-1">{step.label}</div>
+                </div>
+                {i < 4 && <div className="w-6 h-px bg-gray-700 mx-1 flex-shrink-0" />}
+              </div>
+            ))}
+          </div>
+
+          {/* Two Column Layout */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Left: Scraper Config */}
+            <div>
+              <div className="text-xs font-medium text-gray-400 mb-2">Apify Scraper Config</div>
+              <div className="bg-gray-950 rounded-lg p-3 text-[11px] font-mono">
+                <div className="text-gray-500"># Actor</div>
+                <div className="text-indigo-400">apidojo/tiktok-scraper</div>
+                <div className="text-gray-500 mt-2"># Settings</div>
+                <div><span className="text-gray-500">proxy_country:</span> <span className="text-green-400">&quot;US&quot;</span></div>
+                <div><span className="text-gray-500">max_results_per_seed:</span> <span className="text-orange-400">2200</span></div>
+                <div><span className="text-gray-500">request_timeout:</span> <span className="text-orange-400">600s</span></div>
+              </div>
+              <div className="mt-3">
+                <div className="text-xs font-medium text-gray-400 mb-2">Seed Hashtags (15 used)</div>
+                <div className="flex flex-wrap gap-1">
+                  {['fitness', 'gymtok', 'fittok', 'workout', 'homeworkout', 'legday', 'fitnessmotivation', 'fitnesstips', 'gymmotivation'].map(tag => (
+                    <span key={tag} className="px-1.5 py-0.5 bg-gray-800 rounded text-[10px] text-gray-400">#{tag}</span>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Right: Filters Applied */}
+            <div>
+              <div className="text-xs font-medium text-gray-400 mb-2">Filters Applied</div>
+              <div className="space-y-2 text-xs">
+                <div className="flex justify-between items-center py-1.5 border-b border-gray-800/50">
+                  <span className="text-gray-500">Duration buckets</span>
+                  <span className="text-gray-300">super_short: 0-30s, short: 30-90s</span>
+                </div>
+                <div className="flex justify-between items-center py-1.5 border-b border-gray-800/50">
+                  <span className="text-gray-500">Min views</span>
+                  <span className="text-gray-300">100,000</span>
+                </div>
+                <div className="flex justify-between items-center py-1.5 border-b border-gray-800/50">
+                  <span className="text-gray-500">Min likes</span>
+                  <span className="text-gray-300">2,000</span>
+                </div>
+                <div className="flex justify-between items-center py-1.5 border-b border-gray-800/50">
+                  <span className="text-gray-500">Languages</span>
+                  <span className="text-gray-300">en, und</span>
+                </div>
+                <div className="flex justify-between items-center py-1.5">
+                  <span className="text-gray-500">Viral threshold</span>
+                  <span className="text-green-400">{analyticsData.ratio_stats.upper_fence}x follower count</span>
+                </div>
+              </div>
+
+              <div className="mt-4 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+                <div className="text-[10px] text-yellow-400/80">
+                  <strong>Demo limitation:</strong> Due to time constraints, we sampled 240 videos and manually enriched them with creator follower counts from profile scrapes.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Filter Breakdown */}
+          <div className="mt-4 pt-4 border-t border-gray-800">
+            <div className="text-xs font-medium text-gray-400 mb-2">Filter Breakdown</div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+              <div className="bg-gray-800/50 rounded-lg p-2 text-center">
+                <div className="text-red-400 font-medium">3,596</div>
+                <div className="text-[10px] text-gray-500">dropped by language</div>
+              </div>
+              <div className="bg-gray-800/50 rounded-lg p-2 text-center">
+                <div className="text-red-400 font-medium">530</div>
+                <div className="text-[10px] text-gray-500">dropped by views</div>
+              </div>
+              <div className="bg-gray-800/50 rounded-lg p-2 text-center">
+                <div className="text-red-400 font-medium">32</div>
+                <div className="text-[10px] text-gray-500">dropped by likes</div>
+              </div>
+              <div className="bg-gray-800/50 rounded-lg p-2 text-center">
+                <div className="text-red-400 font-medium">727</div>
+                <div className="text-[10px] text-gray-500">dropped by bucket</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Current Dataset Stats */}
+      <section>
+        <h3 className="text-sm font-medium text-gray-300 mb-4">Current Dataset: {analyticsData.total_videos} Videos</h3>
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-white">{analyticsData.total_videos}</div>
+              <div className="text-xs text-gray-500">Total Videos</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-400">{analyticsData.outlier_count}</div>
+              <div className="text-xs text-gray-500">Viral Outliers</div>
+              <div className="text-[10px] text-green-400/60">{Math.round(analyticsData.outlier_count / analyticsData.total_videos * 100)}% of videos</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-blue-400">{analyticsData.ratio_stats.median}x</div>
+              <div className="text-xs text-gray-500">Median Ratio</div>
+              <div className="text-[10px] text-blue-400/60">views / followers</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-purple-400">{(analyticsData.follower_stats.avg / 1000000).toFixed(1)}M</div>
+              <div className="text-xs text-gray-500">Avg Followers</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-orange-400">{(analyticsData.view_stats.avg / 1000000).toFixed(1)}M</div>
+              <div className="text-xs text-gray-500">Avg Views</div>
+            </div>
+          </div>
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-4 text-xs text-gray-500 border-t border-gray-800 pt-4">
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 rounded bg-green-500/50"></span>
+              <span>Outliers: Videos that got {analyticsData.ratio_stats.upper_fence}x+ their follower count in views</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 rounded bg-blue-500/50"></span>
+              <span>All videos have English subtitles for content analysis</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* View-Follower Analytics */}
+      <V7AnalyticsSection />
+
+      {/* 3R Framework Overview */}
+      <section>
+        <h3 className="text-sm font-medium text-gray-300 mb-4">The 3R Framework + Seasonality</h3>
+        <p className="text-xs text-gray-500 mb-4">
+          Four independent filters — not a funnel. Each dimension helps answer a different business question.
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+          {/* Seasonal */}
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center">
+                <span className="text-orange-400 text-sm font-medium">S</span>
+              </div>
+              <div>
+                <div className="text-sm font-medium text-white">Seasonal</div>
+                <div className="text-[10px] text-emerald-400">IMPLEMENTED</div>
+              </div>
+            </div>
+            <p className="text-xs text-gray-500 mb-3">Is this time-sensitive content?</p>
+            <div className="space-y-1 text-[10px] text-gray-600">
+              <div>• Holiday/event specific</div>
+              <div>• Trend-dependent timing</div>
+              <div>• Year-round viability</div>
+            </div>
+          </div>
+
+          {/* Reproducible */}
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-8 rounded-lg bg-yellow-500/20 flex items-center justify-center">
+                <span className="text-yellow-400 text-sm font-medium">R</span>
+              </div>
+              <div>
+                <div className="text-sm font-medium text-white">Reproducible</div>
+                <div className="text-[10px] text-emerald-400">IMPLEMENTED</div>
+              </div>
+            </div>
+            <p className="text-xs text-gray-500 mb-3">Can the business make this?</p>
+            <div className="space-y-1 text-[10px] text-gray-600">
+              <div>• Production complexity (low/med/high)</div>
+              <div>• Special access required?</div>
+              <div>• Template-able format?</div>
+            </div>
+          </div>
+
+          {/* Relatable */}
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                <span className="text-blue-400 text-sm font-medium">R</span>
+              </div>
+              <div>
+                <div className="text-sm font-medium text-white">Relatable</div>
+                <div className="text-[10px] text-emerald-400">IMPLEMENTED</div>
+              </div>
+            </div>
+            <p className="text-xs text-gray-500 mb-3">Will their audience care?</p>
+            <div className="space-y-1 text-[10px] text-gray-600">
+              <div>• Core topic/problem</div>
+              <div>• Personality vs topic driven</div>
+              <div>• Target industry match</div>
+            </div>
+          </div>
+
+          {/* Repeatable */}
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                <span className="text-purple-400 text-sm font-medium">R</span>
+              </div>
+              <div>
+                <div className="text-sm font-medium text-white">Repeatable</div>
+                <div className="text-[10px] text-emerald-400">IMPLEMENTED</div>
+              </div>
+            </div>
+            <p className="text-xs text-gray-500 mb-3">Can they do this weekly?</p>
+            <div className="space-y-1 text-[10px] text-gray-600">
+              <div>• Creator has similar videos?</div>
+              <div>• Format used by others?</div>
+              <div>• Trend-dependent?</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* How Filters Work Together */}
+      <section>
+        <h3 className="text-sm font-medium text-gray-300 mb-4">How to Use These Filters</h3>
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h4 className="text-xs font-medium text-white mb-3">Independent, Not Sequential</h4>
+              <p className="text-xs text-gray-500 mb-3">
+                Each filter is applied separately. A video that scores low on Reproducible might still be valuable
+                for Relatable insights (understanding what topics resonate).
+              </p>
+              <div className="bg-gray-950 rounded-lg p-3 text-xs font-mono text-gray-400">
+                <div className="text-gray-600"># NOT this (funnel):</div>
+                <div className="text-red-400/60">videos → reproducible → relatable → repeatable → pitchable</div>
+                <div className="text-gray-600 mt-2"># THIS (independent):</div>
+                <div className="text-green-400/60">videos → [seasonal] → show all with score</div>
+                <div className="text-green-400/60">videos → [reproducible] → show all with score</div>
+                <div className="text-green-400/60">videos → [relatable] → show all with score</div>
+                <div className="text-green-400/60">videos → [repeatable] → show all with score</div>
+              </div>
+            </div>
+            <div>
+              <h4 className="text-xs font-medium text-white mb-3">Business Use Cases</h4>
+              <div className="space-y-2">
+                {[
+                  { filter: 'Seasonal', useCase: 'Plan content calendar, know when to post what' },
+                  { filter: 'Reproducible', useCase: 'Filter by their budget/equipment/skills' },
+                  { filter: 'Relatable', useCase: 'Match to their industry/audience' },
+                  { filter: 'Repeatable', useCase: 'Find sustainable series, not one-hit wonders' },
+                ].map(item => (
+                  <div key={item.filter} className="flex items-start gap-2 text-xs">
+                    <span className="text-indigo-400 font-medium w-24 flex-shrink-0">{item.filter}:</span>
+                    <span className="text-gray-500">{item.useCase}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 3R Classification Results - Only show if data matches current dataset */}
+      {threeRData && threeRData.metadata.total_videos === analyticsData.total_videos && (
+        <section>
+          <h3 className="text-sm font-medium text-gray-300 mb-4">3R Classification Results</h3>
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 mb-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-white">{threeRData.metadata.classified}</div>
+                <div className="text-xs text-gray-500">Videos Classified</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-yellow-400">{threeRData.metadata.avg_scores.reproducible}/5</div>
+                <div className="text-xs text-gray-500">Avg Reproducible</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-blue-400">{threeRData.metadata.avg_scores.relatable}/5</div>
+                <div className="text-xs text-gray-500">Avg Relatable</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-purple-400">{threeRData.metadata.avg_scores.repeatable}/5</div>
+                <div className="text-xs text-gray-500">Avg Repeatable</div>
+              </div>
+            </div>
+
+            {/* By Bucket */}
+            <div className="border-t border-gray-800 pt-4">
+              <h4 className="text-xs font-medium text-gray-400 mb-3">By Duration Bucket</h4>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-gray-950 rounded-lg p-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="w-3 h-3 rounded bg-purple-500/50"></span>
+                    <span className="text-xs text-white">Super Short (≤30s)</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 text-center">
+                    <div>
+                      <div className="text-sm font-bold text-yellow-400">{threeRData.metadata.by_bucket.super_short.avg_r1}</div>
+                      <div className="text-[10px] text-gray-600">Reproducible</div>
+                    </div>
+                    <div>
+                      <div className="text-sm font-bold text-blue-400">{threeRData.metadata.by_bucket.super_short.avg_r2}</div>
+                      <div className="text-[10px] text-gray-600">Relatable</div>
+                    </div>
+                    <div>
+                      <div className="text-sm font-bold text-purple-400">{threeRData.metadata.by_bucket.super_short.avg_r3}</div>
+                      <div className="text-[10px] text-gray-600">Repeatable</div>
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-gray-950 rounded-lg p-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="w-3 h-3 rounded bg-blue-500/50"></span>
+                    <span className="text-xs text-white">Short (31-90s)</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 text-center">
+                    <div>
+                      <div className="text-sm font-bold text-yellow-400">{threeRData.metadata.by_bucket.short.avg_r1}</div>
+                      <div className="text-[10px] text-gray-600">Reproducible</div>
+                    </div>
+                    <div>
+                      <div className="text-sm font-bold text-blue-400">{threeRData.metadata.by_bucket.short.avg_r2}</div>
+                      <div className="text-[10px] text-gray-600">Relatable</div>
+                    </div>
+                    <div>
+                      <div className="text-sm font-bold text-purple-400">{threeRData.metadata.by_bucket.short.avg_r3}</div>
+                      <div className="text-[10px] text-gray-600">Repeatable</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Distribution Charts */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            {/* Format Types */}
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+              <h4 className="text-xs font-medium text-gray-400 mb-3">Format Types</h4>
+              <div className="space-y-2">
+                {Object.entries(threeRData.distributions.format_types)
+                  .sort((a, b) => b[1] - a[1])
+                  .slice(0, 6)
+                  .map(([type, count]) => (
+                    <div key={type} className="flex items-center gap-2">
+                      <div className="flex-1 h-2 bg-gray-800 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-indigo-500"
+                          style={{ width: `${(count / threeRData.metadata.classified) * 100}%` }}
+                        />
+                      </div>
+                      <span className="text-[10px] text-gray-500 w-20 truncate">{type}</span>
+                      <span className="text-[10px] text-gray-400 w-6 text-right">{count}</span>
+                    </div>
+                  ))}
+              </div>
+            </div>
+
+            {/* Production Complexity */}
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+              <h4 className="text-xs font-medium text-gray-400 mb-3">Production Complexity</h4>
+              <div className="space-y-2">
+                {['LOW', 'MEDIUM', 'HIGH'].map(level => {
+                  const count = threeRData.distributions.production_complexity[level] || 0
+                  const color = level === 'LOW' ? 'bg-green-500' : level === 'MEDIUM' ? 'bg-yellow-500' : 'bg-red-500'
+                  return (
+                    <div key={level} className="flex items-center gap-2">
+                      <div className="flex-1 h-2 bg-gray-800 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full ${color}`}
+                          style={{ width: `${(count / threeRData.metadata.classified) * 100}%` }}
+                        />
+                      </div>
+                      <span className="text-[10px] text-gray-500 w-16">{level}</span>
+                      <span className="text-[10px] text-gray-400 w-6 text-right">{count}</span>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Appeal Type */}
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+              <h4 className="text-xs font-medium text-gray-400 mb-3">Appeal Type</h4>
+              <div className="space-y-2">
+                {Object.entries(threeRData.distributions.appeal_types).map(([type, count]) => {
+                  const color = type === 'TOPIC_DRIVEN' ? 'bg-blue-500' : 'bg-pink-500'
+                  const label = type === 'TOPIC_DRIVEN' ? 'Topic Driven' : 'Personality Driven'
+                  return (
+                    <div key={type} className="flex items-center gap-2">
+                      <div className="flex-1 h-2 bg-gray-800 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full ${color}`}
+                          style={{ width: `${(count / threeRData.metadata.classified) * 100}%` }}
+                        />
+                      </div>
+                      <span className="text-[10px] text-gray-500 w-28 truncate">{label}</span>
+                      <span className="text-[10px] text-gray-400 w-6 text-right">{count}</span>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Overlap Section - High scores on all 3 dimensions */}
+          <div className="bg-gradient-to-r from-emerald-900/20 to-emerald-800/10 border border-emerald-800/50 rounded-xl p-5 mb-4">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+                <span className="text-emerald-400 text-lg font-bold">*</span>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium text-white">Overlap: Best Pitchable Ideas</h4>
+                <p className="text-xs text-gray-500">Videos scoring 4+ on Reproducible, Relatable, AND Repeatable</p>
+              </div>
+              <div className="ml-auto text-right">
+                <div className="text-2xl font-bold text-emerald-400">
+                  {threeRData.videos.filter(v =>
+                    v.classification_3r &&
+                    v.classification_3r.reproducible.score >= 4 &&
+                    v.classification_3r.relatable.score >= 4 &&
+                    v.classification_3r.repeatable.score >= 4
+                  ).length}
+                </div>
+                <div className="text-[10px] text-gray-500">videos qualify</div>
+              </div>
+            </div>
+
+            <div className="space-y-2 max-h-[400px] overflow-y-auto">
+              {threeRData.videos
+                .filter(v =>
+                  v.classification_3r &&
+                  v.classification_3r.reproducible.score >= 4 &&
+                  v.classification_3r.relatable.score >= 4 &&
+                  v.classification_3r.repeatable.score >= 4
+                )
+                .sort((a, b) => {
+                  const aTotal = (a.classification_3r?.reproducible.score ?? 0) + (a.classification_3r?.relatable.score ?? 0) + (a.classification_3r?.repeatable.score ?? 0)
+                  const bTotal = (b.classification_3r?.reproducible.score ?? 0) + (b.classification_3r?.relatable.score ?? 0) + (b.classification_3r?.repeatable.score ?? 0)
+                  return bTotal - aTotal
+                })
+                .slice(0, 15)
+                .map(video => (
+                  <div key={video.video_id} className="bg-gray-900/80 border border-gray-800 rounded-lg p-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5 mb-1 flex-wrap">
+                          {/* Duration badge */}
+                          <span className={`px-1.5 py-0.5 rounded text-[9px] font-medium ${
+                            video.bucket === 'super_short' ? 'bg-purple-500/20 text-purple-400' : 'bg-blue-500/20 text-blue-400'
+                          }`}>
+                            {video.bucket === 'super_short' ? '≤30s' : '31-90s'}
+                          </span>
+                          {/* Seasonal badge */}
+                          {video.seasonal && (
+                            <span className={`px-1.5 py-0.5 rounded text-[9px] font-medium ${
+                              video.seasonal.seasonal_type === 'EVERGREEN' ? 'bg-green-500/20 text-green-400' :
+                              video.seasonal.seasonal_type === 'SEASONAL' ? 'bg-orange-500/20 text-orange-400' :
+                              'bg-pink-500/20 text-pink-400'
+                            }`}>
+                              {video.seasonal.seasonal_type}
+                            </span>
+                          )}
+                          {/* 3R scores */}
+                          <span className="px-1.5 py-0.5 rounded text-[9px] font-medium bg-yellow-500/20 text-yellow-400">
+                            Repr: {video.classification_3r?.reproducible.score}
+                          </span>
+                          <span className="px-1.5 py-0.5 rounded text-[9px] font-medium bg-blue-500/20 text-blue-400">
+                            Rela: {video.classification_3r?.relatable.score}
+                          </span>
+                          <span className="px-1.5 py-0.5 rounded text-[9px] font-medium bg-purple-500/20 text-purple-400">
+                            Repe: {video.classification_3r?.repeatable.score}
+                          </span>
+                          {/* Total score */}
+                          <span className="px-1.5 py-0.5 rounded text-[9px] font-medium bg-emerald-500/20 text-emerald-400">
+                            Total: {(video.classification_3r?.reproducible.score ?? 0) + (video.classification_3r?.relatable.score ?? 0) + (video.classification_3r?.repeatable.score ?? 0)}/15
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-200 line-clamp-1">{video.title}</p>
+                        <div className="flex items-center gap-3 mt-1 text-[10px] text-gray-500">
+                          <span>{video.classification_3r?.reproducible.format_type}</span>
+                          <span>•</span>
+                          <span>{video.classification_3r?.relatable.core_topic}</span>
+                          <span>•</span>
+                          <span>{video.classification_3r?.reproducible.production_complexity} complexity</span>
+                        </div>
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        <div className="text-xs font-medium text-white">{(video.engagement.views / 1000000).toFixed(1)}M</div>
+                        <a
+                          href={video.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[10px] text-indigo-400 hover:text-indigo-300"
+                        >
+                          View
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+            </div>
+
+            {threeRData.videos.filter(v =>
+              v.classification_3r &&
+              v.classification_3r.reproducible.score >= 4 &&
+              v.classification_3r.relatable.score >= 4 &&
+              v.classification_3r.repeatable.score >= 4
+            ).length === 0 && (
+              <div className="text-center py-4 text-gray-500 text-xs">
+                No videos score 4+ on all three dimensions
+              </div>
+            )}
+          </div>
+
+          {/* Filters */}
+          <div className="flex flex-wrap gap-3 mb-4">
+            {/* Bucket filter */}
+            <div className="flex gap-1 bg-gray-900 rounded-lg p-1">
+              {(['ALL', 'super_short', 'short'] as const).map(b => (
+                <button
+                  key={b}
+                  onClick={() => setBucketFilter(b)}
+                  className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                    bucketFilter === b
+                      ? 'bg-indigo-600 text-white'
+                      : 'text-gray-400 hover:text-gray-200'
+                  }`}
+                >
+                  {b === 'ALL' ? 'All' : b === 'super_short' ? '≤30s' : '31-90s'}
+                </button>
+              ))}
+            </div>
+
+            {/* Min score filters */}
+            <div className="flex items-center gap-2 text-xs">
+              <span className="text-gray-500">Min Reproducible:</span>
+              <select
+                value={minR1}
+                onChange={e => setMinR1(Number(e.target.value))}
+                className="bg-gray-900 border border-gray-700 rounded px-2 py-1 text-gray-300"
+              >
+                {[1, 2, 3, 4, 5].map(n => (
+                  <option key={n} value={n}>{n}</option>
+                ))}
+              </select>
+            </div>
+            <div className="flex items-center gap-2 text-xs">
+              <span className="text-gray-500">Min Relatable:</span>
+              <select
+                value={minR2}
+                onChange={e => setMinR2(Number(e.target.value))}
+                className="bg-gray-900 border border-gray-700 rounded px-2 py-1 text-gray-300"
+              >
+                {[1, 2, 3, 4, 5].map(n => (
+                  <option key={n} value={n}>{n}</option>
+                ))}
+              </select>
+            </div>
+            <div className="flex items-center gap-2 text-xs">
+              <span className="text-gray-500">Min Repeatable:</span>
+              <select
+                value={minR3}
+                onChange={e => setMinR3(Number(e.target.value))}
+                className="bg-gray-900 border border-gray-700 rounded px-2 py-1 text-gray-300"
+              >
+                {[1, 2, 3, 4, 5].map(n => (
+                  <option key={n} value={n}>{n}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Video table with 3R scores */}
+          <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+            <div className="overflow-x-auto max-h-[400px] overflow-y-auto">
+              <table className="w-full text-xs">
+                <thead className="bg-gray-800 sticky top-0">
+                  <tr>
+                    <th className="text-left px-3 py-2 text-gray-400 font-medium">Title</th>
+                    <th className="text-center px-2 py-2 text-gray-400 font-medium w-16">Duration</th>
+                    <th className="text-center px-2 py-2 text-gray-400 font-medium w-20">Seasonal</th>
+                    <th className="text-center px-2 py-2 text-yellow-400/70 font-medium w-12">R1</th>
+                    <th className="text-center px-2 py-2 text-blue-400/70 font-medium w-12">R2</th>
+                    <th className="text-center px-2 py-2 text-purple-400/70 font-medium w-12">R3</th>
+                    <th className="text-center px-2 py-2 text-gray-400 font-medium w-20">Format</th>
+                    <th className="text-right px-3 py-2 text-gray-400 font-medium w-16">Views</th>
+                    <th className="text-center px-2 py-2 text-gray-400 font-medium w-12">Link</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-800">
+                  {threeRData.videos
+                    .filter(v => {
+                      if (bucketFilter !== 'ALL' && v.bucket !== bucketFilter) return false
+                      if (!v.classification_3r) return false
+                      if (v.classification_3r.reproducible.score < minR1) return false
+                      if (v.classification_3r.relatable.score < minR2) return false
+                      if (v.classification_3r.repeatable.score < minR3) return false
+                      return true
+                    })
+                    .slice(0, 50)
+                    .map(video => (
+                      <tr key={video.video_id} className="hover:bg-gray-800/50 transition-colors">
+                        <td className="px-3 py-2">
+                          <div className="text-gray-200 line-clamp-1 max-w-[300px]" title={video.title}>
+                            {video.title}
+                          </div>
+                        </td>
+                        <td className="px-2 py-2 text-center">
+                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                            video.bucket === 'super_short' ? 'bg-purple-500/20 text-purple-400' : 'bg-blue-500/20 text-blue-400'
+                          }`}>
+                            {video.bucket === 'super_short' ? '≤30s' : '31-90s'}
+                          </span>
+                        </td>
+                        <td className="px-2 py-2 text-center">
+                          {video.seasonal && (
+                            <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                              video.seasonal.seasonal_type === 'EVERGREEN' ? 'bg-green-500/20 text-green-400' :
+                              video.seasonal.seasonal_type === 'SEASONAL' ? 'bg-orange-500/20 text-orange-400' :
+                              'bg-pink-500/20 text-pink-400'
+                            }`}>
+                              {video.seasonal.seasonal_type}
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-2 py-2 text-center">
+                          <span className="text-yellow-400 font-medium">{video.classification_3r?.reproducible.score}</span>
+                        </td>
+                        <td className="px-2 py-2 text-center">
+                          <span className="text-blue-400 font-medium">{video.classification_3r?.relatable.score}</span>
+                        </td>
+                        <td className="px-2 py-2 text-center">
+                          <span className="text-purple-400 font-medium">{video.classification_3r?.repeatable.score}</span>
+                        </td>
+                        <td className="px-2 py-2 text-center">
+                          <span className="text-gray-500 text-[10px]">{video.classification_3r?.reproducible.format_type}</span>
+                        </td>
+                        <td className="px-3 py-2 text-right">
+                          <span className="text-gray-300">{(video.engagement.views / 1000000).toFixed(1)}M</span>
+                        </td>
+                        <td className="px-2 py-2 text-center">
+                          <a
+                            href={video.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-indigo-400 hover:text-indigo-300"
+                          >
+                            View
+                          </a>
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {threeRData.videos.filter(v => {
+            if (bucketFilter !== 'ALL' && v.bucket !== bucketFilter) return false
+            if (!v.classification_3r) return false
+            if (v.classification_3r.reproducible.score < minR1) return false
+            if (v.classification_3r.relatable.score < minR2) return false
+            if (v.classification_3r.repeatable.score < minR3) return false
+            return true
+          }).length === 0 && (
+            <div className="text-center py-8 text-gray-500 text-sm">
+              No videos match the current filters. Try lowering the minimum scores.
+            </div>
+          )}
+
+          {/* All Videos - Comprehensive Taxonomy View */}
+          <div className="mt-8 border-t border-gray-800 pt-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-sm font-medium text-white">All Videos - Taxonomy View</h3>
+                <p className="text-xs text-gray-500">Complete dataset with all classifications for taxonomy building</p>
+              </div>
+              <div className="text-xs text-gray-500">
+                {threeRData.videos.length} videos total
+              </div>
+            </div>
+
+            {/* Summary Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
+              <div className="bg-gray-900 border border-gray-800 rounded-lg p-3 text-center">
+                <div className="text-lg font-bold text-green-400">
+                  {threeRData.videos.filter(v => v.seasonal?.seasonal_type === 'EVERGREEN').length}
+                </div>
+                <div className="text-[10px] text-gray-500">Evergreen</div>
+              </div>
+              <div className="bg-gray-900 border border-gray-800 rounded-lg p-3 text-center">
+                <div className="text-lg font-bold text-pink-400">
+                  {threeRData.videos.filter(v => v.seasonal?.seasonal_type === 'TREND').length}
+                </div>
+                <div className="text-[10px] text-gray-500">Trend</div>
+              </div>
+              <div className="bg-gray-900 border border-gray-800 rounded-lg p-3 text-center">
+                <div className="text-lg font-bold text-orange-400">
+                  {threeRData.videos.filter(v => v.seasonal?.seasonal_type === 'SEASONAL').length}
+                </div>
+                <div className="text-[10px] text-gray-500">Seasonal</div>
+              </div>
+              <div className="bg-gray-900 border border-gray-800 rounded-lg p-3 text-center">
+                <div className="text-lg font-bold text-purple-400">
+                  {threeRData.videos.filter(v => v.bucket === 'super_short').length}
+                </div>
+                <div className="text-[10px] text-gray-500">Super Short</div>
+              </div>
+              <div className="bg-gray-900 border border-gray-800 rounded-lg p-3 text-center">
+                <div className="text-lg font-bold text-blue-400">
+                  {threeRData.videos.filter(v => v.bucket === 'short').length}
+                </div>
+                <div className="text-[10px] text-gray-500">Short</div>
+              </div>
+            </div>
+
+            {/* Full Video Table */}
+            <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+              <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
+                <table className="w-full text-xs">
+                  <thead className="bg-gray-800 sticky top-0">
+                    <tr>
+                      <th className="text-left px-3 py-2 text-gray-400 font-medium">Title</th>
+                      <th className="text-center px-2 py-2 text-gray-400 font-medium w-16">Duration</th>
+                      <th className="text-center px-2 py-2 text-gray-400 font-medium w-20">Seasonal</th>
+                      <th className="text-center px-2 py-2 text-yellow-400 font-medium w-12">Repr</th>
+                      <th className="text-center px-2 py-2 text-blue-400 font-medium w-12">Rela</th>
+                      <th className="text-center px-2 py-2 text-purple-400 font-medium w-12">Repe</th>
+                      <th className="text-center px-2 py-2 text-emerald-400 font-medium w-12">Total</th>
+                      <th className="text-left px-2 py-2 text-gray-400 font-medium w-24">Format</th>
+                      <th className="text-left px-2 py-2 text-gray-400 font-medium w-28">Core Topic</th>
+                      <th className="text-right px-3 py-2 text-gray-400 font-medium w-16">Views</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-800">
+                    {threeRData.videos
+                      .sort((a, b) => {
+                        const aTotal = (a.classification_3r?.reproducible.score ?? 0) + (a.classification_3r?.relatable.score ?? 0) + (a.classification_3r?.repeatable.score ?? 0)
+                        const bTotal = (b.classification_3r?.reproducible.score ?? 0) + (b.classification_3r?.relatable.score ?? 0) + (b.classification_3r?.repeatable.score ?? 0)
+                        return bTotal - aTotal
+                      })
+                      .map(video => {
+                        const total = (video.classification_3r?.reproducible.score ?? 0) +
+                                     (video.classification_3r?.relatable.score ?? 0) +
+                                     (video.classification_3r?.repeatable.score ?? 0)
+                        return (
+                          <tr key={video.video_id} className="hover:bg-gray-800/50">
+                            <td className="px-3 py-2">
+                              <a
+                                href={video.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-gray-200 hover:text-indigo-400 line-clamp-1 block max-w-[300px]"
+                                title={video.title}
+                              >
+                                {video.title.slice(0, 60)}{video.title.length > 60 ? '...' : ''}
+                              </a>
+                            </td>
+                            <td className="px-2 py-2 text-center">
+                              <span className={`px-1.5 py-0.5 rounded text-[9px] font-medium ${
+                                video.bucket === 'super_short' ? 'bg-purple-500/20 text-purple-400' : 'bg-blue-500/20 text-blue-400'
+                              }`}>
+                                {video.bucket === 'super_short' ? '≤30s' : '31-90s'}
+                              </span>
+                            </td>
+                            <td className="px-2 py-2 text-center">
+                              {video.seasonal && (
+                                <span className={`px-1.5 py-0.5 rounded text-[9px] font-medium ${
+                                  video.seasonal.seasonal_type === 'EVERGREEN' ? 'bg-green-500/20 text-green-400' :
+                                  video.seasonal.seasonal_type === 'SEASONAL' ? 'bg-orange-500/20 text-orange-400' :
+                                  'bg-pink-500/20 text-pink-400'
+                                }`}>
+                                  {video.seasonal.seasonal_type}
+                                </span>
+                              )}
+                            </td>
+                            <td className="px-2 py-2 text-center">
+                              <span className={`font-medium ${
+                                (video.classification_3r?.reproducible.score ?? 0) >= 4 ? 'text-yellow-400' : 'text-gray-500'
+                              }`}>
+                                {video.classification_3r?.reproducible.score ?? '-'}
+                              </span>
+                            </td>
+                            <td className="px-2 py-2 text-center">
+                              <span className={`font-medium ${
+                                (video.classification_3r?.relatable.score ?? 0) >= 4 ? 'text-blue-400' : 'text-gray-500'
+                              }`}>
+                                {video.classification_3r?.relatable.score ?? '-'}
+                              </span>
+                            </td>
+                            <td className="px-2 py-2 text-center">
+                              <span className={`font-medium ${
+                                (video.classification_3r?.repeatable.score ?? 0) >= 4 ? 'text-purple-400' : 'text-gray-500'
+                              }`}>
+                                {video.classification_3r?.repeatable.score ?? '-'}
+                              </span>
+                            </td>
+                            <td className="px-2 py-2 text-center">
+                              <span className={`font-bold ${
+                                total >= 13 ? 'text-emerald-400' : total >= 10 ? 'text-gray-300' : 'text-gray-500'
+                              }`}>
+                                {total}
+                              </span>
+                            </td>
+                            <td className="px-2 py-2 text-gray-400 truncate max-w-[100px]" title={video.classification_3r?.reproducible.format_type}>
+                              {video.classification_3r?.reproducible.format_type ?? '-'}
+                            </td>
+                            <td className="px-2 py-2 text-gray-400 truncate max-w-[120px]" title={video.classification_3r?.relatable.core_topic}>
+                              {video.classification_3r?.relatable.core_topic ?? '-'}
+                            </td>
+                            <td className="px-3 py-2 text-right text-gray-300">
+                              {(video.engagement.views / 1000000).toFixed(1)}M
+                            </td>
+                          </tr>
+                        )
+                      })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* 4-Category Classification Summary - Only show if data matches current dataset */}
+      {data && data.metadata.total_videos === analyticsData.total_videos && (
+      <>
+      <section>
+        <h3 className="text-sm font-medium text-gray-300 mb-4">Seasonal Classification Results</h3>
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-white">{data.metadata.total_videos.toLocaleString()}</div>
+              <div className="text-xs text-gray-500">Videos Analyzed</div>
+              <div className="text-[10px] text-gray-600">({data.metadata.min_views_threshold.toLocaleString()}+ views)</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-400">{data.metadata.evergreen_count.toLocaleString()}</div>
+              <div className="text-xs text-gray-500">Evergreen</div>
+              <div className="text-[10px] text-green-400/60">{data.metadata.evergreen_pct}%</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-purple-400">{data.metadata.trend_count.toLocaleString()}</div>
+              <div className="text-xs text-gray-500">Trend</div>
+              <div className="text-[10px] text-purple-400/60">{data.metadata.trend_pct}%</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-orange-400">{data.metadata.calendar_count.toLocaleString()}</div>
+              <div className="text-xs text-gray-500">Calendar</div>
+              <div className="text-[10px] text-orange-400/60">{data.metadata.calendar_pct}%</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-red-400">{data.metadata.moment_count.toLocaleString()}</div>
+              <div className="text-xs text-gray-500">Moment</div>
+              <div className="text-[10px] text-red-400/60">{data.metadata.moment_pct}%</div>
+            </div>
+          </div>
+
+          {/* Visual bar */}
+          <div className="h-3 rounded-full overflow-hidden flex bg-gray-800">
+            <div
+              className="bg-green-500 h-full"
+              style={{ width: `${data.metadata.evergreen_pct}%` }}
+              title={`Evergreen: ${data.metadata.evergreen_pct}%`}
+            />
+            <div
+              className="bg-purple-500 h-full"
+              style={{ width: `${data.metadata.trend_pct}%` }}
+              title={`Trend: ${data.metadata.trend_pct}%`}
+            />
+            <div
+              className="bg-orange-500 h-full"
+              style={{ width: `${data.metadata.calendar_pct}%` }}
+              title={`Calendar: ${data.metadata.calendar_pct}%`}
+            />
+            <div
+              className="bg-red-500 h-full"
+              style={{ width: `${data.metadata.moment_pct}%` }}
+              title={`Moment: ${data.metadata.moment_pct}%`}
+            />
+          </div>
+
+          {/* Legend */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-3 text-[10px]">
+            <div className="flex items-center gap-1.5">
+              <div className="w-2 h-2 rounded-full bg-green-500" />
+              <span className="text-gray-400">Evergreen - Make anytime</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-2 h-2 rounded-full bg-purple-500" />
+              <span className="text-gray-400">Trend - Check if still active</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-2 h-2 rounded-full bg-orange-500" />
+              <span className="text-gray-400">Calendar - Plan for season</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-2 h-2 rounded-full bg-red-500" />
+              <span className="text-gray-400">Moment - Too late</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Filters */}
+      <section>
+        <h3 className="text-sm font-medium text-gray-300 mb-4">Browse Videos</h3>
+        <div className="flex flex-wrap gap-3 mb-4">
+          {/* Classification filter */}
+          <div className="flex gap-1 bg-gray-900 rounded-lg p-1">
+            {(['ALL', 'EVERGREEN', 'TREND', 'CALENDAR', 'MOMENT'] as const).map(f => (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                  filter === f
+                    ? f === 'EVERGREEN' ? 'bg-green-600 text-white'
+                      : f === 'TREND' ? 'bg-purple-600 text-white'
+                      : f === 'CALENDAR' ? 'bg-orange-600 text-white'
+                      : f === 'MOMENT' ? 'bg-red-600 text-white'
+                      : 'bg-indigo-600 text-white'
+                    : 'text-gray-400 hover:text-gray-200'
+                }`}
+              >
+                {f === 'ALL' ? 'All' : f.charAt(0) + f.slice(1).toLowerCase()}
+              </button>
+            ))}
+          </div>
+
+          {/* Keyword filter */}
+          <select
+            value={selectedKeyword}
+            onChange={e => setSelectedKeyword(e.target.value)}
+            className="bg-gray-900 border border-gray-700 rounded-lg px-3 py-1.5 text-xs text-gray-300"
+          >
+            <option value="">All keywords</option>
+            {keywords.map(kw => (
+              <option key={kw} value={kw}>#{kw}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Video table */}
+        <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+          <div className="overflow-x-auto max-h-[400px] overflow-y-auto">
+            <table className="w-full text-xs">
+              <thead className="bg-gray-800 sticky top-0">
+                <tr>
+                  <th className="text-left px-3 py-2 text-gray-400 font-medium">Title</th>
+                  <th className="text-center px-2 py-2 text-gray-400 font-medium w-20">Type</th>
+                  <th className="text-center px-2 py-2 text-gray-400 font-medium w-24">Keyword</th>
+                  <th className="text-right px-3 py-2 text-gray-400 font-medium w-16">Views</th>
+                  <th className="text-left px-2 py-2 text-gray-400 font-medium w-24">Author</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-800">
+                {filteredVideos.map(video => (
+                  <tr key={video.id} className="hover:bg-gray-800/50">
+                    <td className="px-3 py-2">
+                      <div className="max-w-[400px]">
+                        <p className="text-gray-200 line-clamp-1" title={video.title}>{video.title}</p>
+                        <p className="text-[10px] text-gray-500 line-clamp-1 mt-0.5">{video.reason}</p>
+                      </div>
+                    </td>
+                    <td className="px-2 py-2 text-center">
+                      <span className={`px-1.5 py-0.5 rounded text-[9px] font-medium ${
+                        video.classification === 'EVERGREEN' ? 'bg-green-500/20 text-green-400' :
+                        video.classification === 'TREND' ? 'bg-purple-500/20 text-purple-400' :
+                        video.classification === 'CALENDAR' ? 'bg-orange-500/20 text-orange-400' :
+                        video.classification === 'MOMENT' ? 'bg-red-500/20 text-red-400' :
+                        'bg-gray-500/20 text-gray-400'
+                      }`}>
+                        {video.classification}
+                      </span>
+                    </td>
+                    <td className="px-2 py-2 text-center text-gray-500">#{video.seed_keyword}</td>
+                    <td className="px-3 py-2 text-right text-gray-300">{(video.views / 1000000).toFixed(1)}M</td>
+                    <td className="px-2 py-2 text-gray-400">@{video.author}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {filteredVideos.length === 0 && (
+          <div className="text-center py-8 text-gray-500 text-sm">
+            No videos match the current filters
+          </div>
+        )}
+
+        {filteredVideos.length > 0 && (
+          <p className="text-xs text-gray-600 mt-2 text-center">
+            Showing {filteredVideos.length} videos (sorted by views)
+          </p>
+        )}
+      </section>
+
+      {/* Data Fields */}
+      <section>
+        <h3 className="text-sm font-medium text-gray-300 mb-4">Available Fields per Video</h3>
+        <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-800 bg-gray-900/50">
+                <th className="text-left px-4 py-3 text-xs font-medium text-gray-400">Field</th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-gray-400">Type</th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-gray-400">Example</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-800">
+              {[
+                { field: 'id', type: 'string', example: '"7639410145176325409"' },
+                { field: 'platform', type: 'string', example: '"tiktok"' },
+                { field: 'title', type: 'string', example: '"Aroundly #calisthenics..."' },
+                { field: 'description', type: 'string', example: '(same as title for TikTok)' },
+                { field: 'hashtags', type: 'array', example: '[{name: "calisthenics"}, ...]' },
+                { field: 'author', type: 'string', example: '"avgkefirenjoyer"' },
+                { field: 'author_id', type: 'string', example: '"6671935054665531397"' },
+                { field: 'stats.views', type: 'number', example: '164500' },
+                { field: 'stats.likes', type: 'number', example: '9950' },
+                { field: 'stats.comments', type: 'number', example: '218' },
+                { field: 'stats.shares', type: 'number', example: '328' },
+                { field: 'seed_keyword', type: 'string', example: '"calisthenics"' },
+                { field: 'collected_at', type: 'ISO date', example: '"2026-05-13T16:13:05.000Z"' },
+              ].map(row => (
+                <tr key={row.field} className="hover:bg-gray-800/50">
+                  <td className="px-4 py-2 font-mono text-xs text-indigo-400">{row.field}</td>
+                  <td className="px-4 py-2 text-xs text-gray-500">{row.type}</td>
+                  <td className="px-4 py-2 font-mono text-[11px] text-gray-400 truncate max-w-[200px]">{row.example}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {/* How We Scraped */}
+      <section>
+        <h3 className="text-sm font-medium text-gray-300 mb-4">How We Scraped from Apify</h3>
+        <div className="space-y-4">
+          {/* Scraper Choice */}
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+            <h4 className="text-xs font-medium text-white mb-3">Scraper Used</h4>
+            <div className="flex items-center gap-3 mb-3">
+              <code className="px-2 py-1 bg-gray-800 rounded text-xs text-indigo-300">clockworks/tiktok-scraper</code>
+              <span className="text-xs text-gray-500">via Apify Actor API</span>
+            </div>
+            <p className="text-xs text-gray-500">
+              Pre-built scraper with no approval process needed. Instant access to TikTok data with same hashtag culture as YouTube Shorts.
+            </p>
+          </div>
+
+          {/* Constraints & Considerations */}
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+            <h4 className="text-xs font-medium text-white mb-3">Constraints & Considerations</h4>
+            <div className="space-y-3">
+              {[
+                { label: 'Budget Limit', value: '~$1 (5 Compute Units)', desc: 'TikTok scraper uses ~0.001-0.005 CU per video' },
+                { label: 'Max Total Videos', value: '3,000 cap', desc: 'Conservative limit to stay within budget' },
+                { label: 'Per-Keyword Limit', value: '100 videos', desc: 'Ensures diversity across all seed keywords' },
+                { label: 'No Media Download', value: 'Disabled', desc: 'shouldDownloadVideos: false, shouldDownloadCovers: false' },
+                { label: 'Deduplication', value: 'By video ID', desc: 'seen_ids set prevents duplicate entries' },
+              ].map(item => (
+                <div key={item.label} className="flex items-start gap-3">
+                  <div className="w-32 flex-shrink-0">
+                    <div className="text-xs font-medium text-gray-300">{item.label}</div>
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-xs text-indigo-400">{item.value}</div>
+                    <div className="text-[10px] text-gray-600">{item.desc}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Seed Keywords */}
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+            <h4 className="text-xs font-medium text-white mb-3">Seed Keywords (30 total)</h4>
+            <div className="flex flex-wrap gap-1.5">
+              {[
+                'calisthenics', 'homeworkout', 'gymtok', 'fitnesstransformation', 'hiit', 'yogaflow', 'strengthtraining', 'runningtips',
+                'easycooking', 'mealprep', 'healthyrecipes', 'foodtok', 'whatieatinaday', 'veganrecipes', 'quickmeals',
+                'makeuptutorial', 'skincareroutine', 'grwm', 'beautytok', 'drugstoremakeup', 'nailart',
+                'morningroutine', 'productivity', 'minimalism', 'dayinmylife',
+                'sourdough', 'hyrox', 'swimming', 'marathontraining',
+              ].map(kw => (
+                <span key={kw} className="px-2 py-0.5 bg-gray-800 rounded text-[10px] text-gray-400">#{kw}</span>
+              ))}
+            </div>
+            <p className="text-[10px] text-gray-600 mt-3">
+              Derived from V4 taxonomy categories: Fitness, Food, Beauty, Lifestyle, and additional niches.
+            </p>
+          </div>
+
+          {/* Classification by Seed Keyword */}
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+            <h4 className="text-xs font-medium text-white mb-3">Classification by Seed Keyword</h4>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+              {keywords.map(kw => {
+                const stats = data.by_keyword[kw]
+                const total = stats.evergreen + stats.trend + stats.calendar + stats.moment + stats.unknown
+                const evergreenPct = total > 0 ? Math.round(stats.evergreen / total * 100) : 0
+                const trendPct = total > 0 ? Math.round(stats.trend / total * 100) : 0
+                const calendarPct = total > 0 ? Math.round(stats.calendar / total * 100) : 0
+                const momentPct = total > 0 ? Math.round(stats.moment / total * 100) : 0
+                return (
+                  <button
+                    key={kw}
+                    onClick={() => setSelectedKeyword(selectedKeyword === kw ? '' : kw)}
+                    className={`bg-gray-800 border rounded-lg p-2 text-left transition-all ${
+                      selectedKeyword === kw ? 'border-indigo-500' : 'border-gray-700 hover:border-gray-600'
+                    }`}
+                  >
+                    <div className="text-xs font-medium text-gray-300">#{kw}</div>
+                    <div className="flex items-center gap-1 mt-1">
+                      <div className="flex-1 h-1.5 rounded-full overflow-hidden bg-gray-700 flex">
+                        <div className="bg-green-500 h-full" style={{ width: `${evergreenPct}%` }} />
+                        <div className="bg-purple-500 h-full" style={{ width: `${trendPct}%` }} />
+                        <div className="bg-orange-500 h-full" style={{ width: `${calendarPct}%` }} />
+                        <div className="bg-red-500 h-full" style={{ width: `${momentPct}%` }} />
+                      </div>
+                    </div>
+                    <div className="text-[10px] text-gray-500 mt-1">
+                      {stats.evergreen}E {stats.trend}T {stats.calendar}C {stats.moment}M
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Data Normalization */}
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+            <h4 className="text-xs font-medium text-white mb-3">Data Normalization Applied</h4>
+            <div className="space-y-2 text-xs text-gray-400">
+              <div className="flex items-start gap-2">
+                <span className="text-green-400 mt-0.5">•</span>
+                <span><code className="text-indigo-300">text</code> field mapped to both <code className="text-indigo-300">title</code> and <code className="text-indigo-300">description</code> (TikTok captions)</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="text-green-400 mt-0.5">•</span>
+                <span>Hashtags extracted from <code className="text-indigo-300">hashtags[].name</code> and lowercased</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="text-green-400 mt-0.5">•</span>
+                <span>Author info from <code className="text-indigo-300">authorMeta.name</code> and <code className="text-indigo-300">authorMeta.id</code></span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="text-green-400 mt-0.5">•</span>
+                <span>Stats mapped: playCount → views, diggCount → likes, commentCount → comments, shareCount → shares</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="text-green-400 mt-0.5">•</span>
+                <span><code className="text-indigo-300">seed_keyword</code> added to track which search found each video</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Actual API Input */}
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+            <h4 className="text-xs font-medium text-white mb-3">Actual API Input We Sent</h4>
+            <pre className="bg-gray-950 rounded-lg p-4 text-xs overflow-x-auto">
+              <code className="text-gray-300">{`run_input = {
+    "hashtags": [keyword],        # One hashtag per API call
+    "resultsPerPage": 100,        # Max videos per hashtag
+    "shouldDownloadVideos": False,
+    "shouldDownloadCovers": False,
+}`}</code>
+            </pre>
+            <p className="text-[10px] text-gray-600 mt-3">
+              We looped through 30 keywords, calling the API once per keyword with these minimal parameters.
+            </p>
+          </div>
+
+          {/* What We Used vs What's Available */}
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+            <h4 className="text-xs font-medium text-white mb-3">What We Used vs What{"'"}s Available</h4>
+            <p className="text-[10px] text-gray-500 mb-4">
+              We only used the most basic hashtag search. The Apify scraper has many more options we didn{"'"}t use:
+            </p>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="border-b border-gray-800">
+                    <th className="text-left py-2 pr-4 text-gray-400 font-medium">Apify Option</th>
+                    <th className="text-left py-2 pr-4 text-gray-400 font-medium">What We Used</th>
+                    <th className="text-left py-2 text-gray-400 font-medium">What{"'"}s Available</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-800/50">
+                  {[
+                    { option: 'Starting point', used: 'hashtags only', available: 'hashtags, profiles, search, URLs', usedIt: true },
+                    { option: 'Videos per hashtag', used: '100', available: 'Any number', usedIt: true },
+                    { option: 'Profile scraping', used: 'Not used', available: 'Username list, all their videos', usedIt: false },
+                    { option: 'Profile date filter', used: 'Not used', available: 'Videos after/before date', usedIt: false },
+                    { option: 'Popularity filter', used: 'Not used', available: 'Filter by hearts >= or < N', usedIt: false },
+                    { option: 'Search queries', used: 'Not used', available: 'Keyword search with sorting', usedIt: false },
+                    { option: 'Search sorting', used: 'Not used', available: 'Most relevant, most liked, newest', usedIt: false },
+                    { option: 'Search date filter', used: 'Not used', available: 'All time, today, week, month, etc.', usedIt: false },
+                    { option: 'Video download', used: 'Disabled', available: 'Download videos, thumbnails, avatars', usedIt: false },
+                    { option: 'Subtitles', used: 'Not used', available: 'Subtitles + audio transcription', usedIt: false },
+                    { option: 'Comments', used: 'Not used', available: 'Comments & replies per video', usedIt: false },
+                    { option: 'Country filter', used: 'Not used', available: 'Proxy by country for geo-specific data', usedIt: false },
+                  ].map(row => (
+                    <tr key={row.option}>
+                      <td className="py-2 pr-4 text-gray-300">{row.option}</td>
+                      <td className={`py-2 pr-4 ${row.usedIt ? 'text-green-400' : 'text-gray-600'}`}>{row.used}</td>
+                      <td className="py-2 text-gray-500">{row.available}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="mt-4 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+              <p className="text-[10px] text-yellow-400/80">
+                <span className="font-medium">Note:</span> We left a lot on the table. Future scrapes could use profile scraping
+                (get all videos from specific creators), popularity filters (only viral videos), date filters (recent content only),
+                or even comments data for sentiment analysis.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+      </>
+      )}
+
+      {/* Generated Taxonomy Section */}
+      {taxonomyData && (
+        <section className="border-t border-gray-800 pt-8">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-lg font-semibold text-white">Generated Taxonomy</h3>
+              <p className="text-xs text-gray-500 mt-1">
+                {taxonomyData.stats.total_categories} categories, {taxonomyData.stats.total_niches} niches from {taxonomyData.stats.total_videos} videos
+              </p>
+            </div>
+            <div className="flex items-center gap-6">
+              <div className="text-right">
+                <div className="text-lg font-bold text-blue-400">{(taxonomyData.stats.total_views / 1_000_000_000).toFixed(2)}B</div>
+                <div className="text-[10px] text-gray-500">Total Views</div>
+              </div>
+              <div className="text-right">
+                <div className="text-lg font-bold text-emerald-400">{taxonomyData.stats.total_outliers}</div>
+                <div className="text-[10px] text-gray-500">Viral Videos</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Full-width Category Accordion */}
+          <div className="space-y-3">
+            {Object.entries(taxonomyData.categories).map(([catId, category]) => {
+              const categoryNiches = Object.entries(taxonomyData.niches)
+                .filter(([, niche]) => niche.category_id === catId)
+                .sort((a, b) => b[1].video_count - a[1].video_count)
+              const isExpanded = expandedCategory === catId
+              const totalViews = categoryNiches.reduce((sum, [, n]) => sum + n.total_views, 0)
+
+              return (
+                <div key={catId} className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+                  {/* Category Header */}
+                  <button
+                    onClick={() => setExpandedCategory(isExpanded ? null : catId)}
+                    className="w-full px-5 py-4 flex items-center justify-between hover:bg-gray-800/30 transition-colors"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-indigo-500/30 flex items-center justify-center">
+                        <span className="text-indigo-400 font-bold">{catId.replace('c', '')}</span>
+                      </div>
+                      <div className="text-left">
+                        <div className="text-base font-medium text-white">{category.name}</div>
+                        <div className="text-xs text-gray-500 mt-0.5">
+                          {category.cluster_count} niches · {category.video_count} videos · {(totalViews / 1_000_000).toFixed(0)}M views
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="hidden md:flex items-center gap-2">
+                        {categoryNiches.slice(0, 3).map(([, niche]) => (
+                          <span key={niche.name} className="px-2 py-1 rounded-full text-[10px] bg-gray-800 text-gray-400 truncate max-w-[120px]">
+                            {niche.name}
+                          </span>
+                        ))}
+                        {categoryNiches.length > 3 && (
+                          <span className="text-[10px] text-gray-600">+{categoryNiches.length - 3}</span>
+                        )}
+                      </div>
+                      <svg
+                        className={`w-5 h-5 text-gray-500 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                  </button>
+
+                  {/* Expanded Content */}
+                  {isExpanded && (
+                    <div className="border-t border-gray-800">
+                      {categoryNiches.map(([nicheId, niche], nicheIdx) => (
+                        <div key={nicheId} className={`${nicheIdx > 0 ? 'border-t border-gray-800/50' : ''}`}>
+                          {/* Niche Header */}
+                          <div className="px-5 py-4 bg-gray-800/20">
+                            <div className="flex items-start justify-between gap-4">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-3 mb-1">
+                                  <h4 className="text-sm font-medium text-white">{niche.name}</h4>
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-yellow-500/15 text-yellow-400 border border-yellow-500/20">
+                                      R1: {niche.avg_3r_scores.reproducible.toFixed(1)}
+                                    </span>
+                                    <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-blue-500/15 text-blue-400 border border-blue-500/20">
+                                      R2: {niche.avg_3r_scores.relatable.toFixed(1)}
+                                    </span>
+                                    <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-purple-500/15 text-purple-400 border border-purple-500/20">
+                                      R3: {niche.avg_3r_scores.repeatable.toFixed(1)}
+                                    </span>
+                                  </div>
+                                </div>
+                                <p className="text-xs text-gray-400 mb-2">{niche.description}</p>
+                                <div className="flex items-center gap-4 text-[11px] text-gray-500">
+                                  <span><strong className="text-gray-300">{niche.video_count}</strong> videos</span>
+                                  <span><strong className="text-gray-300">{(niche.total_views / 1_000_000).toFixed(1)}M</strong> views</span>
+                                  {niche.outlier_count > 0 && (
+                                    <span className="text-emerald-400"><strong>{niche.outlier_count}</strong> viral</span>
+                                  )}
+                                  <span className="text-gray-600">|</span>
+                                  <span>Formats: {niche.format_types.slice(0, 3).join(', ')}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Top 3 Videos Table */}
+                          {niche.top_videos && niche.top_videos.length > 0 && (
+                            <div className="px-5 pb-4">
+                              <div className="text-[10px] text-gray-500 uppercase tracking-wider mb-2 mt-2">Top Videos by 3R Score</div>
+                              <div className="bg-gray-950/50 rounded-lg overflow-hidden border border-gray-800/50">
+                                <table className="w-full text-xs">
+                                  <thead>
+                                    <tr className="border-b border-gray-800/50">
+                                      <th className="text-left px-3 py-2 text-gray-500 font-medium w-8">#</th>
+                                      <th className="text-left px-3 py-2 text-gray-500 font-medium">Title</th>
+                                      <th className="text-left px-3 py-2 text-gray-500 font-medium w-28">Creator</th>
+                                      <th className="text-center px-3 py-2 text-gray-500 font-medium w-16">Views</th>
+                                      <th className="text-center px-2 py-2 text-yellow-500/70 font-medium w-10">R1</th>
+                                      <th className="text-center px-2 py-2 text-blue-500/70 font-medium w-10">R2</th>
+                                      <th className="text-center px-2 py-2 text-purple-500/70 font-medium w-10">R3</th>
+                                      <th className="text-center px-3 py-2 text-emerald-500/70 font-medium w-14">Total</th>
+                                      <th className="text-center px-3 py-2 text-gray-500 font-medium w-12"></th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {niche.top_videos.map((video, idx) => (
+                                      <tr key={video.video_id} className="border-b border-gray-800/30 last:border-0 hover:bg-gray-800/30">
+                                        <td className="px-3 py-2.5 text-gray-500 font-medium">{idx + 1}</td>
+                                        <td className="px-3 py-2.5">
+                                          <div className="flex items-center gap-2">
+                                            {video.is_outlier && (
+                                              <span className="px-1.5 py-0.5 rounded text-[9px] font-medium bg-pink-500/20 text-pink-400 flex-shrink-0">
+                                                VIRAL
+                                              </span>
+                                            )}
+                                            <span className="text-gray-200 truncate max-w-[300px]" title={video.title}>
+                                              {video.title}
+                                            </span>
+                                          </div>
+                                          <div className="text-[10px] text-gray-600 mt-0.5">{video.format_type} · {video.core_topic}</div>
+                                        </td>
+                                        <td className="px-3 py-2.5 text-indigo-400">@{video.author}</td>
+                                        <td className="px-3 py-2.5 text-center text-gray-300">{(video.views / 1_000_000).toFixed(1)}M</td>
+                                        <td className="px-2 py-2.5 text-center">
+                                          <span className={`font-medium ${video.r1_score >= 4 ? 'text-yellow-400' : 'text-gray-500'}`}>
+                                            {video.r1_score}
+                                          </span>
+                                        </td>
+                                        <td className="px-2 py-2.5 text-center">
+                                          <span className={`font-medium ${video.r2_score >= 4 ? 'text-blue-400' : 'text-gray-500'}`}>
+                                            {video.r2_score}
+                                          </span>
+                                        </td>
+                                        <td className="px-2 py-2.5 text-center">
+                                          <span className={`font-medium ${video.r3_score >= 4 ? 'text-purple-400' : 'text-gray-500'}`}>
+                                            {video.r3_score}
+                                          </span>
+                                        </td>
+                                        <td className="px-3 py-2.5 text-center">
+                                          <span className={`font-bold ${
+                                            video.total_3r >= 13 ? 'text-emerald-400' :
+                                            video.total_3r >= 10 ? 'text-blue-400' : 'text-gray-400'
+                                          }`}>
+                                            {video.total_3r}/15
+                                          </span>
+                                        </td>
+                                        <td className="px-3 py-2.5 text-center">
+                                          <a
+                                            href={`https://www.tiktok.com/@${video.author}/video/${video.video_id}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-indigo-400 hover:text-indigo-300 text-[10px]"
+                                          >
+                                            View
+                                          </a>
+                                        </td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Pipeline info */}
+          <div className="mt-4 text-[10px] text-gray-600 text-center">
+            Pipeline: text-embedding-3-small → K-Means clustering → GPT-4o-mini naming
+          </div>
+        </section>
+      )}
+
+      {/* Top 10 Niches Leaderboard */}
+      {taxonomyData && (
+        <section className="border-t border-gray-800 pt-8">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-lg font-semibold text-white">Top 10 Niches for Business Pitches</h3>
+              <p className="text-xs text-gray-500 mt-1">
+                Ranked by composite score: 3R average + viral bonus + volume factor
+              </p>
+            </div>
+            <div className="text-[10px] text-gray-600 bg-gray-800 px-3 py-1.5 rounded-lg">
+              Score = (R1+R2+R3)/3 × 2 + (outliers × 0.5) + log(videos)
+            </div>
+          </div>
+
+          <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-x-auto">
+            <table className="w-full text-sm min-w-[1200px]">
+              <thead>
+                <tr className="border-b border-gray-800 bg-gray-800/50">
+                  <th className="text-left px-4 py-3 text-gray-400 font-medium w-12">#</th>
+                  <th className="text-left px-4 py-3 text-gray-400 font-medium">Niche</th>
+                  <th className="text-left px-4 py-3 text-gray-400 font-medium w-32">Category</th>
+                  <th className="text-center px-3 py-3 text-yellow-500/70 font-medium w-14">R1</th>
+                  <th className="text-center px-3 py-3 text-blue-500/70 font-medium w-14">R2</th>
+                  <th className="text-center px-3 py-3 text-purple-500/70 font-medium w-14">R3</th>
+                  <th className="text-center px-3 py-3 text-gray-400 font-medium w-16">Videos</th>
+                  <th className="text-center px-3 py-3 text-emerald-500/70 font-medium w-16">Viral</th>
+                  <th className="text-center px-4 py-3 text-indigo-400 font-medium w-20">Score</th>
+                  <th className="text-left px-4 py-3 text-gray-400 font-medium">Top Video Sample</th>
+                </tr>
+              </thead>
+              <tbody>
+                {Object.entries(taxonomyData.niches)
+                  .map(([nicheId, niche]) => {
+                    const avg3R = (niche.avg_3r_scores.reproducible + niche.avg_3r_scores.relatable + niche.avg_3r_scores.repeatable) / 3
+                    const score = (avg3R * 2) + (niche.outlier_count * 0.5) + Math.log(niche.video_count + 1)
+                    return { nicheId, niche, avg3R, score }
+                  })
+                  .sort((a, b) => b.score - a.score)
+                  .slice(0, 10)
+                  .map(({ nicheId, niche, avg3R, score }, idx) => (
+                    <tr key={nicheId} className={`border-b border-gray-800/50 hover:bg-gray-800/30 ${idx < 3 ? 'bg-gradient-to-r from-indigo-900/10 to-transparent' : ''}`}>
+                      <td className="px-4 py-3">
+                        <span className={`font-bold ${idx === 0 ? 'text-yellow-400' : idx === 1 ? 'text-gray-300' : idx === 2 ? 'text-orange-400' : 'text-gray-500'}`}>
+                          {idx + 1}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="text-white font-medium">{niche.name}</div>
+                        <div className="text-[10px] text-gray-500 mt-0.5 line-clamp-1">{niche.description}</div>
+                      </td>
+                      <td className="px-4 py-3 text-xs text-gray-400">{niche.category_name}</td>
+                      <td className="px-3 py-3 text-center">
+                        <span className={`font-medium ${niche.avg_3r_scores.reproducible >= 4 ? 'text-yellow-400' : 'text-gray-500'}`}>
+                          {niche.avg_3r_scores.reproducible.toFixed(1)}
+                        </span>
+                      </td>
+                      <td className="px-3 py-3 text-center">
+                        <span className={`font-medium ${niche.avg_3r_scores.relatable >= 4 ? 'text-blue-400' : 'text-gray-500'}`}>
+                          {niche.avg_3r_scores.relatable.toFixed(1)}
+                        </span>
+                      </td>
+                      <td className="px-3 py-3 text-center">
+                        <span className={`font-medium ${niche.avg_3r_scores.repeatable >= 4 ? 'text-purple-400' : 'text-gray-500'}`}>
+                          {niche.avg_3r_scores.repeatable.toFixed(1)}
+                        </span>
+                      </td>
+                      <td className="px-3 py-3 text-center text-gray-300">{niche.video_count}</td>
+                      <td className="px-3 py-3 text-center">
+                        {niche.outlier_count > 0 ? (
+                          <span className="text-emerald-400 font-medium">{niche.outlier_count}</span>
+                        ) : (
+                          <span className="text-gray-600">0</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <span className="text-indigo-400 font-bold">{score.toFixed(1)}</span>
+                      </td>
+                      <td className="px-4 py-3">
+                        {niche.top_videos?.[0] ? (
+                          <div className="flex items-center gap-2">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-1.5 mb-0.5">
+                                {niche.top_videos[0].is_outlier && (
+                                  <span className="px-1 py-0.5 rounded text-[8px] font-medium bg-pink-500/20 text-pink-400">VIRAL</span>
+                                )}
+                                <span className={`px-1 py-0.5 rounded text-[8px] font-medium ${
+                                  niche.top_videos[0].total_3r >= 13 ? 'bg-emerald-500/20 text-emerald-400' : 'bg-gray-600/20 text-gray-400'
+                                }`}>
+                                  {niche.top_videos[0].total_3r}/15
+                                </span>
+                                <span className="text-[10px] text-gray-500">{(niche.top_videos[0].views / 1_000_000).toFixed(1)}M</span>
+                              </div>
+                              <div className="text-[11px] text-gray-300 truncate max-w-[250px]" title={niche.top_videos[0].title}>
+                                {niche.top_videos[0].title}
+                              </div>
+                              <div className="text-[10px] text-gray-500">@{niche.top_videos[0].author}</div>
+                            </div>
+                            <a
+                              href={`https://www.tiktok.com/@${niche.top_videos[0].author}/video/${niche.top_videos[0].video_id}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="px-2 py-1 bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-400 rounded text-[10px] font-medium flex-shrink-0"
+                            >
+                              Watch
+                            </a>
+                          </div>
+                        ) : (
+                          <span className="text-gray-600 text-xs">No video</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
+
+        </section>
+      )}
+
+      {/* Best Videos from Top Niches - Table View */}
+      {taxonomyData && (
+        <section className="border-t border-gray-800 pt-8">
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-white">Best Videos from Top Niches</h3>
+            <p className="text-xs text-gray-500 mt-1">
+              Top-scoring video from each of the best niches - ready for pitch inspiration
+            </p>
+          </div>
+
+          <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-x-auto">
+            <table className="w-full text-sm min-w-[1100px]">
+              <thead>
+                <tr className="border-b border-gray-800 bg-gray-800/50">
+                  <th className="text-left px-4 py-3 text-gray-400 font-medium w-12">#</th>
+                  <th className="text-left px-4 py-3 text-gray-400 font-medium w-48">Niche</th>
+                  <th className="text-left px-4 py-3 text-gray-400 font-medium">Video Title</th>
+                  <th className="text-left px-3 py-3 text-gray-400 font-medium w-28">Creator</th>
+                  <th className="text-center px-3 py-3 text-gray-400 font-medium w-20">Views</th>
+                  <th className="text-center px-3 py-3 text-emerald-500/70 font-medium w-16">3R</th>
+                  <th className="text-center px-3 py-3 text-gray-400 font-medium w-20">Status</th>
+                  <th className="text-left px-3 py-3 text-gray-400 font-medium w-32">Format / Topic</th>
+                  <th className="text-center px-4 py-3 text-gray-400 font-medium w-16"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {Object.entries(taxonomyData.niches)
+                  .map(([nicheId, niche]) => {
+                    const avg3R = (niche.avg_3r_scores.reproducible + niche.avg_3r_scores.relatable + niche.avg_3r_scores.repeatable) / 3
+                    const score = (avg3R * 2) + (niche.outlier_count * 0.5) + Math.log(niche.video_count + 1)
+                    return { nicheId, niche, score }
+                  })
+                  .sort((a, b) => b.score - a.score)
+                  .slice(0, 10)
+                  .map(({ nicheId, niche, score }, idx) => {
+                    const video = niche.top_videos?.[0]
+                    if (!video) return null
+                    return (
+                      <tr key={nicheId} className={`border-b border-gray-800/50 hover:bg-gray-800/30 ${idx < 3 ? 'bg-gradient-to-r from-indigo-900/10 to-transparent' : ''}`}>
+                        <td className="px-4 py-3">
+                          <span className={`font-bold ${idx === 0 ? 'text-yellow-400' : idx === 1 ? 'text-gray-300' : idx === 2 ? 'text-orange-400' : 'text-gray-500'}`}>
+                            {idx + 1}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="text-white font-medium text-xs">{niche.name}</div>
+                          <div className="text-[10px] text-gray-500">{niche.category_name}</div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="text-gray-200 text-xs line-clamp-2 max-w-[280px]" title={video.title}>
+                            {video.title}
+                          </div>
+                        </td>
+                        <td className="px-3 py-3">
+                          <span className="text-indigo-400 text-xs">@{video.author}</span>
+                        </td>
+                        <td className="px-3 py-3 text-center">
+                          <span className="text-gray-300 font-medium">{(video.views / 1_000_000).toFixed(1)}M</span>
+                        </td>
+                        <td className="px-3 py-3 text-center">
+                          <span className={`font-bold ${
+                            video.total_3r >= 13 ? 'text-emerald-400' :
+                            video.total_3r >= 10 ? 'text-blue-400' : 'text-gray-400'
+                          }`}>
+                            {video.total_3r}/15
+                          </span>
+                        </td>
+                        <td className="px-3 py-3 text-center">
+                          {video.is_outlier ? (
+                            <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-pink-500/20 text-pink-400">
+                              VIRAL
+                            </span>
+                          ) : (
+                            <span className="text-[10px] text-gray-600">—</span>
+                          )}
+                        </td>
+                        <td className="px-3 py-3">
+                          <div className="text-[10px] text-gray-400">{video.format_type}</div>
+                          <div className="text-[10px] text-gray-600 truncate max-w-[120px]" title={video.core_topic}>
+                            {video.core_topic}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <a
+                            href={`https://www.tiktok.com/@${video.author}/video/${video.video_id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-3 py-1.5 bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-400 rounded text-xs font-medium"
+                          >
+                            Watch
+                          </a>
+                        </td>
+                      </tr>
+                    )
+                  })}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
+      {/* Pipeline Position Visualization */}
+      <section>
+        <h3 className="text-sm font-medium text-gray-300 mb-4">Where V7 Fits in the Pipeline</h3>
+        <div className="flex items-center gap-2 overflow-x-auto pb-2">
+          {[
+            { step: '1', label: 'Ingest', desc: 'Apify TikTok', active: false },
+            { step: '2', label: 'V7 Analysis', desc: 'Post-ingest QA', active: true },
+            { step: '3', label: 'Embed', desc: 'Generate vectors', active: false },
+            { step: '4', label: 'Cluster', desc: 'Group content', active: false },
+            { step: '5', label: 'Taxonomy', desc: 'Name & structure', active: false },
+          ].map((s, i) => (
+            <div key={s.step} className="flex items-center">
+              <div className={`px-4 py-3 rounded-lg border ${s.active ? 'bg-indigo-600/20 border-indigo-500 text-indigo-300' : 'bg-gray-900 border-gray-700 text-gray-400'}`}>
+                <div className="text-xs font-medium">{s.label}</div>
+                <div className="text-[10px] text-gray-500">{s.desc}</div>
+              </div>
+              {i < 4 && <div className="w-4 h-px bg-gray-700 mx-1" />}
+            </div>
+          ))}
+        </div>
+      </section>
+
+    </div>
+  )
+}
+
+// ============================================================================
+// V7 Process Component
+// ============================================================================
+function V7Process() {
+  return (
+    <div className="space-y-8">
+      <section>
+        <h2 className="text-xl font-semibold text-white mb-2">V7 Process: Post-Ingest Analysis</h2>
+        <p className="text-sm text-gray-400 mb-6">
+          V7 introduces a data quality layer between ingestion and embedding generation.
+        </p>
+
+        {/* Process Flow */}
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+          <h3 className="text-sm font-medium text-gray-300 mb-4">V7 Pipeline Steps</h3>
+          <div className="space-y-4">
+            {[
+              { step: 1, title: 'Load Raw Data', desc: 'Read ingested videos from all sources (YouTube, TikTok, Instagram)' },
+              { step: 2, title: 'Field Validation', desc: 'Check required fields: title, description, hashtags, author' },
+              { step: 3, title: 'Duplicate Detection', desc: 'Find exact matches (video ID) and fuzzy matches (title similarity)' },
+              { step: 4, title: 'Quality Scoring', desc: 'Score each video: text length, hashtag count, description quality' },
+              { step: 5, title: 'Statistics Report', desc: 'Generate summary: total videos, quality distribution, issues found' },
+              { step: 6, title: 'Clean Dataset', desc: 'Output filtered dataset ready for embedding generation' },
+            ].map(s => (
+              <div key={s.step} className="flex gap-4 items-start">
+                <div className="w-8 h-8 rounded-full bg-indigo-600/20 border border-indigo-500 flex items-center justify-center text-xs font-medium text-indigo-300 flex-shrink-0">
+                  {s.step}
+                </div>
+                <div>
+                  <div className="text-sm font-medium text-gray-200">{s.title}</div>
+                  <div className="text-xs text-gray-500">{s.desc}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Why This Matters */}
+      <section>
+        <h3 className="text-sm font-medium text-gray-300 mb-4">Why Post-Ingest Analysis?</h3>
+        <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-4">
+          <ul className="space-y-2 text-sm text-gray-400">
+            <li className="flex gap-2">
+              <span className="text-green-400">✓</span>
+              <span>Catch data quality issues <em>before</em> spending money on embeddings</span>
+            </li>
+            <li className="flex gap-2">
+              <span className="text-green-400">✓</span>
+              <span>Remove duplicates that would skew clustering</span>
+            </li>
+            <li className="flex gap-2">
+              <span className="text-green-400">✓</span>
+              <span>Understand your dataset composition before taxonomy generation</span>
+            </li>
+            <li className="flex gap-2">
+              <span className="text-green-400">✓</span>
+              <span>Make informed decisions about filtering thresholds</span>
+            </li>
+          </ul>
+        </div>
+      </section>
+    </div>
+  )
+}
+
+// ============================================================================
 // Main App Component
 // ============================================================================
 export default function Home() {
   const router = useRouter()
   const [taxonomy, setTaxonomy] = useState<Taxonomy | null>(null)
   const [taxError, setTaxError] = useState('')
-  const [version, setVersion] = useState<'v0' | 'v1' | 'v2' | 'v3' | 'v4' | 'v5' | 'v6'>('v0')
+  const [version, setVersion] = useState<'v0' | 'v1' | 'v2' | 'v3' | 'v4' | 'v5' | 'v6' | 'v7'>('v0')
 
   useEffect(() => {
     const v = router.query.v
-    if (v && ['v0', 'v1', 'v2', 'v3', 'v4', 'v5', 'v6'].includes(v as string)) {
-      setVersion(v as 'v0' | 'v1' | 'v2' | 'v3' | 'v4' | 'v5' | 'v6')
+    if (v && ['v0', 'v1', 'v2', 'v3', 'v4', 'v5', 'v6', 'v7'].includes(v as string)) {
+      setVersion(v as 'v0' | 'v1' | 'v2' | 'v3' | 'v4' | 'v5' | 'v6' | 'v7')
     }
   }, [router.query.v])
   const [v0Page, setV0Page] = useState<'demo' | 'process'>('demo')
@@ -10481,6 +12745,7 @@ export default function Home() {
   const [v4Page, setV4Page] = useState<'demo' | 'process'>('demo')
   const [v5Page, setV5Page] = useState<'demo' | 'process'>('demo')
   const [v6Page, setV6Page] = useState<'demo' | 'process'>('demo')
+  const [v7Page, setV7Page] = useState<'demo' | 'process'>('demo')
   const [v1Taxonomy, setV1Taxonomy] = useState<V1TaxonomyData | null>(null)
   const [v2Taxonomy, setV2Taxonomy] = useState<V2TaxonomyData | null>(null)
   const [v3Taxonomy, setV3Taxonomy] = useState<V3TaxonomyData | null>(null)
@@ -10541,7 +12806,7 @@ export default function Home() {
           <div className="flex items-center gap-3">
             {/* Version Tabs */}
             <nav className="flex gap-1 bg-gray-900 rounded-lg p-1">
-              {(['v0', 'v1', 'v2', 'v3', 'v4', 'v5', 'v6'] as const).map(v => (
+              {(['v0', 'v1', 'v2', 'v3', 'v4', 'v5', 'v6', 'v7'] as const).map(v => (
                 <button
                   key={v}
                   onClick={() => setVersion(v)}
@@ -10732,6 +12997,30 @@ export default function Home() {
         </div>
       )}
 
+      {/* V7 Sub-navigation */}
+      {version === 'v7' && (
+        <div className="border-b border-gray-800/50 px-6 py-2 bg-gray-900/30">
+          <div className="max-w-5xl mx-auto flex gap-4">
+            {[
+              { key: 'demo' as const, label: 'Demo' },
+              { key: 'process' as const, label: 'Process & Flowchart' },
+            ].map(item => (
+              <button
+                key={item.key}
+                onClick={() => setV7Page(item.key)}
+                className={`text-sm py-1 border-b-2 transition-all ${
+                  v7Page === item.key
+                    ? 'text-indigo-400 border-indigo-500'
+                    : 'text-gray-500 border-transparent hover:text-gray-300'
+                }`}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       <main className="max-w-5xl mx-auto px-6 py-10">
         {/* V0 Content */}
         {version === 'v0' && (
@@ -10786,6 +13075,14 @@ export default function Home() {
           <>
             {v6Page === 'demo' && <V6Demo v6Taxonomy={v6Taxonomy} />}
             {v6Page === 'process' && <V6Process />}
+          </>
+        )}
+
+        {/* V7 Content */}
+        {version === 'v7' && (
+          <>
+            {v7Page === 'demo' && <V7Demo />}
+            {v7Page === 'process' && <V7Process />}
           </>
         )}
       </main>
