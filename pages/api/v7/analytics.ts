@@ -79,6 +79,13 @@ export default function handler(
 ) {
   try {
     const dataPath = path.join(process.cwd(), 'data', 'v7', 'raw_videos.jsonl')
+    const cachePath = path.join(process.cwd(), 'data', 'v7', 'analytics_cache.json')
+
+    // Try cached analytics first (for Vercel deployment)
+    if (!fs.existsSync(dataPath) && fs.existsSync(cachePath)) {
+      const cached = JSON.parse(fs.readFileSync(cachePath, 'utf-8'))
+      return res.status(200).json(cached)
+    }
 
     if (!fs.existsSync(dataPath)) {
       return res.status(404).json({ error: 'No V7 data found. Run the pipeline first.' })
